@@ -12,7 +12,7 @@ The visual direction follows Rams/Braun instrumentation and Swiss typography: wa
 | `--blue` | `#003DA5` | Focus, information |
 | `--orange` | `#FF6A00` | Active navigation and preview indicator |
 
-Tokens live in `frontend/src/styles.css`. Orange is an indicator rather than small body text. Selection also has a filled background and `aria-current`, so color is not the only cue. Focus uses a visible blue outline. Primary font: Inter; technical labels: IBM Plex Mono; wordmark: Jost. Fonts ship locally through Fontsource (SIL Open Font License); no Google Fonts request is required.
+Tokens live in `frontend/src/styles.css`. Orange is an indicator rather than small body text. Selection also has a filled background and `aria-current`, so color is not the only cue. Focus uses a visible blue outline. Primary font: Inter; technical labels: IBM Plex Mono; wordmark: Outfit Regular, lowercase, following the supplied geometric sans-serif reference. This is a visual match in direction, not an identification of the reference font. Fonts ship locally through Fontsource (SIL Open Font License); no Google Fonts request is required.
 
 Layout starts with a 204px sidebar at 1024×600. Dashboard columns use `minmax(0,1fr)` to prevent overflow. Large screens add whitespace and typography size, rather than stretching a bitmap. Below 850px, metrics and quick access reflow; smaller phone layouts are outside the primary acceptance target. Touch controls are at least 44px high. Navigation is native buttons; keyboard focus, Cmd/Ctrl+K and Escape are supported. Motion is limited to hover transitions and respects reduced-motion preferences.
 

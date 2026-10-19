@@ -74,9 +74,9 @@ button:disabled {
   flex-shrink: 0;
 }
 .wordmark {
-  font-family: Jost, var(--sans);
-  font-weight: 600;
-  font-size: 21px;
+  font-family: Outfit, var(--sans);
+  font-weight: 400;
+  font-size: 30px;
   line-height: 1.05;
   letter-spacing: -0.6px;
 }
@@ -752,7 +752,7 @@ kbd {
     padding: 25px 10px 12px;
   }
   .wordmark {
-    font-size: 18px;
+    font-size: 26px;
   }
   .brand {
     padding: 0 5px;

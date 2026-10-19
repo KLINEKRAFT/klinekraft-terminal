@@ -8,7 +8,7 @@ export function KlinekraftLogo() {
 export function KlinekraftWordmark() {
   return (
     <div className="wordmark">
-      KLINEKRAFT<span>TERMINAL</span>
+      klinekraft<span>TERMINAL</span>
     </div>
   );
 }
