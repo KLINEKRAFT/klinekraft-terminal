@@ -12,7 +12,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "playwright test",
     "brand:import": "node scripts/import-brand.mjs",
-    "format": "prettier --write frontend/src tests scripts *.ts *.json"
+    "format": "prettier --write frontend/src tests scripts *.ts *.json",
+    "brand:lockup": "node scripts/import-brand-lockup.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",

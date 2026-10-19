@@ -1,4 +1,4 @@
-import { copyFile, mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import sharp from "sharp";
 import path from "node:path";
 const source = process.argv[2];
@@ -36,10 +36,16 @@ for (const [name, size] of [
     .png()
     .toFile(`frontend/public/brand/${name}.png`);
 }
+const existing = JSON.parse(
+  await readFile("frontend/public/brand/manifest.json", "utf8"),
+);
 await writeFile(
   "frontend/public/brand/manifest.json",
-  JSON.stringify({ available: true, logo: "/brand/logo-128.png" }, null, 2) +
-    "\n",
+  JSON.stringify(
+    { ...existing, available: true, logo: "/brand/logo-128.png" },
+    null,
+    2,
+  ) + "\n",
 );
 console.log(
   `Imported ${path.basename(source)}. Original preserved; geometry and colors unchanged.`,

@@ -1,4 +1,8 @@
 {
   "available": true,
-  "logo": "/brand/logo-128.png"
+  "logo": "/brand/logo-128.png",
+  "lockup": "/brand/lockup-320.png",
+  "lockup2x": "/brand/lockup-640.png",
+  "lockupWidth": 4344,
+  "lockupHeight": 1123
 }

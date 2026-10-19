@@ -475,7 +475,7 @@ export default function App() {
                 <span>
                   <strong>Official brand asset</strong>
                   <small>
-                    Original Klinekraft symbol · preserved geometry and blue.
+                    Official Klinekraft Terminal artwork · original proportions.
                   </small>
                 </span>
               </div>

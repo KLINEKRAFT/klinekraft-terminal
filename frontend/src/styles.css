@@ -906,3 +906,10 @@ kbd {
     font-size: 18px;
   }
 }
+
+.brand-lockup {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}

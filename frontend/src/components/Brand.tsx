@@ -13,6 +13,20 @@ export function KlinekraftWordmark() {
   );
 }
 export function KlinekraftBrandLockup() {
+  if (brand.lockup) {
+    return (
+      <div className="brand">
+        <img
+          className="brand-lockup"
+          src={brand.lockup}
+          srcSet={`${brand.lockup} 1x, ${brand.lockup2x} 2x`}
+          width={brand.lockupWidth}
+          height={brand.lockupHeight}
+          alt="Klinekraft Terminal"
+        />
+      </div>
+    );
+  }
   return (
     <div className="brand">
       <KlinekraftLogo />
