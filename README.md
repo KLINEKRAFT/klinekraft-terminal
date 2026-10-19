@@ -29,18 +29,18 @@ The preview server prints its local URL (normally http://127.0.0.1:4173).
 - Informative integration placeholders; `play`, `wiki` and `ask` explicitly report that their integrations are unavailable.
 - Optional FastAPI health/capabilities endpoints and production static-file hosting.
 
-## Brand asset pending
+## Brand assets
 
-The supplied image was visible in the project brief, but the original PNG was not available as a downloadable workspace file. The Mac path is not accessible from this cloud workspace. No replacement or reconstructed mark has been created. The current preview uses the Klinekraft text lockup only.
+The supplied original is preserved at `assets/brand/klinekraft_logo_geometric.png`. The sidebar pairs it with the lowercase Outfit wordmark. Proportional UI assets, a favicon and an application icon are committed in `frontend/public/brand`; no import is required to run the app.
 
-Import the exact original on your Mac:
+To regenerate assets from the original:
 
 ```sh
-npm run brand:import -- "/Volumes/Design/Funhouse_CK/Colin Time/Klinekraft/5x/klinekraft logo_geometric@5x.png"
+npm run brand:import -- assets/brand/klinekraft_logo_geometric.png
 npm run build
 ```
 
-This preserves the original in `assets/brand`, generates aspect-ratio-preserving PNGs, a favicon and app icon, and enables `KlinekraftLogo` in the lockup. Verify the result visually before committing generated assets.
+The import script preserves the source PNG and its colors and geometry. Square icons add transparent padding rather than stretching the mark.
 
 ## Optional backend
 
@@ -71,8 +71,8 @@ Browser tests cover the three requested display sizes, local-only resources, nav
 | Location | Purpose |
 | --- | --- |
 | `frontend/src` | Shell, reusable brand components, CSS tokens and explicit preview provider |
-| `frontend/public/brand` | Brand manifest and generated assets after import |
-| `assets/brand` | Original source PNG after import |
+| `frontend/public/brand` | Brand manifest and generated assets  |
+| `assets/brand` | Original source PNG  |
 | `backend/klinekraft` | FastAPI routes and shared service boundary |
 | `scripts/import-brand.mjs` | Lossless original preservation and proportional asset generation |
 | `deploy` | Pi user-service and desktop-autostart examples; not installed |
@@ -83,4 +83,4 @@ Browser tests cover the three requested display sizes, local-only resources, nav
 
 Real telemetry, ROM catalog/launching, GPS, offline maps, Kiwix, file management, PTY terminal, AI, MCP and power control are **not implemented**. No games, BIOS files, ZIM archives or map data are included. Pi compatibility is an architectural assessment, not hardware certification.
 
-Next: import the original logo, review the 1024×600 preview on the actual display, then implement and test read-only Pi system telemetry. See [roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [GitHub research](docs/GITHUB_RESEARCH.md).
+Next: review the 1024×600 preview on the actual display, then implement and test read-only Pi system telemetry. See [roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [GitHub research](docs/GITHUB_RESEARCH.md).

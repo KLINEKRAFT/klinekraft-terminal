@@ -1,3 +1,3 @@
 # Original brand asset
 
-The exact original PNG is not present in the workspace. Run the documented `npm run brand:import -- <original PNG path>` command to preserve it here and generate UI assets. Do not trace, redraw, replace or approximate the supplied mark. The current UI intentionally shows only the text lockup until import.
+`klinekraft_logo_geometric.png` is the original PNG supplied by Klinekraft, preserved unchanged. Run `npm run brand:import -- assets/brand/klinekraft_logo_geometric.png` from the repository root to regenerate the proportional UI assets, favicon and app icon. Do not trace, redraw, replace or approximate the mark.

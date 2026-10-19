@@ -6,4 +6,4 @@ The first delivery establishes the product shell and development environment. It
 
 The long-term product includes local games, AI assistance, MCP, offline maps and references, file management, networking and a genuine terminal. These have separate phases and explicit capability checks. Initial games target NES, SNES, Genesis, Game Boy, GBA, Arcade, PlayStation and N64; individual core/game performance must be measured on the Pi.
 
-Acceptance priorities: readable 1024×600 home without scrolling, 44px touch controls, keyboard navigation, no external runtime assets, faithful brand geometry, truthful state labels and a reversible path back to the desktop. The original logo import remains blocked on file availability; the supplied symbol has not been reconstructed.
+Acceptance priorities: readable 1024×600 home without scrolling, 44px touch controls, keyboard navigation, no external runtime assets, faithful brand geometry, truthful state labels and a reversible path back to the desktop. The original logo is preserved in the repository and used in the sidebar and generated icons without reconstructing the mark.

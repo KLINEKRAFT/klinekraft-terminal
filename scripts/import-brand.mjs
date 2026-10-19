@@ -13,7 +13,10 @@ if (metadata.format !== "png")
   throw new Error("Supply the original PNG, without conversion.");
 await mkdir("assets/brand", { recursive: true });
 await mkdir("frontend/public/brand", { recursive: true });
-await copyFile(source, "assets/brand/klinekraft logo_geometric@5x.png");
+const original = "assets/brand/klinekraft_logo_geometric.png";
+if (path.resolve(source) !== path.resolve(original)) {
+  await copyFile(source, original);
+}
 for (const size of [64, 128, 512]) {
   await sharp(source)
     .resize(size, size, { fit: "inside", withoutEnlargement: true })

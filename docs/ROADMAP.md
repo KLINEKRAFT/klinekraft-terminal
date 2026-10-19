@@ -2,11 +2,11 @@
 
 ## Phase 1 — research and foundation (this delivery)
 
-Implemented: repository scaffold, tokens, typography, navigation, home preview, controlled navigation commands, feature placeholders, backend health/capabilities, brand import pipeline, documentation and automated checks. Original logo import is pending the source file. Pi execution and macOS execution were not physically tested; instructions are provided. GitHub research is recorded with known verification gaps.
+Implemented: repository scaffold, tokens, typography, navigation, home preview, controlled navigation commands, feature placeholders, backend health/capabilities, brand import pipeline, documentation and automated checks. Original logo import and proportional icon generation are complete. Pi execution and macOS execution were not physically tested; instructions are provided. GitHub research is recorded with known verification gaps.
 
 ## Phase 2 — functional UI prototype
 
-Import/review actual logo. Review readability at physical 7-inch size. Build games browser with clearly labeled fixture records, assistant conversation mockup, map layout and system tools. Do not treat this delivery's informative placeholder pages as completed feature mockups. Add loading, unavailable, stale, empty and error states before hardware wiring. Test touch/keyboard and controller use where appropriate.
+Review readability at physical 7-inch size. Build games browser with clearly labeled fixture records, assistant conversation mockup, map layout and system tools. Do not treat this delivery's informative placeholder pages as completed feature mockups. Add loading, unavailable, stale, empty and error states before hardware wiring. Test touch/keyboard and controller use where appropriate.
 
 ## Phase 3 — Pi integration
 

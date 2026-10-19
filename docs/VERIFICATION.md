@@ -13,4 +13,6 @@ The default Playwright browser download was denied by this environment's domain 
 
 The first browser run found vertical overflow on the two smaller viewports. A short-landscape layout was added and the checks rerun successfully. Source files were formatted and the React skill checklist applied: effect cleanup, explicit state, native buttons/labels, visible focus, dialog background inertness, locally bundled fonts, and no heavy map/terminal SDKs in the foundation bundle.
 
-Limitations: the original brand asset and generated icons cannot be visually validated until the PNG is supplied. Headless Chromium tests do not establish physical text readability, touchscreen calibration, GPU performance, macOS compatibility, Pi ARM64 package availability or startup reliability. The application is a working UI foundation, not a verified production cyberdeck build.
+Limitations: headless Chromium tests do not establish physical text readability, touchscreen calibration, GPU performance, macOS compatibility, Pi ARM64 package availability or startup reliability. The application is a working UI foundation, not a verified production cyberdeck build.
+
+Brand update: imported the original uploaded PNG without changing its bytes, generated proportional UI assets and square icons, and reviewed the 1024×600 screenshot with the logo enabled.

@@ -475,7 +475,7 @@ export default function App() {
                 <span>
                   <strong>Official brand asset</strong>
                   <small>
-                    Import the original PNG with the documented brand command.
+                    Original Klinekraft symbol · preserved geometry and blue.
                   </small>
                 </span>
               </div>
