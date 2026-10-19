@@ -1,0 +1,18 @@
+# Preview service only. Hardware integration is not implemented.
+# User service: install in ~/.config/systemd/user/klinekraft.service.
+[Unit]
+Description=Klinekraft Terminal local preview
+After=default.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/klinekraft-terminal
+ExecStart=%h/klinekraft-terminal/.venv/bin/python -m uvicorn klinekraft.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,23 @@
+# Design system
+
+The visual direction follows Rams/Braun instrumentation and Swiss typography: warm surfaces, strong alignment, fine rules, functional controls and limited accent color. No gradients, scanlines, glows, glass or gaming decoration.
+
+| Token | Value | Role |
+| --- | --- | --- |
+| `--paper` | `#F2F0EA` | Main canvas |
+| `--panel` | `#E4E1DA` | Warm secondary surface |
+| `--ink` | `#242424` | Text and primary rules |
+| `--muted` | `#69675F` | Secondary labels |
+| `--line` | `#D2CFC6` | Dividers |
+| `--blue` | `#003DA5` | Focus, information |
+| `--orange` | `#FF6A00` | Active navigation and preview indicator |
+
+Tokens live in `frontend/src/styles.css`. Orange is an indicator rather than small body text. Selection also has a filled background and `aria-current`, so color is not the only cue. Focus uses a visible blue outline. Primary font: Inter; technical labels: IBM Plex Mono; wordmark: Jost. Fonts ship locally through Fontsource (SIL Open Font License); no Google Fonts request is required.
+
+Layout starts with a 204px sidebar at 1024×600. Dashboard columns use `minmax(0,1fr)` to prevent overflow. Large screens add whitespace and typography size, rather than stretching a bitmap. Below 850px, metrics and quick access reflow; smaller phone layouts are outside the primary acceptance target. Touch controls are at least 44px high. Navigation is native buttons; keyboard focus, Cmd/Ctrl+K and Escape are supported. Motion is limited to hover transitions and respects reduced-motion preferences.
+
+## Brand contract
+
+`KlinekraftLogo`, `KlinekraftWordmark`, `KlinekraftBrandLockup` are separate reusable components. The logo component renders only when the asset manifest indicates that the original has been imported. No generic K or approximate SVG is used. `scripts/import-brand.mjs` preserves the PNG byte-for-byte and resizes with `fit: inside`; square icons use transparent padding with `fit: contain`. Colors, silhouette and proportions are not redrawn. Keep at least 10px clear space in the lockup. Small-size recognition needs visual review after the real asset is supplied. Monochrome transformation is deliberately not implemented.
+
+The preview always displays a simulated-data badge. A live computer clock is distinct from simulated hardware readings. Planned feature screens explain missing capabilities without disabled controls that pretend to work.

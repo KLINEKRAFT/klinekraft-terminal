@@ -1,0 +1,6 @@
+# Desktop-session autostart example for Raspberry Pi OS; not installed automatically.
+[Desktop Entry]
+Type=Application
+Name=Klinekraft Terminal
+Exec=chromium --new-window --start-fullscreen http://127.0.0.1:8000
+Terminal=false
