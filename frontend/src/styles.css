@@ -1,3 +1,10 @@
+@font-face {
+  font-family: "Archivo Expanded";
+  src: url("/fonts/Archivo_Expanded-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
 :root {
   --paper: #f2f0ea;
   --panel: #e4e1da;
@@ -74,10 +81,10 @@ button:disabled {
   flex-shrink: 0;
 }
 .wordmark {
-  font-family: Outfit, var(--sans);
+  font-family: "Archivo Expanded", var(--sans);
   font-weight: 400;
-  font-size: 30px;
-  line-height: 1.05;
+  font-size: 26px;
+  line-height: 1;
   letter-spacing: -0.6px;
 }
 .wordmark span {
@@ -85,7 +92,7 @@ button:disabled {
   font-family: var(--sans);
   font-size: 10px;
   letter-spacing: 3.5px;
-  margin-top: 8px;
+  margin-top: 6px;
   font-weight: 500;
 }
 .sidebar-caption {
@@ -892,10 +899,10 @@ kbd {
 }
 
 .brand:has(.brand-symbol) .wordmark {
-  font-size: 25px;
+  font-size: 21px;
 }
 @media (max-width: 850px) {
   .brand:has(.brand-symbol) .wordmark {
-    font-size: 22px;
+    font-size: 18px;
   }
 }

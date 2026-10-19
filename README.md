@@ -31,7 +31,7 @@ The preview server prints its local URL (normally http://127.0.0.1:4173).
 
 ## Brand assets
 
-The supplied original is preserved at `assets/brand/klinekraft_logo_geometric.png`. The sidebar pairs it with the lowercase Outfit wordmark. Proportional UI assets, a favicon and an application icon are committed in `frontend/public/brand`; no import is required to run the app.
+The supplied original is preserved at `assets/brand/klinekraft_logo_geometric.png`. The sidebar pairs it with the lowercase Archivo Expanded wordmark. Proportional UI assets, a favicon and an application icon are committed in `frontend/public/brand`; no import is required to run the app.
 
 To regenerate assets from the original:
 
