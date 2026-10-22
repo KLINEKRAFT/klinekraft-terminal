@@ -23,7 +23,8 @@ The preview server prints its local URL (normally http://127.0.0.1:4173).
 ## What works
 
 - Nine-section navigation, home dashboard, quick-access shortcuts and fullscreen control.
-- Time-based greetings for Colin and a brief entrance animation (disabled by reduced-motion preferences).
+- Rotating, time-aware greetings for Colin and a brief entrance animation (disabled by reduced-motion preferences).
+- Pinned bookmarks and an automatically saved quick-notes pad on Home.
 - Library bookmarks with add/edit/remove and new-tab opening, plus a default launch URL in Settings. Browser preferences persist locally.
 - Local clock and clearly labeled simulated data, or live CPU/memory/storage/network readings from the service computer.
 - Explicit unavailable temperature/peripheral states and automatic reconnect with stale-data labels.
@@ -34,11 +35,13 @@ The preview server prints its local URL (normally http://127.0.0.1:4173).
 
 ## Browser bookmarks and launcher
 
-Open **Library → Add bookmark**, enter a name and a complete `https://` or `http://` address, then save. Select a bookmark to open it in a new tab; Edit and Remove manage the saved list. Local addresses such as `http://localhost:8080` are supported for local services.
+Open **Library → Add bookmark**, enter a name and a complete `https://` or `http://` address, then save. Select a bookmark to open it in a new tab; Edit and Remove manage the saved list. Choose **Pin to Home** to show a bookmark on the dashboard, or **Unpin** to remove the shortcut without deleting the bookmark. Local addresses such as `http://localhost:8080` are supported for local services.
 
 In **Settings → Your starting page**, save a default launch URL. **Library → Open launch page** opens it when requested; nothing launches automatically. Clear launch URL removes this preference. The `browser` and `bookmarks` workspace commands navigate to Library.
 
 Bookmarks and the launch URL are stored in this browser's local storage. They survive reloads but do not sync across devices or between Vercel and the local app. Clearing site data removes them. If storage is blocked, the app explains that changes are temporary. Only HTTP(S) addresses without embedded credentials are accepted. This does not launch native applications or install offline content.
+
+Quick notes on Home save as you type, up to 20,000 characters. Notes stay in this browser and survive navigation and reloads; clearing site data removes them. If saving fails, the note stays available in the open app with an explicit warning so you can copy it. The greeting picks a phrase on each app load and adapts to morning, afternoon, or evening without changing randomly while you work.
 
 ## Brand assets
 

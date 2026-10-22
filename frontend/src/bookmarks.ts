@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-export type Bookmark = { id: string; title: string; url: string };
+export type Bookmark = {
+  id: string;
+  title: string;
+  url: string;
+  pinned?: boolean;
+};
 type BrowserPreferences = {
   version: 1;
   bookmarks: Bookmark[];
@@ -63,6 +68,7 @@ function readPreferences(): { data: BrowserPreferences; warning: string } {
         id: item.id,
         title: item.title.trim(),
         url: browserUrl(item.url),
+        pinned: item.pinned === true,
       };
     });
     return {

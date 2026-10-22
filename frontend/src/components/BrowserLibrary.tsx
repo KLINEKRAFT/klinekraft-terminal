@@ -36,6 +36,7 @@ export function BrowserLibrary({
         id: editing?.id ?? crypto.randomUUID(),
         title: title.trim(),
         url: browserUrl(url),
+        pinned: editing?.pinned ?? false,
       };
       save({
         ...data,
@@ -161,6 +162,21 @@ export function BrowserLibrary({
                 <span>{item.url}</span>
               </a>
               <div className="browser-actions">
+                <button
+                  className="browser-button"
+                  aria-label={`${item.pinned ? "Unpin" : "Pin"} ${item.title}`}
+                  aria-pressed={item.pinned === true}
+                  onClick={() =>
+                    save({
+                      ...data,
+                      bookmarks: data.bookmarks.map((b) =>
+                        b.id === item.id ? { ...b, pinned: !b.pinned } : b,
+                      ),
+                    })
+                  }
+                >
+                  {item.pinned ? "Unpin" : "Pin to Home"}
+                </button>
                 <button
                   className="browser-button"
                   aria-label={`Edit ${item.title}`}

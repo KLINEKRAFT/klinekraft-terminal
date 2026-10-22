@@ -125,6 +125,9 @@ for (const [hour, greeting] of [
   test(`personal greeting in the ${greeting}, without footer slogans`, async ({
     page,
   }) => {
+    await page.addInitScript(() => {
+      Math.random = () => 0;
+    });
     await page.clock.install({ time: new Date(2026, 9, 22, hour) });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");

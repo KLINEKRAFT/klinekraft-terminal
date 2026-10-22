@@ -4,7 +4,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   Battery,
-  Check,
   Compass,
   Cpu,
   Folder,
@@ -19,6 +18,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { HomeTools, useQuickNote, greeting } from "./components/HomeTools";
 import { useBrowserPreferences } from "./bookmarks";
 import { BrowserLibrary, BrowserSettings } from "./components/BrowserLibrary";
 import { KlinekraftBrandLockup, installBrandIcon } from "./components/Brand";
@@ -138,7 +138,11 @@ function Home({
   now,
   navigate,
   detail,
+  browser,
+  note,
 }: {
+  browser: ReturnType<typeof useBrowserPreferences>;
+  note: ReturnType<typeof useQuickNote>;
   reading: Reading;
   detail: string;
   now: Date;
@@ -294,26 +298,11 @@ function Home({
           ))}
         </div>
       </section>
-      <section className="activity">
-        <div className="section-heading">
-          <h2>Session activity</h2>
-          <span>THIS SESSION</span>
-        </div>
-        <div className="activity-row">
-          <span className="activity-icon">
-            <Check size={14} />
-          </span>
-          <span>
-            Workspace opened{" "}
-            <small>
-              {reading.source === "simulated"
-                ? "Development preview · hardware simulated"
-                : "Host telemetry selected · read-only"}
-            </small>
-          </span>
-          <span className="mono">THIS SESSION</span>
-        </div>
-      </section>
+      <HomeTools
+        browser={browser}
+        note={note}
+        openLibrary={() => navigate("Library")}
+      />
     </>
   );
 }
@@ -344,6 +333,8 @@ function Feature({ section }: { section: Section }) {
 }
 export default function App() {
   const browser = useBrowserPreferences();
+  const note = useQuickNote();
+  const [greetingChoice] = useState(() => Math.floor(Math.random() * 4));
   const [section, setSection] = useState<Section>("Home");
   const [now, setNow] = useState(new Date());
   const [paused, setPaused] = useState(false);
@@ -440,7 +431,7 @@ export default function App() {
             </div>
             <h1>
               {section === "Home"
-                ? `Good ${now.getHours() < 12 ? "morning" : now.getHours() < 18 ? "afternoon" : "evening"}, Colin.`
+                ? greeting(now.getHours(), greetingChoice)
                 : section}
             </h1>
             {section !== "Home" && <p>{descriptions[section]}</p>}
@@ -465,6 +456,8 @@ export default function App() {
               now={now}
               navigate={navigate}
               detail={detail}
+              browser={browser}
+              note={note}
             />
           ) : section === "Library" ? (
             <BrowserLibrary
