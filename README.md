@@ -90,3 +90,17 @@ Browser tests cover the three requested display sizes, local-only resources, nav
 ROM catalog/launching, GPS, offline maps, Kiwix, file management, PTY terminal, AI, MCP and power control are **not implemented**. No games, BIOS files, ZIM archives or map data are included. Pi compatibility is an architectural assessment, not hardware certification.
 
 Next: try live telemetry on your Mac, then add approved desktop launch actions. Validate the same telemetry service on the Pi when hardware is ready. See [roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [GitHub research](docs/GITHUB_RESEARCH.md).
+
+## Vercel web demo
+
+The repository includes `vercel.json`: Vercel installs with `npm ci`, runs
+`npm run build:demo`, and publishes `dist`. Import this GitHub repository with
+the repository root as the root directory. No environment variables are required.
+Git integration deploys updates pushed to the configured production branch.
+
+The hosted demo uses simulated data and disables Live computer in Settings.
+It cannot read your Mac or Pi, launch desktop applications, or run the Python
+service. Logos and fonts are served with the app. The local `npm run desktop`
+and `npm run dev` workflows retain live-service support.
+
+To preview the hosted build locally: `npm run build:demo && npm run preview`.

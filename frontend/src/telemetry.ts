@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { initialReading, previewReading, type Reading } from "./preview";
 
+import { isHostedDemo } from "./runtime";
+
 export type DataMode = "preview" | "host";
 type Connection = "connecting" | "ready" | "error";
 export const emptyReading: Reading = {
@@ -71,7 +73,7 @@ export function useTelemetry(paused: boolean, now: number) {
   const [receivedAt, setReceivedAt] = useState(0);
 
   const setMode = (next: DataMode) => {
-    if (next === mode) return;
+    if (next === mode || (isHostedDemo && next === "host")) return;
     setHost(null);
     setReceivedAt(0);
     setConnection("connecting");
@@ -86,7 +88,7 @@ export function useTelemetry(paused: boolean, now: number) {
   }, [mode, paused]);
 
   useEffect(() => {
-    if (mode !== "host" || paused) return;
+    if (isHostedDemo || mode !== "host" || paused) return;
     let stopped = false;
     let retry: ReturnType<typeof setTimeout>;
     let controller: AbortController;

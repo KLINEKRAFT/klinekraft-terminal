@@ -1,4 +1,5 @@
 import { Terminal } from "lucide-react";
+import { isHostedDemo } from "../runtime";
 import type { Reading } from "../preview";
 import { amount, type DataMode } from "../telemetry";
 
@@ -22,16 +23,19 @@ export function TelemetrySettings({
         <span>
           <strong>Dashboard data</strong>
           <small>
-            Live readings come from the computer running the local service.
+            {isHostedDemo
+              ? "Web demo · simulated data. Live readings require the local app on your Mac or Raspberry Pi."
+              : "Live readings come from the computer running the local service."}
           </small>
         </span>
         <select
           aria-label="Dashboard data"
+          disabled={isHostedDemo}
           value={mode}
           onChange={(event) => setMode(event.target.value as DataMode)}
         >
           <option value="preview">Preview · simulated</option>
-          <option value="host">Live computer</option>
+          {!isHostedDemo && <option value="host">Live computer</option>}
         </select>
       </label>
       <label className="setting-row">

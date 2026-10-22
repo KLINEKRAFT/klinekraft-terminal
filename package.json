@@ -16,7 +16,9 @@
     "brand:lockup": "node scripts/import-brand-lockup.mjs",
     "backend": ".venv/bin/python -m uvicorn klinekraft.main:app --host 127.0.0.1 --port 8000",
     "desktop": "npm run build && npm run backend",
-    "test:integration": "playwright test --config playwright.live.config.ts"
+    "test:integration": "playwright test --config playwright.live.config.ts",
+    "build:demo": "tsc --noEmit && vite build --mode demo",
+    "test:demo": "npm run build:demo && playwright test --config playwright.demo.config.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",
