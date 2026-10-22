@@ -21,13 +21,18 @@ import {
 } from "lucide-react";
 import { KlinekraftBrandLockup, installBrandIcon } from "./components/Brand";
 import {
-  initialReading,
-  previewReading,
   resolveCommand,
   sections,
   type Reading,
   type Section,
 } from "./preview";
+
+import { useTelemetry, amount, percent, networkSummary } from "./telemetry";
+import {
+  TelemetrySettings,
+  SystemPanel,
+  NetworkPanel,
+} from "./components/TelemetryPanels";
 
 const icons: Record<Section, LucideIcon> = {
   Home: Cpu,
@@ -75,7 +80,7 @@ const integrations: Record<
   },
   "GPS / Maps": {
     title: "A position, without a receiver.",
-    body: "The home screen coordinates are a development fixture. No USB receiver, gpsd connection or map region is installed.",
+    body: "Preview coordinates are a development fixture; live mode reports GPS unavailable. No USB receiver, gpsd connection or map region is installed.",
     items: [
       "Planned: fix quality, satellites and reported accuracy",
       "Local MapLibre maps with bundled styles and tiles",
@@ -100,15 +105,6 @@ const integrations: Record<
       "No unrestricted filesystem tools for AI",
     ],
   },
-  Network: {
-    title: "Connection details, made clear.",
-    body: "The home screen network connection is simulated. No diagnostic commands have been run.",
-    items: [
-      "Planned: interface and connection status",
-      "Explicit offline and disconnected states",
-      "Approved diagnostics with bounded timeouts",
-    ],
-  },
 };
 function Metric({
   label,
@@ -121,7 +117,7 @@ function Metric({
   value: string;
   unit: string;
   detail: string;
-  percent: number;
+  percent: number | null;
 }) {
   return (
     <article className="metric">
@@ -132,13 +128,13 @@ function Metric({
       </div>
       <div
         className="meter"
-        role="meter"
+        role={percent === null ? undefined : "meter"}
         aria-label={label}
-        aria-valuenow={percent}
+        aria-valuenow={percent ?? undefined}
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        <i style={{ width: `${percent}%` }} />
+        <i style={{ width: `${percent ?? 0}%` }} />
       </div>
       <span className="metric-detail">{detail}</span>
     </article>
@@ -148,8 +144,10 @@ function Home({
   reading,
   now,
   navigate,
+  detail,
 }: {
   reading: Reading;
+  detail: string;
   now: Date;
   navigate: (s: Section) => void;
 }) {
@@ -175,40 +173,46 @@ function Home({
             })}
           </span>
           <div className="device-label">
-            <span className="dot" /> RASPBERRY PI 5 <span> / PREVIEW</span>
+            <span className="dot" /> {reading.system.toUpperCase()}{" "}
+            <span> / {reading.source === "host" ? "HOST" : "PREVIEW"}</span>
           </div>
         </div>
         <div className="metrics">
           <Metric
             label="CPU LOAD"
-            value={String(reading.cpu)}
+            value={amount(reading.cpu, 0)}
             unit="%"
             percent={reading.cpu}
-            detail="4 cores · simulated"
+            detail={`${reading.cpuCores ?? "—"} cores · ${detail.toLowerCase()}`}
           />
           <Metric
             label="MEMORY"
-            value={reading.memoryUsed.toFixed(1)}
+            value={amount(reading.memoryUsed)}
             unit="GB"
-            percent={20}
-            detail="of 8.0 GB · simulated"
+            percent={percent(reading.memoryUsed, reading.memoryTotal)}
+            detail={`of ${amount(reading.memoryTotal)} GB · ${detail.toLowerCase()}`}
           />
           <Metric
             label="STORAGE"
-            value={reading.storageUsed.toFixed(1)}
+            value={amount(reading.storageUsed)}
             unit="GB"
-            percent={32}
-            detail="of 119.2 GB · simulated"
+            percent={percent(reading.storageUsed, reading.storageTotal)}
+            detail={`of ${amount(reading.storageTotal)} GB · ${detail.toLowerCase()}`}
           />
         </div>
       </section>
-      <section className="connections" aria-label="Preview device readings">
+      <section className="connections" aria-label="Device readings">
         <div>
           <Cpu size={17} />
           <span>
             <small>CPU TEMPERATURE</small>
             <strong>
-              {reading.temperature.toFixed(1)}°C <em>Simulated</em>
+              {reading.temperature === null
+                ? "Unavailable"
+                : `${amount(reading.temperature)}°C`}{" "}
+              <em>
+                {reading.temperature === null ? "No sensor reading" : detail}
+              </em>
             </strong>
           </span>
         </div>
@@ -217,7 +221,7 @@ function Home({
           <span>
             <small>BATTERY · X1202</small>
             <strong>
-              Unavailable <em>No hardware</em>
+              Unavailable <em>Not configured</em>
             </strong>
           </span>
         </div>
@@ -226,7 +230,10 @@ function Home({
           <span>
             <small>NETWORK</small>
             <strong>
-              Wi-Fi <em>Simulated</em>
+              {networkSummary(reading)}{" "}
+              <em>
+                {reading.interfaces === null ? "No interface data" : detail}
+              </em>
             </strong>
           </span>
         </div>
@@ -235,7 +242,12 @@ function Home({
           <span>
             <small>GPS POSITION</small>
             <strong>
-              41.8781° N <em>Simulated</em>
+              {reading.source === "simulated" ? "41.8781° N" : "Unavailable"}{" "}
+              <em>
+                {reading.source === "simulated"
+                  ? "Simulated"
+                  : "Not configured"}
+              </em>
             </strong>
           </span>
         </div>
@@ -292,7 +304,7 @@ function Home({
       <section className="activity">
         <div className="section-heading">
           <h2>Session activity</h2>
-          <span>THIS PREVIEW</span>
+          <span>THIS SESSION</span>
         </div>
         <div className="activity-row">
           <span className="activity-icon">
@@ -300,7 +312,11 @@ function Home({
           </span>
           <span>
             Workspace opened{" "}
-            <small>Development preview · hardware simulated</small>
+            <small>
+              {reading.source === "simulated"
+                ? "Development preview · hardware simulated"
+                : "Host telemetry selected · read-only"}
+            </small>
           </span>
           <span className="mono">THIS SESSION</span>
         </div>
@@ -336,8 +352,9 @@ function Feature({ section }: { section: Section }) {
 export default function App() {
   const [section, setSection] = useState<Section>("Home");
   const [now, setNow] = useState(new Date());
-  const [reading, setReading] = useState(initialReading);
   const [paused, setPaused] = useState(false);
+  const telemetry = useTelemetry(paused, now.getTime());
+  const { reading, mode, setMode, label, detail } = telemetry;
   const [command, setCommand] = useState("");
   const [feedback, setFeedback] = useState("");
   const [exitHelp, setExitHelp] = useState(false);
@@ -347,12 +364,6 @@ export default function App() {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-  useEffect(() => {
-    if (paused) return;
-    let tick = 0;
-    const timer = setInterval(() => setReading(previewReading(++tick)), 3000);
-    return () => clearInterval(timer);
-  }, [paused]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -415,9 +426,10 @@ export default function App() {
         </nav>
         <div className="sidebar-bottom">
           <div>
-            <span className="dot" /> DEVELOPMENT MODE
+            <span className="dot" />{" "}
+            {mode === "preview" ? "PREVIEW MODE" : "HOST TELEMETRY"}
           </div>
-          <span>Local workspace · v0.1.0</span>
+          <span>Local workspace · v0.2.0</span>
           <button onClick={() => setExitHelp(true)}>
             <ArrowDownLeft size={16} /> Return to desktop
           </button>
@@ -437,7 +449,7 @@ export default function App() {
           </div>
           <div className="header-actions">
             <span className="preview-badge">
-              <span /> SIMULATED DATA
+              <span /> {label}
             </span>
             <button
               className="icon-button"
@@ -450,79 +462,35 @@ export default function App() {
         </header>
         <div className="page-content">
           {section === "Home" ? (
-            <Home reading={reading} now={now} navigate={navigate} />
+            <Home
+              reading={reading}
+              now={now}
+              navigate={navigate}
+              detail={detail}
+            />
           ) : section === "Settings" ? (
-            <section className="settings-panel">
-              <h2>Preview preferences</h2>
-              <p>
-                All hardware values are simulated. The clock uses your
-                computer’s local time.
-              </p>
-              <label className="setting-row">
-                <span>
-                  <strong>Automatic preview updates</strong>
-                  <small>
-                    Refresh simulated CPU and temperature every 3 seconds.
-                  </small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={!paused}
-                  onChange={(e) => setPaused(!e.target.checked)}
-                />
-              </label>
-              <div className="setting-row">
-                <span>
-                  <strong>Official brand asset</strong>
-                  <small>
-                    Official Klinekraft Terminal artwork · original proportions.
-                  </small>
-                </span>
-              </div>
-              <div className="feature-note">
-                Hardware setup, credentials and persistent preferences are
-                planned.
-              </div>
-            </section>
+            <TelemetrySettings
+              mode={mode}
+              setMode={setMode}
+              paused={paused}
+              setPaused={setPaused}
+              label={label}
+            />
           ) : section === "System" ? (
-            <section className="settings-panel">
-              <h2>
-                System overview <span className="inline-badge">SIMULATED</span>
-              </h2>
-              <dl className="system-list">
-                {[
-                  ["Target device", "Raspberry Pi 5 · ARM64"],
-                  ["Target operating system", "Raspberry Pi OS 64-bit Desktop"],
-                  ["CPU load", `${reading.cpu}%`],
-                  [
-                    "Memory",
-                    `${reading.memoryUsed} / ${reading.memoryTotal} GB`,
-                  ],
-                  [
-                    "Storage",
-                    `${reading.storageUsed} / ${reading.storageTotal} GB`,
-                  ],
-                  ["CPU temperature", `${reading.temperature}°C`],
-                  ["X1202 battery", "Unavailable · hardware not connected"],
-                ].map(([label, value]) => (
-                  <div key={label}>
-                    <dt>{label}</dt>
-                    <dd>{value}</dd>
-                  </div>
-                ))}
-              </dl>
-              <div className="feature-note">
-                <Terminal size={16} /> A genuine Linux terminal is planned. The
-                command bar only navigates approved screens.
-              </div>
-            </section>
+            <SystemPanel reading={reading} label={label} />
+          ) : section === "Network" ? (
+            <NetworkPanel reading={reading} label={label} />
           ) : (
             <Feature section={section} />
           )}
         </div>
         <footer className="command-area">
           {feedback && (
-            <div className="command-feedback" role="status">
+            <div
+              className="command-feedback"
+              role="status"
+              aria-label="Command result"
+            >
               <span>{feedback}</span>
               <button
                 aria-label="Dismiss command result"
@@ -554,8 +522,10 @@ export default function App() {
           <div className="footer-caption">
             <span>DESIGNED TO GO WITH YOU.</span>
             <span>
-              LOCAL-FIRST <span className="tiny-divider">/</span> FOUNDATION
-              PREVIEW
+              LOCAL-FIRST <span className="tiny-divider">/</span>{" "}
+              {mode === "preview"
+                ? "FOUNDATION PREVIEW"
+                : "READ-ONLY TELEMETRY"}
             </span>
           </div>
         </footer>

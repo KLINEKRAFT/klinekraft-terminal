@@ -10,7 +10,7 @@ Review readability at physical 7-inch size. Build games browser with clearly lab
 
 ## Phase 3 — Pi integration
 
-First vertical slice: live read-only psutil telemetry, a typed API and production source labels. No mock fallback in production. Then gpsd and a vetted X1202 adapter. Add SQLite catalog, filesystem scanning and safe RetroArch launch. Test actual supported cores; N64/PlayStation performance depends on game/core. Separate approved commands from genuine PTY access.
+Implemented before Pi setup: read-only psutil host telemetry, typed API, preview/live selector and honest missing/stale states. This works without Pi peripherals; actual Pi validation remains pending. No mock fallback in production. Then gpsd and a vetted X1202 adapter. Add SQLite catalog, filesystem scanning and safe RetroArch launch. Test actual supported cores; N64/PlayStation performance depends on game/core. Separate approved commands from genuine PTY access.
 
 ROM migration gate: create a read-only inventory of the old card, calculate hashes, and back up ROMs, BIOS, saves, savestates and metadata. Copy to staging without overwriting the original. Match cores and save formats; retain both versions for conflicts. Import ES-DE/EmulationStation metadata with validated paths. Verify a representative save loads before switching libraries. Never include copyrighted ROMs or BIOS in this repository.
 
@@ -25,3 +25,7 @@ Kiwix service, library discovery/search, local map regions and full local style 
 ## Phase 6 — production polish
 
 Benchmark Pi startup/idle memory/thermals, audit session security, test actual touchscreen, fullscreen exit, controller focus, service readiness, crash recovery and safe power behavior. Validate systemd and graphical-session autostart on the selected Raspberry Pi OS release. No automatic shutdown or privileged service until bench-tested. Maintain the Linux desktop escape path.
+
+## Current next milestone
+
+Try the live-computer flow on macOS using [MAC_DEVELOPMENT.md](MAC_DEVELOPMENT.md). Next implement a small approved desktop action registry (open browser and file manager) with origin/session checks before enabling mutations. Add a reliable native exit path and validate it on the target desktop session. Continue game catalog/ROM scanning and other offline features independently of hardware; delay GPIO, battery shutdown and GPS qualification until the Pi is available.

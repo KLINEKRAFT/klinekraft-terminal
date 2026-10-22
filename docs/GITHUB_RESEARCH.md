@@ -46,3 +46,7 @@ Pi 5 ARM64 suitability is an engineering assessment supported by upstream Linux/
 ## Remaining research gates
 
 Full official MCP specification review, current ChatGPT custom connector requirements, ES-DE release/ARM64 packaging, GPS receiver model compatibility, vendor board-revision documentation and actual Pi package tests remain before those phases. There is no need to install or expose any of those integrations to preview Phase 1.
+
+## Host telemetry integration update — 2026-10-22
+
+psutil 7.2.2 is now installed as a normal dependency, following the reuse decision above. Read-only collection is exercised in Linux x86_64 tests; missing macOS sensor APIs are covered with fixtures. ARM64/macOS physical execution is not claimed. No upstream source was copied.

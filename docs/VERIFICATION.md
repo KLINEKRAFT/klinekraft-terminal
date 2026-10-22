@@ -1,18 +1,35 @@
 # Verification record
 
-Environment: managed Linux x86_64 workspace, Node 24.19.0, Python 3.12.14; 2026-10-19. No physical Raspberry Pi, GPS, X1202, ELECROW touchscreen or macOS host was available.
+## Live telemetry milestone — 2026-10-22
+
+Environment: managed Linux x86_64 workspace, Node 24.19.0, Python 3.12.14. No physical Raspberry Pi, GPS, X1202, ELECROW touchscreen or macOS host was available.
 
 - TypeScript strict checking and Vite production build passed.
-- Chromium browser acceptance checks pass at 1024×600, 1280×720 and 1920×1080. Home has no horizontal or vertical page overflow at these sizes. Screenshots are in `docs/screenshots`.
-- Runtime resources were restricted to the local server during viewport tests; external requests were blocked. Local fonts and application assets render without a CDN.
-- Quick access, all navigation pages, command dispatch, unavailable game launch feedback, settings toggle, keyboard shortcut and desktop-exit explanation were exercised.
-- Backend tests verify truthful capabilities, unknown Host rejection and absence of a command execution endpoint.
+- Nine Python tests passed: actual API lifecycle, host rejection, truthful capability reporting, unavailable service response, independent metric failures, missing macOS temperature API, CPU-only temperature selection, unit conversion and stale snapshots.
+- Eight browser tests passed: the three display sizes, local-only resources, navigation, commands, settings, live data, backend failure/recovery, invalid responses and mode changes during an in-flight request.
+- One end-to-end integration test passed against an actual Uvicorn/psutil service. The built UI fetched the same-origin API and displayed this environment’s measured host values. No mocked HTTP response was used in that integration test.
+- Both preview and live home layouts fit 1024×600 without horizontal or vertical page scrolling. Preview also passed 1280×720 and 1920×1080 checks.
 - `git diff --check` passed.
 
-The default Playwright browser download was denied by this environment's domain policy. Tests instead used the already installed Chromium via `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm test`. On macOS, use the normal `npx playwright install chromium` then `npm test`. A Starlette deprecation warning recommends a future test-client HTTP dependency update; the current backend tests pass.
+Run from the repository root after installing frontend and backend dependencies:
 
-The first browser run found vertical overflow on the two smaller viewports. A short-landscape layout was added and the checks rerun successfully. Source files were formatted and the React skill checklist applied: effect cleanup, explicit state, native buttons/labels, visible focus, dialog background inertness, locally bundled fonts, and no heavy map/terminal SDKs in the foundation bundle.
+```sh
+npm run build
+.venv/bin/python -m pytest backend/tests
+npm test
+npm run test:integration
+```
 
-Limitations: headless Chromium tests do not establish physical text readability, touchscreen calibration, GPU performance, macOS compatibility, Pi ARM64 package availability or startup reliability. The application is a working UI foundation, not a verified production cyberdeck build.
+This environment uses `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium` for the browser commands. On macOS use `npx playwright install chromium` first, then run normally. Starlette currently emits a test-client HTTP dependency deprecation warning; all backend tests pass.
 
-Brand update: imported the original uploaded PNG without changing its bytes, generated proportional UI assets and square icons, and reviewed the 1024×600 screenshot with the logo enabled.
+`docs/screenshots/home-live-1024x600.png` demonstrates the live UI using a deterministic macOS API fixture; it is not evidence of executing on the user's Mac. The real service test writes its screenshot to ignored `test-results/real-host-dashboard.png`. Other committed home screenshots show the explicit simulated preview.
+
+React review covered cancellation, response validation, no mock fallback in live mode, effect cleanup, native controls/labels, source/freshness indicators and locally bundled fonts. The first test pass found an ambiguous status-role locator after adding service status text; the command feedback now has an accessible name, and the suite passes.
+
+## Remaining physical validation
+
+Mac execution should be tried using [MAC_DEVELOPMENT.md](MAC_DEVELOPMENT.md); it is supported by cross-platform psutil APIs but has not been run on a physical Mac here. Pi ARM64 package installation, touch calibration, WebGL, thermal behavior, peripheral drivers and autostart remain unverified. CPU temperature is expected to be unavailable on macOS without extra helpers. Network link state does not establish internet access. Desktop launch and native exit are not part of this milestone.
+
+## Existing brand foundation
+
+The supplied original logo and complete lockup are preserved unchanged. Proportional assets and icons are committed. The shell, original layout and offline font loading were validated in the preceding foundation milestone.

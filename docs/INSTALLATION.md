@@ -2,7 +2,7 @@
 
 ## macOS preview
 
-Use Node 22.12+ and npm, preferably Node 24 LTS. Run `npm ci`, then `npm run dev` from the repository root and visit http://127.0.0.1:5173. All hardware readings are fixtures. Python is optional for UI work. Do not install Pi packages, enable I2C or execute vendor battery scripts on the Mac.
+Use Node 22.12+ and npm, preferably Node 24 LTS. Run `npm ci`, then `npm run dev` from the repository root and visit http://127.0.0.1:5173. Preview uses fixtures; Live computer mode reads the optional Python service. Python is optional for UI work. Do not install Pi packages, enable I2C or execute vendor battery scripts on the Mac.
 
 To preview a production bundle: `npm run build`, then `npm run preview`. Close the tab to exit, or use the Return to desktop explanation. Cmd/Ctrl+K focuses the command input. Navigation commands are local and never invoke a shell. Fullscreen requires a browser user gesture; Escape leaves browser fullscreen.
 
@@ -10,11 +10,11 @@ Import the provided logo using `npm run brand:import -- "/absolute/path/to/kline
 
 ## Python development
 
-Use Python 3.11+, ideally 3.12. Create `.venv` with `python3 -m venv .venv`, activate it, and run `python -m pip install -e './backend[dev]'`. Start `python -m uvicorn klinekraft.main:app --host 127.0.0.1 --port 8000`. The development Vite server proxies `/api` to that address. The preview does not depend on it. Production static hosting is available after `npm run build`; start/restart the backend after building because mount detection happens on startup.
+Use Python 3.11+, ideally 3.12. Create `.venv` with `python3 -m venv .venv`, activate it, and run `python -m pip install -e './backend[dev]'`. Start `python -m uvicorn klinekraft.main:app --host 127.0.0.1 --port 8000`. The development Vite server proxies `/api` to that address. The simulated preview does not depend on it. Choose Live computer in Settings to use `/api/system`. Production static hosting is available after `npm run build`; start/restart the backend after building because mount detection happens on startup.
 
 ## Raspberry Pi — proposed preview deployment
 
-These are untested Pi deployment instructions for the preview, not completion of hardware integration. Start with Raspberry Pi OS 64-bit Desktop and its Chromium browser. Place the repository at `~/klinekraft-terminal`, build/install dependencies as above. Never run the application as root. The optional Python service uses no hardware drivers yet.
+These are untested Pi deployment instructions for the preview, not completion of hardware integration. Start with Raspberry Pi OS 64-bit Desktop and its Chromium browser. Place the repository at `~/klinekraft-terminal`, build/install dependencies as above. Never run the application as root. The Python service provides psutil host metrics but no GPS or UPS drivers yet.
 
 Copy `deploy/klinekraft.service.example` to `~/.config/systemd/user/klinekraft.service` after reviewing paths. Run `systemctl --user daemon-reload`, then `systemctl --user enable --now klinekraft`. Visit http://127.0.0.1:8000 and check `journalctl --user -u klinekraft`. To stop/remove autostart, `systemctl --user disable --now klinekraft`.
 
@@ -25,3 +25,7 @@ Graphical startup can race service readiness. Before unattended deployment, add 
 ## Offline behavior
 
 Install npm/Python dependencies beforehand. At runtime the built UI and fonts are served locally; no CDN, analytics, maps or AI request is made. Keep the local server running. This is not an installed PWA, and a stopped local server cannot be replaced by a browser cache. Future Kiwix/maps require separately downloaded, licensed content and a free-space budget.
+
+## Live Mac development
+
+See [MAC_DEVELOPMENT.md](MAC_DEVELOPMENT.md) for one-time Python setup and `npm run desktop`, which builds the UI and runs it with the service on port 8000. Preview remains available without Python.

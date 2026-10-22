@@ -1,7 +1,7 @@
-# Preview service only. Hardware integration is not implemented.
+# Local UI and read-only host telemetry. GPS/UPS integration is not implemented.
 # User service: install in ~/.config/systemd/user/klinekraft.service.
 [Unit]
-Description=Klinekraft Terminal local preview
+Description=Klinekraft Terminal local workspace
 After=default.target
 
 [Service]

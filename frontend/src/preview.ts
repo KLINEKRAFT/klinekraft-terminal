@@ -1,18 +1,32 @@
 export type Reading = {
-  cpu: number;
-  memoryUsed: number;
-  memoryTotal: number;
-  storageUsed: number;
-  storageTotal: number;
-  temperature: number;
+  source: "simulated" | "host";
+  sampledAt: string | null;
+  stale: boolean;
+  system: string;
+  architecture: string;
+  cpu: number | null;
+  cpuCores: number | null;
+  memoryUsed: number | null;
+  memoryTotal: number | null;
+  storageUsed: number | null;
+  storageTotal: number | null;
+  temperature: number | null;
+  interfaces: { name: string; isUp: boolean }[] | null;
 };
 export const initialReading: Reading = {
+  source: "simulated",
+  sampledAt: null,
+  stale: false,
+  system: "Raspberry Pi 5",
+  architecture: "ARM64",
+  cpuCores: 4,
   cpu: 12,
   memoryUsed: 1.6,
   memoryTotal: 8,
   storageUsed: 38.4,
   storageTotal: 119.2,
   temperature: 43.2,
+  interfaces: [{ name: "wlan0 (simulated)", isUp: true }],
 };
 export function previewReading(tick: number): Reading {
   return {
@@ -52,7 +66,7 @@ export function resolveCommand(value: string): CommandResult {
   if (Object.hasOwn(routes, command))
     return {
       section: routes[command],
-      message: `Opened ${routes[command]}. Preview data only.`,
+      message: `Opened ${routes[command]}.`,
     };
   if (command.startsWith("play "))
     return {

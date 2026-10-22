@@ -913,3 +913,27 @@ kbd {
   height: auto;
   object-fit: contain;
 }
+
+.setting-row select {
+  max-width: 190px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: var(--paper);
+  font: inherit;
+}
+select:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+.network-list {
+  max-height: 245px;
+  overflow-y: auto;
+}
+.network-list dt {
+  overflow-wrap: anywhere;
+}
+.metric-detail {
+  letter-spacing: -0.2px;
+}

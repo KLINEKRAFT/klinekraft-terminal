@@ -1,7 +1,7 @@
 {
   "name": "klinekraft-terminal",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "engines": {
     "node": ">=22.12"
@@ -13,7 +13,10 @@
     "test": "playwright test",
     "brand:import": "node scripts/import-brand.mjs",
     "format": "prettier --write frontend/src tests scripts *.ts *.json",
-    "brand:lockup": "node scripts/import-brand-lockup.mjs"
+    "brand:lockup": "node scripts/import-brand-lockup.mjs",
+    "backend": ".venv/bin/python -m uvicorn klinekraft.main:app --host 127.0.0.1 --port 8000",
+    "desktop": "npm run build && npm run backend",
+    "test:integration": "playwright test --config playwright.live.config.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",

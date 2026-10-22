@@ -4,5 +4,6 @@ export default defineConfig({
   root: "frontend",
   plugins: [react()],
   build: { outDir: "../dist", emptyOutDir: true },
+  preview: { proxy: { "/api": "http://127.0.0.1:8000" } },
   server: { proxy: { "/api": "http://127.0.0.1:8000" } },
 });

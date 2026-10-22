@@ -2,7 +2,7 @@
 
 Klinekraft Terminal unifies a portable Pi 5 workspace in a Pelican 1150 with a 1024×600 ELECROW touchscreen, Geekworm X1202, 21700 cells, USB GPS and 128GB microSD. Raspberry Pi OS 64-bit Desktop remains the host and ordinary desktop access remains available.
 
-The first delivery establishes the product shell and development environment. Its functioning features are navigation, preview telemetry, local clock, safe navigation commands, fullscreen and informational feature screens. Hardware is never inferred from browser availability. The battery is unavailable rather than assigned a fictional percentage.
+The first delivery establishes the product shell and development environment. Its functioning features now include navigation, preview/live host telemetry, local clock, safe navigation commands, fullscreen and informational feature screens. Live telemetry measures the service computer; hardware is never inferred from browser availability. The battery is unavailable rather than assigned a fictional percentage.
 
 The long-term product includes local games, AI assistance, MCP, offline maps and references, file management, networking and a genuine terminal. These have separate phases and explicit capability checks. Initial games target NES, SNES, Genesis, Game Boy, GBA, Arcade, PlayStation and N64; individual core/game performance must be measured on the Pi.
 

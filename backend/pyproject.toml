@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "klinekraft-terminal"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local service foundation for Klinekraft Terminal"
 requires-python = ">=3.11"
-dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.34,<1"]
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.34,<1", "psutil>=7,<8"]
 
 [project.optional-dependencies]
 dev = ["httpx>=0.28,<1", "pytest>=8,<10"]

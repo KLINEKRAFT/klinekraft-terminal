@@ -1,6 +1,6 @@
 # Klinekraft Terminal
 
-A local-first computing interface for a Raspberry Pi 5 cyberdeck. Phase 1 foundation: React/TypeScript preview, warm industrial design, and a small Python service scaffold. This is an application on Raspberry Pi OS, not a replacement operating system.
+A local-first computing interface for a Raspberry Pi 5 cyberdeck. React/TypeScript interface with a simulated preview and read-only live computer telemetry through Python. This is an application on Raspberry Pi OS, not a replacement operating system.
 
 ## Run on macOS
 
@@ -23,11 +23,12 @@ The preview server prints its local URL (normally http://127.0.0.1:4173).
 ## What works
 
 - Nine-section navigation, home dashboard, quick-access shortcuts and fullscreen control.
-- Local clock, clearly labeled simulated CPU/memory/storage/temperature/network/GPS, unavailable battery state.
+- Local clock and clearly labeled simulated data, or live CPU/memory/storage/network readings from the service computer.
+- Explicit unavailable temperature/peripheral states and automatic reconnect with stale-data labels.
 - Controlled navigation commands and Cmd/Ctrl+K focus. Try `games`, `gps status`, or `system status`.
-- Pause/resume simulated updates in Settings. Preferences are session-only.
+- Switch Preview/Live computer and pause/resume updates in Settings. Preferences are session-only.
 - Informative integration placeholders; `play`, `wiki` and `ask` explicitly report that their integrations are unavailable.
-- Optional FastAPI health/capabilities endpoints and production static-file hosting.
+- FastAPI health/capabilities/system endpoints, cached background sampling and production static-file hosting.
 
 ## Brand assets
 
@@ -43,18 +44,21 @@ npm run build
 
 The import script preserves the source PNG and its colors and geometry. Square icons add transparent padding rather than stretching the mark.
 
-## Optional backend
+## Live readings on your Mac — no Pi needed
 
-Python 3.11+ is required (3.12 recommended).
+Python 3.11+ is required (3.12 recommended). Run these **inside your project folder**:
 
 ```sh
 python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e './backend[dev]'
-python -m uvicorn klinekraft.main:app --host 127.0.0.1 --port 8000
+.venv/bin/python -m pip install -e './backend[dev]'
+npm run desktop
 ```
 
-With `dist/` built, http://127.0.0.1:8000 serves the complete preview. `/api/health` and `/api/capabilities` describe the scaffold honestly. The frontend currently uses its own explicit preview provider; it does not consume hardware API data. No production hardware mode exists yet.
+Open **http://127.0.0.1:8000**, select **Settings → Dashboard data → Live computer**, then Home. `npm run desktop` builds the UI and starts the local Python service. Keep Terminal open; Ctrl+C stops it. See [Mac setup and troubleshooting](docs/MAC_DEVELOPMENT.md).
+
+Live data belongs to the computer running the service, not necessarily the browser. On your Mac it reports macOS readings; on a future Pi it reports Linux readings. CPU temperature is normally unavailable on macOS. X1202 and GPS are not configured. Network links do not establish internet access. No simulated fallback is used when the backend is offline.
+
+For hot-reload frontend development, run `npm run backend` in one Terminal and `npm run dev` in another. `/api/system` provides read-only host snapshots; `/api/capabilities` lists implemented integrations. No command execution endpoint is exposed.
 
 ## Verification
 
@@ -62,16 +66,17 @@ With `dist/` built, http://127.0.0.1:8000 serves the complete preview. `/api/hea
 npm run build
 npx playwright install chromium
 npm test
+npm run test:integration
 .venv/bin/python -m pytest backend/tests
 ```
 
-Browser tests cover the three requested display sizes, local-only resources, navigation, controlled commands and preview controls. See [verification](docs/VERIFICATION.md) for the checks actually run and their limits.
+Browser tests cover the three requested display sizes, local-only resources, navigation, controlled commands, preview/live controls, connection failures and recovery. The integration suite runs a real Python service and reads it through the built UI. See [verification](docs/VERIFICATION.md) for the checks actually run and their limits.
 
 ## Repository guide
 
 | Location | Purpose |
 | --- | --- |
-| `frontend/src` | Shell, reusable brand components, CSS tokens and explicit preview provider |
+| `frontend/src` | Shell, reusable brand components, CSS tokens and preview/live data providers |
 | `frontend/public/brand` | Brand manifest and generated assets  |
 | `assets/brand` | Original source PNG  |
 | `backend/klinekraft` | FastAPI routes and shared service boundary |
@@ -82,6 +87,6 @@ Browser tests cover the three requested display sizes, local-only resources, nav
 
 ## Scope and next steps
 
-Real telemetry, ROM catalog/launching, GPS, offline maps, Kiwix, file management, PTY terminal, AI, MCP and power control are **not implemented**. No games, BIOS files, ZIM archives or map data are included. Pi compatibility is an architectural assessment, not hardware certification.
+ROM catalog/launching, GPS, offline maps, Kiwix, file management, PTY terminal, AI, MCP and power control are **not implemented**. No games, BIOS files, ZIM archives or map data are included. Pi compatibility is an architectural assessment, not hardware certification.
 
-Next: review the 1024×600 preview on the actual display, then implement and test read-only Pi system telemetry. See [roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [GitHub research](docs/GITHUB_RESEARCH.md).
+Next: try live telemetry on your Mac, then add approved desktop launch actions. Validate the same telemetry service on the Pi when hardware is ready. See [roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [GitHub research](docs/GITHUB_RESEARCH.md).

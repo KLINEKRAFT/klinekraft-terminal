@@ -47,9 +47,9 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
     .getByLabel("Workspace command", { exact: true })
     .fill("play paperboy; touch /tmp/unwanted");
   await page.getByRole("button", { name: "Run workspace command" }).click();
-  await expect(page.getByRole("status")).toContainText(
-    "No emulator or ROM was opened",
-  );
+  await expect(
+    page.getByRole("status", { name: "Command result" }),
+  ).toContainText("No emulator or ROM was opened");
   await page
     .getByLabel("Workspace command", { exact: true })
     .fill("system status");
@@ -97,5 +97,7 @@ test("all navigation sections render and unknown commands stay bounded", async (
     .getByLabel("Workspace command", { exact: true })
     .fill("constructor");
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("status")).toContainText("This is not a shell");
+  await expect(
+    page.getByRole("status", { name: "Command result" }),
+  ).toContainText("This is not a shell");
 });

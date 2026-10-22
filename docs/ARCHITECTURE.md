@@ -2,9 +2,9 @@
 
 ## Decision
 
-Retain React + TypeScript + Vite, Python 3.11+ + FastAPI + Pydantic, and SQLite for later catalog/history data. Run the built UI in system Chromium. No Electron runtime, Node server or container stack is required on the Pi. Vite is a development/build tool only. The eventual FastAPI process serves UI and API on the same loopback origin.
+Retain React + TypeScript + Vite, Python 3.11+ + FastAPI + Pydantic, and SQLite for later catalog/history data. Run the built UI in system Chromium. No Electron runtime, Node server or container stack is required on the Pi. Vite is a development/build tool only. The FastAPI process serves the built UI and API on the same loopback origin.
 
-This foundation separates browser preview fixtures from backend capabilities. The backend is intentionally small and does not invent hardware services. `services.py` is the shared service boundary for future HTTP, command and MCP adapters. `preview.ts` contains only presentation fixtures and navigation routing; it must never grow a shell executor. Once operational commands exist, browser and MCP adapters must call a single Python command/service registry, not duplicate business logic.
+This foundation separates browser preview fixtures from backend capabilities. The backend provides real read-only host telemetry with psutil; peripheral services remain unimplemented. `services.py` is the shared service boundary for future HTTP, command and MCP adapters. `preview.ts` contains only presentation fixtures and navigation routing; it must never grow a shell executor. Once operational commands exist, browser and MCP adapters must call a single Python command/service registry, not duplicate business logic.
 
 ## Intended data flow (not all implemented)
 
@@ -28,3 +28,9 @@ No cloud services are needed for the preview. Kiwix and RetroArch remain separat
 ## Limits
 
 ARM64 suitability is supported by upstream platform information; there has been no Pi, actual touchscreen, GPS or battery test. Verify distro packages, WebGL drivers, Chromium memory, audio/controller behavior, thermal load and suspend/power behavior on the actual hardware before production. macOS hardware behavior is not claimed to match Linux.
+
+## Implemented host telemetry (v0.2)
+
+`telemetry.py` samples independently of request handlers in an asyncio worker approximately every three seconds. Each individual metric failure returns null without suppressing the others. The 100ms CPU sampling window runs off the event loop. FastAPI's lifespan owns sampling and cancellation; `/api/system` reads a cached snapshot with no-store headers. Samples carry source, UTC sample time and a stale flag after ten seconds. The frontend additionally tracks receipt age, cancels in-flight requests on mode changes, validates response fields, and never replaces failed live data with fixtures.
+
+The explicit Settings selector defaults to Preview each page load. Host metrics describe the service computer; they do not infer the browser's hardware. Memory is total minus available, storage is the root volume, and both use decimal GB. Only recognized CPU temperature groups are used; disk/GPU sensors are never substituted. Interfaces exclude loopback and report link state, with no IP/MAC addresses, SSID collection or external connectivity probes. The whole service remains read-only; browser launch and PTY mutation security are still future work.
