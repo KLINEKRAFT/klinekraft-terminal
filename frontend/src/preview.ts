@@ -62,6 +62,8 @@ export function resolveCommand(value: string): CommandResult {
     files: "Files",
     settings: "Settings",
     library: "Library",
+    bookmarks: "Library",
+    browser: "Library",
   };
   if (Object.hasOwn(routes, command))
     return {

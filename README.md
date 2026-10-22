@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. No Pi hardware, Python service, cloud account or API key is needed for the UI. Dependencies require internet during installation; the built preview uses locally bundled fonts and assets and makes no external requests. Close the tab to leave the application.
+Open http://127.0.0.1:5173. No Pi hardware, Python service, cloud account or API key is needed for the UI. Dependencies require internet during installation; the built preview uses locally bundled fonts and assets. External websites open only when you choose a bookmark or launch page. Close the tab to leave the application.
 
 ```sh
 npm run build
@@ -23,12 +23,22 @@ The preview server prints its local URL (normally http://127.0.0.1:4173).
 ## What works
 
 - Nine-section navigation, home dashboard, quick-access shortcuts and fullscreen control.
+- Time-based greetings for Colin and a brief entrance animation (disabled by reduced-motion preferences).
+- Library bookmarks with add/edit/remove and new-tab opening, plus a default launch URL in Settings. Browser preferences persist locally.
 - Local clock and clearly labeled simulated data, or live CPU/memory/storage/network readings from the service computer.
 - Explicit unavailable temperature/peripheral states and automatic reconnect with stale-data labels.
 - Controlled navigation commands and Cmd/Ctrl+K focus. Try `games`, `gps status`, or `system status`.
-- Switch Preview/Live computer and pause/resume updates in Settings. Preferences are session-only.
+- Switch Preview/Live computer and pause/resume updates in Settings. Telemetry preferences are session-only.
 - Informative integration placeholders; `play`, `wiki` and `ask` explicitly report that their integrations are unavailable.
 - FastAPI health/capabilities/system endpoints, cached background sampling and production static-file hosting.
+
+## Browser bookmarks and launcher
+
+Open **Library → Add bookmark**, enter a name and a complete `https://` or `http://` address, then save. Select a bookmark to open it in a new tab; Edit and Remove manage the saved list. Local addresses such as `http://localhost:8080` are supported for local services.
+
+In **Settings → Your starting page**, save a default launch URL. **Library → Open launch page** opens it when requested; nothing launches automatically. Clear launch URL removes this preference. The `browser` and `bookmarks` workspace commands navigate to Library.
+
+Bookmarks and the launch URL are stored in this browser's local storage. They survive reloads but do not sync across devices or between Vercel and the local app. Clearing site data removes them. If storage is blocked, the app explains that changes are temporary. Only HTTP(S) addresses without embedded credentials are accepted. This does not launch native applications or install offline content.
 
 ## Brand assets
 

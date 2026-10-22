@@ -475,21 +475,9 @@ kbd {
   display: grid;
   place-items: center;
 }
-.footer-caption {
-  display: flex;
-  justify-content: space-between;
-  font: 7px var(--mono);
-  letter-spacing: 1px;
-  color: var(--muted);
-  margin-top: 11px;
-}
-.tiny-divider {
-  margin: 0 8px;
-  color: #b1aca0;
-}
 .command-feedback {
   position: absolute;
-  bottom: 76px;
+  bottom: 56px;
   left: 0;
   right: 0;
   padding: 12px 10px 12px 15px;
@@ -797,10 +785,6 @@ kbd {
   kbd {
     display: none;
   }
-  .footer-caption {
-    font-size: 6px;
-    letter-spacing: 0.3px;
-  }
   .sidebar-bottom {
     padding-left: 5px;
     padding-right: 5px;
@@ -936,4 +920,201 @@ select:focus-visible {
 }
 .metric-detail {
   letter-spacing: -0.2px;
+}
+
+/* A short arrival cue; it runs once when the app opens. */
+.page-header {
+  animation: terminal-arrival 420ms ease-out both;
+}
+@keyframes terminal-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-header {
+    animation: none;
+  }
+}
+.browser-panel {
+  border-top: 1px solid var(--ink);
+  padding: 18px 0;
+}
+.browser-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.browser-panel h2 {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.6px;
+  margin: 8px 0 16px;
+}
+.browser-panel h3 {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 12px;
+}
+.browser-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink);
+  font: 11px var(--sans);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.browser-button:hover {
+  background: var(--panel);
+}
+.browser-button.primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.browser-button:disabled {
+  opacity: 0.5;
+}
+.browser-panel a:focus-visible,
+.archive-plan summary:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+.browser-launch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: #eae7df;
+}
+.browser-launch > div {
+  min-width: 0;
+}
+.browser-launch strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.browser-launch span,
+.bookmark-list a span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.browser-help,
+.archive-plan p,
+.bookmark-empty p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.browser-warning {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #943b00;
+}
+.bookmark-form {
+  border: 1px solid var(--line);
+  padding: 14px;
+  margin: 16px 0;
+}
+.bookmark-form label {
+  display: block;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+.bookmark-form input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font-size: 12px;
+}
+.browser-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.bookmark-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+.bookmark-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.bookmark-list li > svg {
+  color: var(--blue);
+  flex-shrink: 0;
+}
+.bookmark-list a {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 0;
+  text-decoration: none;
+  color: var(--ink);
+}
+.bookmark-list a:hover strong {
+  text-decoration: underline;
+}
+.bookmark-list strong {
+  font-size: 13px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.bookmark-empty {
+  padding: 28px 16px;
+  text-align: center;
+  border: 1px dashed var(--line);
+  margin: 18px 0;
+}
+.bookmark-empty svg {
+  color: var(--blue);
+  margin-bottom: 12px;
+}
+.archive-plan {
+  border-top: 1px solid var(--line);
+  padding: 16px 0 0;
+  font-size: 11px;
+}
+.archive-plan summary {
+  cursor: pointer;
+  padding: 8px 0;
+}
+@media (max-width: 850px) {
+  .browser-heading,
+  .browser-launch {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .bookmark-list li {
+    flex-wrap: wrap;
+  }
+  .bookmark-list .browser-actions {
+    width: 100%;
+  }
 }

@@ -18,7 +18,9 @@ for (const [width, height] of [
     await page.goto("/");
     await page.evaluate(() => document.fonts.ready);
     await expect(
-      page.getByRole("heading", { name: "At your service." }),
+      page.getByRole("heading", {
+        name: /Good (morning|afternoon|evening), Colin/,
+      }),
     ).toBeVisible();
     await expect(
       page.getByText("SIMULATED DATA", { exact: true }),
@@ -28,7 +30,8 @@ for (const [width, height] of [
       height: document.documentElement.scrollHeight,
     }));
     await page.screenshot({
-      path: `docs/screenshots/home-${width}x${height}.png`,
+      path: `test-results/home-${width}x${height}.png`,
+      animations: "disabled",
       fullPage: true,
     });
     expect(dimensions.width).toBe(width);

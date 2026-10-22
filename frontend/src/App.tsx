@@ -19,6 +19,8 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { useBrowserPreferences } from "./bookmarks";
+import { BrowserLibrary, BrowserSettings } from "./components/BrowserLibrary";
 import { KlinekraftBrandLockup, installBrandIcon } from "./components/Brand";
 import {
   resolveCommand,
@@ -85,15 +87,6 @@ const integrations: Record<
       "Planned: fix quality, satellites and reported accuracy",
       "Local MapLibre maps with bundled styles and tiles",
       "Waypoints, track recording and GPX export",
-    ],
-  },
-  Library: {
-    title: "A library that travels with you.",
-    body: "Kiwix will serve locally installed ZIM archives. No Wikipedia archive is included in this foundation.",
-    items: [
-      "Planned: browse and search installed archives",
-      "Archive size and free-space checks before import",
-      "Offline articles served by kiwix-serve",
     ],
   },
   Files: {
@@ -350,6 +343,7 @@ function Feature({ section }: { section: Section }) {
   );
 }
 export default function App() {
+  const browser = useBrowserPreferences();
   const [section, setSection] = useState<Section>("Home");
   const [now, setNow] = useState(new Date());
   const [paused, setPaused] = useState(false);
@@ -444,8 +438,12 @@ export default function App() {
                 / {String(sections.indexOf(section) + 1).padStart(2, "0")}
               </span>
             </div>
-            <h1>{section === "Home" ? "At your service." : section}</h1>
-            <p>{descriptions[section]}</p>
+            <h1>
+              {section === "Home"
+                ? `Good ${now.getHours() < 12 ? "morning" : now.getHours() < 18 ? "afternoon" : "evening"}, Colin.`
+                : section}
+            </h1>
+            {section !== "Home" && <p>{descriptions[section]}</p>}
           </div>
           <div className="header-actions">
             <span className="preview-badge">
@@ -468,14 +466,22 @@ export default function App() {
               navigate={navigate}
               detail={detail}
             />
-          ) : section === "Settings" ? (
-            <TelemetrySettings
-              mode={mode}
-              setMode={setMode}
-              paused={paused}
-              setPaused={setPaused}
-              label={label}
+          ) : section === "Library" ? (
+            <BrowserLibrary
+              store={browser}
+              openSettings={() => navigate("Settings")}
             />
+          ) : section === "Settings" ? (
+            <>
+              <BrowserSettings store={browser} />
+              <TelemetrySettings
+                mode={mode}
+                setMode={setMode}
+                paused={paused}
+                setPaused={setPaused}
+                label={label}
+              />
+            </>
           ) : section === "System" ? (
             <SystemPanel reading={reading} label={label} />
           ) : section === "Network" ? (
@@ -519,15 +525,6 @@ export default function App() {
               <ArrowRight size={18} />
             </button>
           </form>
-          <div className="footer-caption">
-            <span>DESIGNED TO GO WITH YOU.</span>
-            <span>
-              LOCAL-FIRST <span className="tiny-divider">/</span>{" "}
-              {mode === "preview"
-                ? "FOUNDATION PREVIEW"
-                : "READ-ONLY TELEMETRY"}
-            </span>
-          </div>
         </footer>
       </main>
       {exitHelp && (

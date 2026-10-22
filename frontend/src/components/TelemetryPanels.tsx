@@ -63,8 +63,8 @@ export function TelemetrySettings({
         integration are not configured.
       </p>
       <div className="feature-note">
-        Browser launch, file management and a native desktop exit are still
-        planned.
+        Native app launching, file management and a native desktop exit are
+        still planned.
       </div>
     </section>
   );
