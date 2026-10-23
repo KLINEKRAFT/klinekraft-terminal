@@ -41,3 +41,18 @@ def test_failed_download_does_not_leave_archive(tmp_path, monkeypatch, body, len
     monkeypatch.setattr(module.urllib.request, 'urlopen', fetch)
     with pytest.raises(RuntimeError): module.main()
     assert list((tmp_path / 'Documents/Wikipedia').iterdir()) == []
+
+
+def test_current_kiwix_archive_names_without_variant(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, 'home', classmethod(lambda cls: tmp_path))
+    monkeypatch.setattr(module.shutil, 'disk_usage', lambda p: type('Disk', (), {'free': 10**10})())
+    calls = []
+    def fetch(url, **kwargs):
+        calls.append(url)
+        if url == module.BASE:
+            return Response(b'<a href="wikipedia_en_100_2026-07.zim">July</a> <a href="wikipedia_en_100_2026-08.zim">August</a>')
+        return Response(b'ZIM\x04test')
+    monkeypatch.setattr(module.urllib.request, 'urlopen', fetch)
+    module.main()
+    assert calls[-1].endswith('wikipedia_en_100_2026-08.zim')
+    assert (tmp_path / 'Documents/Wikipedia/wikipedia_en_100_2026-08.zim').exists()

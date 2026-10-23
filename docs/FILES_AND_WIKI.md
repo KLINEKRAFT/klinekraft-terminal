@@ -10,7 +10,7 @@ systemctl --user restart klinekraft.service
 bash scripts/setup-local-content.sh
 ```
 
-The last command installs Debian's `kiwix-tools`, creates Documents/Wikipedia and Downloads if absent, downloads the latest small English 100-article ZIM offered by Kiwix (mini preferred, maxi fallback, maximum 1 GiB), and starts a user service at login. Existing ZIM archives are retained and skip the starter download. Internet is needed for installation; reading downloaded articles works offline. This is a starter selection, not the full Wikipedia. The download is checked for expected size and ZIM signature, not a cryptographic publisher signature.
+The last command installs Debian's `kiwix-tools`, creates Documents/Wikipedia and Downloads if absent, downloads the latest small English 100-article ZIM offered by Kiwix (current unqualified filename supported, mini preferred when available, maximum 1 GiB), and starts a user service at login. Existing ZIM archives are retained and skip the starter download. Internet is needed for installation; reading downloaded articles works offline. This is a starter selection, not the full Wikipedia. The download is checked for expected size and ZIM signature, not a cryptographic publisher signature.
 
 Open **Files** to browse Documents or Downloads and download a copy of a regular file up to 100 MB. No edit, delete, upload or execute endpoint exists. Hidden entries and symlinks are excluded; directories show up to 500 entries with a notice when truncated. These are literal `~/Documents` and `~/Downloads` folders, not localized XDG paths. Downloads use browser memory, hence the size cap. Use the desktop file manager for larger files or changes.
 
@@ -32,3 +32,6 @@ curl -H 'X-Klinekraft-Client: local-ui' http://127.0.0.1:8000/api/wiki
 ```
 
 To stop Wikipedia startup: `systemctl --user disable --now klinekraft-wiki.service`. Archives remain on disk. Files and bookmarks continue to work independently.
+
+
+If an earlier installer said no starter archive was found, update the app and rerun `bash scripts/setup-local-content.sh`. The downloader now accepts Kiwix's `wikipedia_en_100_YYYY-MM.zim` names as well as variant names. Run battery setup separately so a failed archive download cannot skip I2C configuration.

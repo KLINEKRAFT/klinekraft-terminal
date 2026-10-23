@@ -84,11 +84,7 @@ export function FilesPanel() {
     <section className="browser-panel" aria-labelledby="files-title">
       <span className="eyebrow">ON YOUR PI</span>
       <h2 id="files-title">Your files</h2>
-      <p className="browser-help">
-        Browse Documents and Downloads. Download a copy of a file; originals
-        stay untouched. Hidden files and links are excluded. Downloads up to 100
-        MB.
-      </p>
+      <p className="browser-help">Documents and downloads, close at hand.</p>
       {isHostedDemo ? (
         <p className="browser-help">
           Files are available in the local Pi app. This web demo cannot access
@@ -96,7 +92,7 @@ export function FilesPanel() {
         </p>
       ) : (
         <>
-          <div className="browser-actions">
+          <div className="browser-actions file-tabs">
             {[
               ["documents", "Documents"],
               ["downloads", "Downloads"],
@@ -205,6 +201,13 @@ export function FilesPanel() {
           )}
         </>
       )}
+      <details className="content-details">
+        <summary>About files</summary>
+        <p>
+          Downloads save a copy; originals stay untouched. Files up to 100 MB
+          are supported. Hidden files and links are excluded.
+        </p>
+      </details>
     </section>
   );
 }
@@ -234,9 +237,7 @@ export function WikiPanel() {
       <span className="eyebrow">OFFLINE KNOWLEDGE</span>
       <h2 id="wiki-title">Wikipedia</h2>
       <p className="browser-help">
-        Read and search downloaded Wikipedia articles in Kiwix. Once an archive
-        is installed, reading works without internet. The starter collection is
-        a small selection, not all of Wikipedia.
+        A reference library, even without a connection.
       </p>
       {isHostedDemo ? (
         <p className="browser-help">
@@ -255,12 +256,12 @@ export function WikiPanel() {
             </p>
           )}
           {wiki && (
-            <p role="status" className="browser-help">
+            <p role="status" className="wiki-status">
               {wiki.ready
-                ? "Kiwix is ready. Open the reader to choose an archive and search articles."
+                ? "Ready to read offline."
                 : wiki.archives.length
-                  ? "Archives found. The Kiwix reader is stopped or unavailable."
-                  : "No archive installed yet. Run the Pi Wikipedia setup to download the starter collection."}
+                  ? "Your archive is saved. The reader is not running."
+                  : "Your offline library is empty."}
             </p>
           )}
           <div className="browser-actions">
@@ -282,16 +283,35 @@ export function WikiPanel() {
             </button>
           </div>
           {!!wiki?.archives.length && (
-            <ul className="wiki-archives">
-              {wiki.archives.map((name) => (
-                <li key={name}>{name}</li>
-              ))}
-            </ul>
+            <details className="content-details">
+              <summary>Installed archives ({wiki.archives.length})</summary>
+              <ul className="wiki-archives">
+                {wiki.archives.map((name) => (
+                  <li key={name}>{name}</li>
+                ))}
+              </ul>
+            </details>
           )}
-          <p className="browser-help">
-            Archives live in Documents / Wikipedia. The reader opens in a
-            separate tab on this Pi.
-          </p>
+          <details className="content-details">
+            <summary>
+              {wiki?.ready ? "About offline reading" : "Set up Wikipedia"}
+            </summary>
+            <p>
+              Download the English starter collection once, then read and search
+              offline. It is a selection, not the full Wikipedia. Kiwix opens in
+              a separate tab.
+            </p>
+            {!wiki?.ready && (
+              <>
+                <p>Run this in your Pi’s Terminal, then choose Check reader.</p>
+                <pre>
+                  cd ~/klinekraft-terminal{"\n"}bash
+                  scripts/setup-local-content.sh
+                </pre>
+              </>
+            )}
+            <p>Archives are saved in Documents / Wikipedia.</p>
+          </details>
         </>
       )}
     </section>

@@ -1284,8 +1284,10 @@ textarea:focus-visible {
   color: #ffb47c !important;
 }
 [data-theme="dark"] .brand {
-  background: #eae7df;
-  border-radius: 3px;
+  background: transparent;
+}
+[data-theme="dark"] .brand-lockup {
+  filter: brightness(0) invert(0.94);
 }
 .sidebar {
   overflow-y: auto;
@@ -1421,4 +1423,163 @@ button.file-name:hover {
   color: var(--muted);
   font: 11px/1.8 var(--mono);
   overflow-wrap: anywhere;
+}
+
+/* Quiet hierarchy, with the collapse affordance beside the device caption. */
+.sidebar-heading {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 12px 0 8px;
+}
+.sidebar-heading .sidebar-caption {
+  flex: 1;
+  margin: 0 0 0 10px;
+  font-size: 7px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.sidebar-heading .sidebar-toggle {
+  width: 32px;
+  height: 44px;
+  margin: 0;
+  align-self: auto;
+}
+.sidebar-collapsed .sidebar-heading {
+  margin: 0 0 8px;
+  justify-content: center;
+}
+.sidebar-collapsed .sidebar-toggle {
+  width: 44px;
+}
+.browser-panel {
+  padding: 22px 0;
+  border-top-color: var(--line);
+}
+.browser-panel h2 {
+  font-size: 20px;
+  margin: 6px 0 12px;
+}
+.browser-help {
+  max-width: 64ch;
+  line-height: 1.65;
+}
+.content-details {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 14px 0;
+}
+.content-details summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.content-details summary::before {
+  content: "+";
+  font: 14px var(--mono);
+}
+.content-details[open] summary::before {
+  content: "−";
+}
+.content-details p {
+  line-height: 1.7;
+  margin: 0 0 12px;
+}
+.content-details pre {
+  overflow-x: auto;
+  padding: 12px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font: 10px/1.7 var(--mono);
+}
+.content-details summary:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.file-tabs {
+  border-bottom: 1px solid var(--line);
+  gap: 20px;
+}
+.file-tabs .browser-button {
+  border: 0;
+  border-radius: 0;
+  padding: 8px 0;
+  color: var(--muted);
+}
+.file-tabs .browser-button[aria-pressed="true"] {
+  color: var(--ink);
+  box-shadow: inset 0 -1px var(--ink);
+}
+.file-tabs .browser-button:last-child {
+  margin-left: auto;
+}
+.file-list .browser-button,
+.file-location .browser-button {
+  border: 0;
+}
+.file-location {
+  color: var(--muted);
+  margin-top: 8px;
+}
+.wiki-status {
+  font-size: 12px;
+  margin: 16px 0;
+  line-height: 1.6;
+}
+.wiki-status small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 4px;
+}
+@media (max-width: 850px) {
+  .sidebar-heading .sidebar-caption {
+    font-size: 6px;
+    letter-spacing: 0;
+    margin-left: 0;
+  }
+  .sidebar-heading .sidebar-toggle {
+    width: 24px;
+  }
+  .sidebar-collapsed .sidebar-heading .sidebar-toggle {
+    width: 44px;
+  }
+}
+.bookmark-empty {
+  border: 0;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  padding: 20px 0;
+}
+.bookmark-empty > svg {
+  display: none;
+}
+.browser-launch {
+  background: transparent;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+[data-theme="dark"] .browser-launch {
+  background: transparent;
+}
+@media (max-height: 650px) {
+  .sidebar {
+    padding-top: 16px;
+    padding-bottom: 8px;
+  }
+  .sidebar-heading {
+    margin-top: 4px;
+    margin-bottom: 2px;
+  }
+  .sidebar-bottom {
+    padding-top: 8px;
+  }
+  .sidebar-bottom > span {
+    display: none;
+  }
+  .sidebar-bottom > button {
+    margin-top: 8px;
+  }
 }

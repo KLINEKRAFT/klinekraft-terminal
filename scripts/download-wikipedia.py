@@ -16,7 +16,7 @@ def main():
         return
     with urllib.request.urlopen(BASE, timeout=60) as response:
         catalog = response.read(4 * 1024 * 1024).decode('utf-8')
-    names = sorted(set(re.findall(r'wikipedia_en_100_(?:mini|maxi)_\d{4}-\d{2}\.zim', catalog)))
+    names = sorted(set(re.findall(r'wikipedia_en_100_(?:(?:mini|maxi)_)?\d{4}-\d{2}\.zim', catalog)))
     mini = [name for name in names if '_mini_' in name]
     if not names:
         raise SystemExit('No small English starter archive found. Choose a ZIM at https://library.kiwix.org and save it in ~/Documents/Wikipedia, then rerun setup.')

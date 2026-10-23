@@ -430,22 +430,24 @@ export default function App() {
   return (
     <div className={`app-shell${collapsed ? " sidebar-collapsed" : ""}`}>
       <aside className="sidebar" inert={exitHelp}>
-        <button
-          className="sidebar-toggle"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-expanded={!collapsed}
-          aria-controls="main-navigation"
-          onClick={() => setCollapsed(!collapsed)}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? (
-            <ChevronRight size={14} strokeWidth={1.5} />
-          ) : (
-            <ChevronLeft size={14} strokeWidth={1.5} />
-          )}
-        </button>
         <KlinekraftBrandLockup />
-        <div className="sidebar-caption">PORTABLE COMPUTING / 01</div>
+        <div className="sidebar-heading">
+          <div className="sidebar-caption">PORTABLE COMPUTING / 01</div>
+          <button
+            className="sidebar-toggle"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
+            aria-controls="main-navigation"
+            onClick={() => setCollapsed(!collapsed)}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <ChevronRight size={14} strokeWidth={1.5} />
+            ) : (
+              <ChevronLeft size={14} strokeWidth={1.5} />
+            )}
+          </button>
+        </div>
         <nav id="main-navigation" aria-label="Main navigation">
           {sections.map((item, index) => {
             const Icon = icons[item];
