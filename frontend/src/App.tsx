@@ -22,6 +22,8 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { AwayPanel } from "./components/AwayPanel";
+import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
 import { FilesPanel, WikiPanel } from "./components/LocalContent";
 import { HomeTools, useQuickNote, greeting } from "./components/HomeTools";
@@ -206,6 +208,10 @@ function Home({
           />
         </div>
       </section>
+      <div className="home-ambient">
+        <OutsideWeather />
+        <AwayPanel />
+      </div>
       <section className="connections" aria-label="Device readings">
         <div>
           <Cpu size={17} />

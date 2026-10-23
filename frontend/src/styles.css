@@ -1650,3 +1650,360 @@ button.file-name:hover {
 .game-favorite[aria-pressed="true"] {
   color: var(--ink);
 }
+
+/* Home ambient tools share the terminal's typography and quiet rules. */
+.home-ambient {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+  padding: 13px 0;
+}
+.outside-weather {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.outside-weather strong {
+  font: 16px var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.outside-weather small,
+.outside-weather a {
+  font: 9px var(--mono);
+  color: var(--muted);
+}
+.outside-weather a {
+  text-underline-offset: 3px;
+}
+.away-launch {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  background: transparent;
+  padding: 7px 0 7px 12px;
+  font: 11px var(--mono);
+}
+.away-launch span {
+  margin-left: 14px;
+  color: var(--muted);
+}
+.away-dialog {
+  padding: 0;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  width: min(760px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+}
+.away-dialog::backdrop {
+  background: rgb(0 0 0 / 0.65);
+}
+.away-stage {
+  position: relative;
+  height: 230px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.away-canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  z-index: -1;
+}
+.away-message {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--away-ink);
+  font: 400 clamp(24px, 5vw, 60px)/1.15 var(--away-font);
+  letter-spacing: -0.035em;
+  text-shadow: 0 2px 20px rgb(0 0 0 / 0.3);
+}
+.away-message p {
+  margin: 0;
+  padding: 48px 8%;
+  text-align: center;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+}
+.away-ticker {
+  display: flex;
+  overflow: hidden;
+}
+.away-ticker-track {
+  display: flex;
+  width: max-content;
+  flex-shrink: 0;
+  animation: away-ticker var(--ticker-duration) linear infinite;
+}
+.away-ticker-track span {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 0 12vw;
+  min-width: 100vw;
+}
+@keyframes away-ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.away-stage-controls {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  gap: 6px;
+}
+.away-stage-controls button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  background: rgb(20 22 22 / 0.7);
+  color: #f2f0ea;
+  min-height: 34px;
+  padding: 8px;
+  font: 10px var(--mono);
+}
+.away-stage-controls button:hover {
+  background: #242424;
+}
+.controls-hidden {
+  cursor: none;
+}
+.controls-hidden .away-stage-controls {
+  opacity: 0;
+  pointer-events: none;
+}
+.controls-hidden:focus-within .away-stage-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+.away-settings {
+  padding: 22px 26px 16px;
+}
+.away-settings header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.away-settings h2 {
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  margin: 7px 0 0;
+}
+.away-start {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 11px 16px;
+  font: 11px var(--mono);
+  white-space: nowrap;
+}
+.away-start:hover {
+  background: var(--muted);
+}
+.away-start span {
+  margin-left: 12px;
+}
+.away-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font: 10px var(--mono);
+  color: var(--muted);
+}
+.away-field input,
+.away-field select {
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  color: var(--ink);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 8px 0;
+  font: 13px var(--sans);
+}
+.away-field select option {
+  background: var(--paper);
+  color: var(--ink);
+}
+.away-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  margin: 20px 0;
+}
+.away-colors {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.away-colors legend {
+  font: 10px var(--mono);
+  color: var(--muted);
+  padding: 0;
+  margin-bottom: 12px;
+}
+.away-colors input {
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: none;
+  cursor: pointer;
+}
+.away-settings footer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font: 11px var(--mono);
+}
+.away-settings footer label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.away-settings footer input {
+  accent-color: var(--ink);
+}
+.away-settings footer button {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: 10px var(--mono);
+}
+.away-hint {
+  color: var(--muted);
+  font: 9px var(--mono);
+  margin: 18px 0 0;
+}
+.away-notice,
+.away-render-note {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  right: 12px;
+  padding: 8px;
+  background: rgb(0 0 0 / 0.75);
+  color: white;
+  font: 11px var(--mono);
+}
+.away-dialog.is-presenting {
+  width: 100vw;
+  height: 100dvh;
+  max-height: none;
+  border: 0;
+}
+.away-dialog.is-presenting .away-stage {
+  height: 100%;
+}
+.away-surface:fullscreen {
+  width: 100vw;
+  height: 100dvh;
+  max-height: none;
+  overflow: auto;
+}
+.away-surface:fullscreen:not(.is-presenting) .away-stage {
+  height: max(230px, calc(100dvh - 330px));
+}
+.is-paused .away-ticker-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .away-ticker-track {
+    animation: none;
+  }
+  .away-ticker-track span + span {
+    display: none;
+  }
+  .away-ticker-track span {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding: 0 8vw;
+  }
+  .away-ticker-track {
+    width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .outside-weather {
+    gap: 7px;
+  }
+  .outside-weather a {
+    display: none;
+  }
+  .outside-weather small {
+    width: 100%;
+    margin-left: 23px;
+  }
+  .away-options {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .away-colors {
+    grid-column: 1/-1;
+  }
+  .away-settings {
+    padding: 18px;
+  }
+  .away-settings footer {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .away-stage {
+    height: 180px;
+  }
+}
+
+.away-surface {
+  background: var(--paper);
+  color: var(--ink);
+}
+.away-surface.is-presenting {
+  height: 100%;
+}
+@media (min-width: 850px) and (max-height: 650px) {
+  .home-ambient {
+    padding: 6px 0;
+  }
+  .overview {
+    padding: 8px 0;
+  }
+  .device-label {
+    margin-top: 8px;
+  }
+  .connections {
+    padding: 8px 0;
+  }
+  .quick-section .section-heading {
+    margin: 10px 0 7px;
+  }
+  .home-note textarea {
+    height: 48px;
+    min-height: 48px;
+  }
+}
+@media (max-width: 600px) {
+  .away-settings header {
+    flex-wrap: wrap;
+  }
+}

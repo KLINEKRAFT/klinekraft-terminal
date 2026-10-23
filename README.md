@@ -127,3 +127,7 @@ service. Logos and fonts are served with the app. The local `npm run desktop`
 and `npm run dev` workflows retain live-service support.
 
 To preview the hosted build locally: `npm run build:demo && npm run preview`.
+
+## Away and weather
+
+Home includes Tulsa outdoor temperature in Fahrenheit and an Away button with three customizable backgrounds, a simple message/ticker, and optional fullscreen. See [Away and weather](docs/AWAY_AND_WEATHER.md) for behavior, sources, and offline limits. See [candidate tools](docs/TERMINAL_IDEAS.md) for a reviewed shortlist of future additions.
