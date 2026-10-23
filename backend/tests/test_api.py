@@ -17,6 +17,8 @@ def test_capabilities_only_claim_implemented_services(client):
     data = client.get("/api/capabilities").json()
     assert data.pop("mode") == "host-telemetry"
     assert data.pop("system_telemetry") is True
+    assert data.pop("files_read_only") is True
+    assert data.pop("wiki_status") is True
     assert all(value is False for value in data.values())
 
 

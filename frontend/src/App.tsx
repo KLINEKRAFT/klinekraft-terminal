@@ -22,6 +22,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { FilesPanel, WikiPanel } from "./components/LocalContent";
 import { HomeTools, useQuickNote, greeting } from "./components/HomeTools";
 import { useBrowserPreferences } from "./bookmarks";
 import { BrowserLibrary, BrowserSettings } from "./components/BrowserLibrary";
@@ -222,7 +223,14 @@ function Home({
           <span>
             <small>BATTERY · X1202</small>
             <strong>
-              Unavailable <em>Not configured</em>
+              {reading.batteryPercent == null
+                ? "Unavailable"
+                : `${reading.batteryPercent.toFixed(0)}%`}
+              <em>
+                {reading.batteryVoltage == null
+                  ? (reading.batteryStatus ?? "Not configured")
+                  : `${reading.batteryVoltage.toFixed(2)} V · estimated · ${detail.toLowerCase()}`}
+              </em>
             </strong>
           </span>
         </div>
@@ -529,10 +537,13 @@ export default function App() {
               note={note}
             />
           ) : section === "Library" ? (
-            <BrowserLibrary
-              store={browser}
-              openSettings={() => navigate("Settings")}
-            />
+            <>
+              <WikiPanel />
+              <BrowserLibrary
+                store={browser}
+                openSettings={() => navigate("Settings")}
+              />
+            </>
           ) : section === "Settings" ? (
             <>
               <section className="settings-panel" aria-label="Appearance">
@@ -563,6 +574,8 @@ export default function App() {
                 label={label}
               />
             </>
+          ) : section === "Files" ? (
+            <FilesPanel />
           ) : section === "System" ? (
             <SystemPanel reading={reading} label={label} />
           ) : section === "Network" ? (

@@ -1371,3 +1371,54 @@ textarea:focus-visible {
 [data-theme="dark"] .sidebar-toggle:hover {
   background: transparent;
 }
+
+.file-location {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  font: 11px var(--mono);
+  overflow-wrap: anywhere;
+}
+.file-list {
+  list-style: none;
+  padding: 0;
+}
+.file-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  border-bottom: 1px solid var(--line);
+}
+.file-list svg {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.file-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: 12px var(--sans);
+}
+button.file-name {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  min-height: 44px;
+  padding: 8px 0;
+}
+button.file-name:hover {
+  text-decoration: underline;
+}
+.file-size {
+  color: var(--muted);
+  font: 10px var(--mono);
+  white-space: nowrap;
+}
+.wiki-archives {
+  padding-left: 16px;
+  color: var(--muted);
+  font: 11px/1.8 var(--mono);
+  overflow-wrap: anywhere;
+}

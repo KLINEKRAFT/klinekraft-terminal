@@ -1,4 +1,4 @@
-"""Read-only host telemetry. No Pi drivers, shell commands or network probes."""
+"""Read-only host telemetry. Optional X1202 gauge; no shell commands or network probes."""
 import asyncio
 from contextlib import suppress
 from datetime import datetime, timezone
@@ -7,6 +7,8 @@ import math
 from pathlib import Path
 import platform
 from typing import Literal
+
+from .battery import read_battery
 
 import psutil
 from pydantic import BaseModel, ConfigDict, Field
@@ -38,6 +40,9 @@ class HostSnapshot(WireModel):
     storage_total: float | None = None
     temperature: float | None = None
     interfaces: list[NetworkInterface] | None = None
+    battery_percent: float | None = Field(default=None, ge=0, le=100)
+    battery_voltage: float | None = None
+    battery_status: str = "Not configured"
 
 
 def number(value: float | None) -> float | None:
@@ -63,6 +68,7 @@ def collect_snapshot() -> HostSnapshot:
                   "architecture": platform.machine()}
     # Independent reads mean a missing sensor cannot suppress memory or storage.
     operations = {
+        "battery": read_battery,
         "cpu": lambda: {"cpu": number(psutil.cpu_percent(interval=0.1)), "cpu_cores": psutil.cpu_count()},
         "memory": lambda: _memory(),
         "storage": lambda: _storage(),

@@ -14,7 +14,7 @@ Use Python 3.11+, ideally 3.12. Create `.venv` with `python3 -m venv .venv`, act
 
 ## Raspberry Pi — proposed preview deployment
 
-These are untested Pi deployment instructions for the preview, not completion of hardware integration. Start with Raspberry Pi OS 64-bit Desktop and its Chromium browser. Place the repository at `~/klinekraft-terminal`, build/install dependencies as above. Never run the application as root. The Python service provides psutil host metrics but no GPS or UPS drivers yet.
+These are untested Pi deployment instructions for the preview, not completion of hardware integration. Start with Raspberry Pi OS 64-bit Desktop and its Chromium browser. Place the repository at `~/klinekraft-terminal`, build/install dependencies as above. Never run the application as root. The Python service provides psutil host metrics. Optional X1202 battery setup is now available; GPS remains unavailable. See [battery setup](BATTERY_SETUP.md) and [Files and Wikipedia](FILES_AND_WIKI.md).
 
 Copy `deploy/klinekraft.service.example` to `~/.config/systemd/user/klinekraft.service` after reviewing paths. Run `systemctl --user daemon-reload`, then `systemctl --user enable --now klinekraft`. Visit http://127.0.0.1:8000 and check `journalctl --user -u klinekraft`. To stop/remove autostart, `systemctl --user disable --now klinekraft`.
 

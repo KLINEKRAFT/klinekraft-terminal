@@ -69,7 +69,7 @@ npm run desktop
 
 Open **http://127.0.0.1:8000**, select **Settings → Dashboard data → Live computer**, then Home. `npm run desktop` builds the UI and starts the local Python service. Keep Terminal open; Ctrl+C stops it. See [Mac setup and troubleshooting](docs/MAC_DEVELOPMENT.md).
 
-Live data belongs to the computer running the service, not necessarily the browser. On your Mac it reports macOS readings; on a future Pi it reports Linux readings. CPU temperature is normally unavailable on macOS. X1202 and GPS are not configured. Network links do not establish internet access. No simulated fallback is used when the backend is offline.
+Live data belongs to the computer running the service, not necessarily the browser. On your Mac it reports macOS readings; on a future Pi it reports Linux readings. CPU temperature is normally unavailable on macOS. GPS is not configured; X1202 readings require the optional Pi setup. Network links do not establish internet access. No simulated fallback is used when the backend is offline.
 
 For hot-reload frontend development, run `npm run backend` in one Terminal and `npm run dev` in another. `/api/system` provides read-only host snapshots; `/api/capabilities` lists implemented integrations. No command execution endpoint is exposed.
 
@@ -98,9 +98,15 @@ Browser tests cover the three requested display sizes, local-only resources, nav
 | `tests`, `backend/tests` | Browser acceptance and service contract tests |
 | `docs` | Research, architecture, hardware, design, installation and roadmap |
 
+## Files, offline Wikipedia and X1202 battery
+
+The local app can browse Documents/Downloads and download copies of files. Library includes Kiwix reader status and a link to search installed offline Wikipedia archives. See [Files and Wikipedia setup](docs/FILES_AND_WIKI.md) for the Pi installer and starter archive download.
+
+The optional X1202 adapter reads battery voltage and estimated charge through I2C. See [battery setup](docs/BATTERY_SETUP.md). It does not install automatic shutdown or charging controls. Physical readings still need verification on your Pi.
+
 ## Scope and next steps
 
-ROM catalog/launching, GPS, offline maps, Kiwix, file management, PTY terminal, AI, MCP and power control are **not implemented**. No games, BIOS files, ZIM archives or map data are included. Pi compatibility is an architectural assessment, not hardware certification.
+ROM catalog/launching, GPS, offline maps, file editing, PTY terminal, AI, MCP and power control are **not implemented**. No games, BIOS files, ZIM archives or map data are bundled; the Pi setup downloads a starter ZIM separately. Pi compatibility is an architectural assessment, not hardware certification.
 
 Next: try live telemetry on your Mac, then add approved desktop launch actions. Validate the same telemetry service on the Pi when hardware is ready. See [roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [GitHub research](docs/GITHUB_RESEARCH.md).
 

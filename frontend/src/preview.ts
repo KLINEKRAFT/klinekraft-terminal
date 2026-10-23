@@ -1,5 +1,8 @@
 export type Reading = {
   source: "simulated" | "host";
+  batteryPercent?: number | null;
+  batteryVoltage?: number | null;
+  batteryStatus?: string;
   sampledAt: string | null;
   stale: boolean;
   system: string;
@@ -62,6 +65,8 @@ export function resolveCommand(value: string): CommandResult {
     files: "Files",
     settings: "Settings",
     library: "Library",
+    wiki: "Library",
+    wikipedia: "Library",
     bookmarks: "Library",
     browser: "Library",
   };
@@ -79,7 +84,8 @@ export function resolveCommand(value: string): CommandResult {
   if (command.startsWith("wiki "))
     return {
       section: "Library",
-      message: "Kiwix is not connected. No article search was performed.",
+      message:
+        "Open the Wikipedia reader in Library to search your installed archives.",
     };
   if (command.startsWith("ask "))
     return {

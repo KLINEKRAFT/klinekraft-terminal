@@ -59,12 +59,12 @@ export function TelemetrySettings({
           : "Preview runs without Python or hardware. No machine readings are collected by the UI."}
       </p>
       <p>
-        The clock always uses your browser’s local time. GPS and X1202
-        integration are not configured.
+        The clock uses your browser’s local time. X1202 battery readings require
+        Pi setup and Live computer mode. GPS is not configured.
       </p>
       <div className="feature-note">
-        Native app launching, file management and a native desktop exit are
-        still planned.
+        Files supports browsing and downloading. Native app launching and a
+        native desktop exit are still planned.
       </div>
     </section>
   );
@@ -109,7 +109,13 @@ export function SystemPanel({
               ? "Unavailable on this host"
               : `${amount(reading.temperature)}°C`,
           ],
-          ["X1202 / GPS", "Unavailable · integration not configured"],
+          [
+            "X1202 battery",
+            reading.batteryPercent == null
+              ? (reading.batteryStatus ?? "Not configured")
+              : `${reading.batteryPercent.toFixed(0)}% estimated · ${reading.batteryVoltage?.toFixed(2)} V`,
+          ],
+          ["GPS", "Unavailable · integration not configured"],
           [
             "Last sample",
             reading.sampledAt

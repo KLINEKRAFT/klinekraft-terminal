@@ -1,9 +1,10 @@
-"""Loopback-only telemetry service. No command execution or filesystem API."""
+"""Loopback-only telemetry service. Read-only files; no command execution API."""
 from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from .local_content import router as local_content_router
 from .services import Capabilities, get_capabilities
 from .telemetry import HostSnapshot, TelemetryService
 
@@ -40,6 +41,9 @@ def system_status(request: Request, response: Response) -> HostSnapshot:
     if snapshot is None:
         raise HTTPException(status_code=503, detail="Host telemetry is not available yet")
     return snapshot
+
+
+app.include_router(local_content_router)
 
 
 # Build once with npm; production needs no Vite server or external CDN.

@@ -62,6 +62,13 @@ function parseSnapshot(value: unknown): Reading {
     throw new Error("Invalid interface list");
   if (typeof data.cpu === "number" && (data.cpu < 0 || data.cpu > 100))
     throw new Error("Invalid CPU load");
+  for (const key of ["batteryPercent", "batteryVoltage"]) {
+    const value = data[key];
+    if (value != null && (typeof value !== "number" || !Number.isFinite(value)))
+      throw new Error("Invalid battery measurement");
+  }
+  if (data.batteryStatus != null && typeof data.batteryStatus !== "string")
+    throw new Error("Invalid battery status");
   return data as unknown as Reading;
 }
 
