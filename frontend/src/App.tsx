@@ -160,12 +160,14 @@ function Home({
         <div className="clock-panel">
           <span className="eyebrow">LOCAL TIME</span>
           <time className="time" dateTime={now.toISOString()}>
-            {now.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })}
-            <span>{now.toLocaleTimeString([], { second: "2-digit" })}</span>
+            {now
+              .toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })
+              .replace(/\s*[AP]M$/, "")}
+            <span>{now.getHours() < 12 ? "AM" : "PM"}</span>
           </time>
           <span className="date">
             {now.toLocaleDateString("en-US", {
@@ -212,7 +214,7 @@ function Home({
             <strong>
               {reading.temperature === null
                 ? "Unavailable"
-                : `${amount(reading.temperature)}°C`}{" "}
+                : `${amount((reading.temperature * 9) / 5 + 32)}°F`}{" "}
               <em>
                 {reading.temperature === null ? "No sensor reading" : detail}
               </em>

@@ -107,7 +107,7 @@ export function SystemPanel({
             "CPU temperature",
             reading.temperature === null
               ? "Unavailable on this host"
-              : `${amount(reading.temperature)}°C`,
+              : `${amount((reading.temperature * 9) / 5 + 32)}°F`,
           ],
           [
             "X1202 battery",
@@ -119,7 +119,9 @@ export function SystemPanel({
           [
             "Last sample",
             reading.sampledAt
-              ? new Date(reading.sampledAt).toLocaleTimeString()
+              ? new Date(reading.sampledAt).toLocaleTimeString("en-US", {
+                  hour12: true,
+                })
               : measured
                 ? "No sample received"
                 : "Simulated fixture",
