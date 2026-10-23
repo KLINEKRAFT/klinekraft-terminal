@@ -1298,15 +1298,21 @@ textarea:focus-visible {
   width: 44px;
   height: 44px;
   margin-bottom: 8px;
-  border: 1px solid var(--line);
-  border-radius: 3px;
+  border: 0;
+  border-radius: 0;
+  color: var(--muted);
+  background: transparent;
+}
+.sidebar-toggle:hover {
+  color: var(--ink);
   background: transparent;
 }
 .app-shell.sidebar-collapsed {
-  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-columns: 56px minmax(0, 1fr);
 }
 .sidebar-collapsed .sidebar {
-  padding: 12px 8px;
+  padding: 12px 6px;
+  background: var(--paper);
 }
 .sidebar-collapsed .sidebar-toggle {
   align-self: center;
@@ -1328,11 +1334,40 @@ textarea:focus-visible {
 }
 .sidebar-collapsed nav button i {
   position: absolute;
-  right: 3px;
+  left: -6px;
+  width: 2px;
+  height: 14px;
+  border-radius: 0;
+  background: var(--ink);
 }
 .sidebar-collapsed .sidebar-bottom {
   padding: 12px 0 0;
 }
 .sidebar-collapsed .sidebar-bottom > button {
   justify-content: center;
+}
+
+/* A quiet instrument rail: one axis, one selection mark, no button chrome. */
+.sidebar-collapsed nav {
+  border-top: 0;
+  padding-top: 8px;
+}
+.sidebar-collapsed nav button {
+  color: var(--muted);
+  border-radius: 0;
+}
+.sidebar-collapsed nav button[aria-current] {
+  color: var(--ink);
+  background: transparent;
+}
+.sidebar-collapsed nav button:hover {
+  color: var(--ink);
+  background: var(--panel);
+}
+.sidebar-collapsed .sidebar-bottom > button {
+  color: var(--muted);
+  border-top: 0;
+}
+[data-theme="dark"] .sidebar-toggle:hover {
+  background: transparent;
 }

@@ -12,8 +12,8 @@ import {
   Maximize2,
   Moon,
   Sun,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
   MessageSquare,
   Radio,
   Settings2,
@@ -431,9 +431,9 @@ export default function App() {
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (
-            <PanelLeftOpen size={20} />
+            <ChevronRight size={14} strokeWidth={1.5} />
           ) : (
-            <PanelLeftClose size={20} />
+            <ChevronLeft size={14} strokeWidth={1.5} />
           )}
         </button>
         <KlinekraftBrandLockup />
