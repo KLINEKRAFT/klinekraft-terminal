@@ -1245,3 +1245,832 @@ textarea:focus-visible {
     gap: 16px;
   }
 }
+
+/* Appearance preferences apply to every workspace section. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #15191e;
+  --panel: #252c34;
+  --ink: #f0eee8;
+  --muted: #b0b7c0;
+  --line: #3b4550;
+  --blue: #84b5ff;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .command-area form,
+[data-theme="dark"] .browser-launch,
+[data-theme="dark"] .home-note textarea {
+  background: #1d232b;
+}
+[data-theme="dark"] button:hover,
+[data-theme="dark"] nav button[aria-current] {
+  background: var(--panel);
+}
+[data-theme="dark"] .command-area form {
+  border-color: var(--line);
+}
+[data-theme="dark"] .meter {
+  background: var(--line);
+}
+[data-theme="dark"] .eyebrow > span {
+  color: var(--muted);
+}
+[data-theme="dark"] nav button[aria-current] .nav-number,
+[data-theme="dark"] .browser-warning,
+[data-theme="dark"] .home-warning {
+  color: #ffb47c !important;
+}
+[data-theme="dark"] .brand {
+  background: transparent;
+}
+[data-theme="dark"] .brand-lockup {
+  filter: brightness(0) invert(0.94);
+}
+.sidebar {
+  overflow-y: auto;
+}
+.sidebar-toggle {
+  display: grid;
+  place-items: center;
+  align-self: flex-end;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 8px;
+  border: 0;
+  border-radius: 0;
+  color: var(--muted);
+  background: transparent;
+}
+.sidebar-toggle:hover {
+  color: var(--ink);
+  background: transparent;
+}
+.app-shell.sidebar-collapsed {
+  grid-template-columns: 56px minmax(0, 1fr);
+}
+.sidebar-collapsed .sidebar {
+  padding: 12px 6px;
+  background: var(--paper);
+}
+.sidebar-collapsed .sidebar-toggle {
+  align-self: center;
+}
+.sidebar-collapsed .brand,
+.sidebar-collapsed .sidebar-caption,
+.sidebar-collapsed .nav-number,
+.sidebar-collapsed .nav-label,
+.sidebar-collapsed .sidebar-bottom > div,
+.sidebar-collapsed .sidebar-bottom > span {
+  display: none;
+}
+.sidebar-collapsed nav button {
+  justify-content: center;
+  padding: 0;
+}
+.sidebar-collapsed nav button svg {
+  display: block;
+}
+.sidebar-collapsed nav button i {
+  position: absolute;
+  left: -6px;
+  width: 2px;
+  height: 14px;
+  border-radius: 0;
+  background: var(--ink);
+}
+.sidebar-collapsed .sidebar-bottom {
+  padding: 12px 0 0;
+}
+.sidebar-collapsed .sidebar-bottom > button {
+  justify-content: center;
+}
+
+/* A quiet instrument rail: one axis, one selection mark, no button chrome. */
+.sidebar-collapsed nav {
+  border-top: 0;
+  padding-top: 8px;
+}
+.sidebar-collapsed nav button {
+  color: var(--muted);
+  border-radius: 0;
+}
+.sidebar-collapsed nav button[aria-current] {
+  color: var(--ink);
+  background: transparent;
+}
+.sidebar-collapsed nav button:hover {
+  color: var(--ink);
+  background: var(--panel);
+}
+.sidebar-collapsed .sidebar-bottom > button {
+  color: var(--muted);
+  border-top: 0;
+}
+[data-theme="dark"] .sidebar-toggle:hover {
+  background: transparent;
+}
+
+.file-location {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  font: 11px var(--mono);
+  overflow-wrap: anywhere;
+}
+.file-list {
+  list-style: none;
+  padding: 0;
+}
+.file-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  border-bottom: 1px solid var(--line);
+}
+.file-list svg {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.file-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: 12px var(--sans);
+}
+button.file-name {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  min-height: 44px;
+  padding: 8px 0;
+}
+button.file-name:hover {
+  text-decoration: underline;
+}
+.file-size {
+  color: var(--muted);
+  font: 10px var(--mono);
+  white-space: nowrap;
+}
+.wiki-archives {
+  padding-left: 16px;
+  color: var(--muted);
+  font: 11px/1.8 var(--mono);
+  overflow-wrap: anywhere;
+}
+
+/* Quiet hierarchy, with the collapse affordance beside the device caption. */
+.sidebar-heading {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 12px 0 8px;
+}
+.sidebar-heading .sidebar-caption {
+  flex: 1;
+  margin: 0 0 0 10px;
+  font-size: 7px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.sidebar-heading .sidebar-toggle {
+  width: 32px;
+  height: 44px;
+  margin: 0;
+  align-self: auto;
+}
+.sidebar-collapsed .sidebar-heading {
+  margin: 0 0 8px;
+  justify-content: center;
+}
+.sidebar-collapsed .sidebar-toggle {
+  width: 44px;
+}
+.browser-panel {
+  padding: 22px 0;
+  border-top-color: var(--line);
+}
+.browser-panel h2 {
+  font-size: 20px;
+  margin: 6px 0 12px;
+}
+.browser-help {
+  max-width: 64ch;
+  line-height: 1.65;
+}
+.content-details {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 14px 0;
+}
+.content-details summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.content-details summary::before {
+  content: "+";
+  font: 14px var(--mono);
+}
+.content-details[open] summary::before {
+  content: "−";
+}
+.content-details p {
+  line-height: 1.7;
+  margin: 0 0 12px;
+}
+.content-details pre {
+  overflow-x: auto;
+  padding: 12px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font: 10px/1.7 var(--mono);
+}
+.content-details summary:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.file-tabs {
+  border-bottom: 1px solid var(--line);
+  gap: 20px;
+}
+.file-tabs .browser-button {
+  border: 0;
+  border-radius: 0;
+  padding: 8px 0;
+  color: var(--muted);
+}
+.file-tabs .browser-button[aria-pressed="true"] {
+  color: var(--ink);
+  box-shadow: inset 0 -1px var(--ink);
+}
+.file-tabs .browser-button:last-child {
+  margin-left: auto;
+}
+.file-list .browser-button,
+.file-location .browser-button {
+  border: 0;
+}
+.file-location {
+  color: var(--muted);
+  margin-top: 8px;
+}
+.wiki-status {
+  font-size: 12px;
+  margin: 16px 0;
+  line-height: 1.6;
+}
+.wiki-status small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 4px;
+}
+@media (max-width: 850px) {
+  .sidebar-heading .sidebar-caption {
+    font-size: 6px;
+    letter-spacing: 0;
+    margin-left: 0;
+  }
+  .sidebar-heading .sidebar-toggle {
+    width: 24px;
+  }
+  .sidebar-collapsed .sidebar-heading .sidebar-toggle {
+    width: 44px;
+  }
+}
+.bookmark-empty {
+  border: 0;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  padding: 20px 0;
+}
+.bookmark-empty > svg {
+  display: none;
+}
+.browser-launch {
+  background: transparent;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+[data-theme="dark"] .browser-launch {
+  background: transparent;
+}
+@media (max-height: 650px) {
+  .sidebar {
+    padding-top: 16px;
+    padding-bottom: 8px;
+  }
+  .sidebar-heading {
+    margin-top: 4px;
+    margin-bottom: 2px;
+  }
+  .sidebar-bottom {
+    padding-top: 8px;
+  }
+  .sidebar-bottom > span {
+    display: none;
+  }
+  .sidebar-bottom > button {
+    margin-top: 8px;
+  }
+}
+
+.game-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.game-toolbar input,
+.game-toolbar select {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font: 12px var(--sans);
+  padding: 0 12px;
+  border-radius: 0;
+}
+.game-toolbar input {
+  flex: 1;
+  min-width: 180px;
+}
+.game-toolbar select {
+  max-width: 100%;
+  background: var(--paper);
+}
+.game-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.game-list li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 70px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.game-title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.game-title strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.game-title span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.game-favorite {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.game-favorite[aria-pressed="true"] {
+  color: var(--ink);
+}
+
+/* Home ambient tools share the terminal's typography and quiet rules. */
+.home-ambient {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+  padding: 13px 0;
+}
+.outside-weather {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.outside-weather strong {
+  font: 16px var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.outside-weather small,
+.outside-weather a {
+  font: 9px var(--mono);
+  color: var(--muted);
+}
+.outside-weather a {
+  text-underline-offset: 3px;
+}
+.away-launch {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  background: transparent;
+  padding: 7px 0 7px 12px;
+  font: 11px var(--mono);
+}
+.away-launch span {
+  margin-left: 14px;
+  color: var(--muted);
+}
+.away-dialog {
+  padding: 0;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  width: min(760px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+}
+.away-dialog::backdrop {
+  background: rgb(0 0 0 / 0.65);
+}
+.away-stage {
+  position: relative;
+  height: 230px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.away-canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  z-index: -1;
+}
+.away-message {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--away-ink);
+  font: 400 clamp(24px, 5vw, 60px)/1.15 var(--away-font);
+  letter-spacing: -0.035em;
+  text-shadow: 0 2px 20px rgb(0 0 0 / 0.3);
+}
+.away-message p {
+  margin: 0;
+  padding: 48px 8%;
+  text-align: center;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+}
+.away-ticker {
+  display: flex;
+  overflow: hidden;
+}
+.away-ticker-track {
+  display: flex;
+  width: max-content;
+  flex-shrink: 0;
+  animation: away-ticker var(--ticker-duration) linear infinite;
+}
+.away-ticker-track span {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 0 12vw;
+  min-width: 100vw;
+}
+@keyframes away-ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.away-stage-controls {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  gap: 6px;
+}
+.away-stage-controls button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  background: rgb(20 22 22 / 0.7);
+  color: #f2f0ea;
+  min-height: 34px;
+  padding: 8px;
+  font: 10px var(--mono);
+}
+.away-stage-controls button:hover {
+  background: #242424;
+}
+.controls-hidden {
+  cursor: none;
+}
+.controls-hidden .away-stage-controls {
+  opacity: 0;
+  pointer-events: none;
+}
+.controls-hidden:focus-within .away-stage-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+.away-settings {
+  padding: 22px 26px 16px;
+}
+.away-settings header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.away-settings h2 {
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  margin: 7px 0 0;
+}
+.away-start {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 11px 16px;
+  font: 11px var(--mono);
+  white-space: nowrap;
+}
+.away-start:hover {
+  background: var(--muted);
+}
+.away-start span {
+  margin-left: 12px;
+}
+.away-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font: 10px var(--mono);
+  color: var(--muted);
+}
+.away-field input,
+.away-field select {
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  color: var(--ink);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 8px 0;
+  font: 13px var(--sans);
+}
+.away-field select option {
+  background: var(--paper);
+  color: var(--ink);
+}
+.away-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  margin: 20px 0;
+}
+.away-colors {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.away-colors legend {
+  font: 10px var(--mono);
+  color: var(--muted);
+  padding: 0;
+  margin-bottom: 12px;
+}
+.away-colors input {
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: none;
+  cursor: pointer;
+}
+.away-settings footer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font: 11px var(--mono);
+}
+.away-settings footer label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.away-settings footer input {
+  accent-color: var(--ink);
+}
+.away-settings footer button {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: 10px var(--mono);
+}
+.away-hint {
+  color: var(--muted);
+  font: 9px var(--mono);
+  margin: 18px 0 0;
+}
+.away-notice,
+.away-render-note {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  right: 12px;
+  padding: 8px;
+  background: rgb(0 0 0 / 0.75);
+  color: white;
+  font: 11px var(--mono);
+}
+.away-dialog.is-presenting {
+  width: 100vw;
+  height: 100dvh;
+  max-height: none;
+  border: 0;
+}
+.away-dialog.is-presenting .away-stage {
+  height: 100%;
+}
+.away-surface:fullscreen {
+  width: 100vw;
+  height: 100dvh;
+  max-height: none;
+  overflow: auto;
+}
+.away-surface:fullscreen:not(.is-presenting) .away-stage {
+  height: max(230px, calc(100dvh - 330px));
+}
+.is-paused .away-ticker-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .away-ticker-track {
+    animation: none;
+  }
+  .away-ticker-track span + span {
+    display: none;
+  }
+  .away-ticker-track span {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding: 0 8vw;
+  }
+  .away-ticker-track {
+    width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .outside-weather {
+    gap: 7px;
+  }
+  .outside-weather a {
+    display: none;
+  }
+  .outside-weather small {
+    width: 100%;
+    margin-left: 23px;
+  }
+  .away-options {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .away-colors {
+    grid-column: 1/-1;
+  }
+  .away-settings {
+    padding: 18px;
+  }
+  .away-settings footer {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .away-stage {
+    height: 180px;
+  }
+}
+
+.away-surface {
+  background: var(--paper);
+  color: var(--ink);
+}
+.away-surface.is-presenting {
+  height: 100%;
+}
+@media (min-width: 850px) and (max-height: 650px) {
+  .home-ambient {
+    padding: 6px 0;
+  }
+  .overview {
+    padding: 8px 0;
+  }
+  .device-label {
+    margin-top: 8px;
+  }
+  .connections {
+    padding: 8px 0;
+  }
+  .quick-section .section-heading {
+    margin: 10px 0 7px;
+  }
+  .home-note textarea {
+    height: 48px;
+    min-height: 48px;
+  }
+}
+@media (max-width: 600px) {
+  .away-settings header {
+    flex-wrap: wrap;
+  }
+}
+.home-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+.tools-dialog {
+  width: min(500px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 24px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.tools-dialog::backdrop {
+  background: rgb(0 0 0 / 0.6);
+}
+.tools-dialog header,
+.tools-dialog footer,
+.tools-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.tools-dialog h2 {
+  margin: 8px 0 0;
+  font-weight: 400;
+  font-size: 24px;
+}
+.tools-dialog button {
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 8px;
+  font: 11px var(--mono);
+}
+.tools-dialog button:disabled {
+  opacity: 0.4;
+}
+.tools-dialog p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.tools-intro,
+.tools-dialog small {
+  color: var(--muted);
+}
+.tools-list {
+  margin: 20px 0;
+  border-top: 1px solid var(--line);
+}
+.tools-list > div {
+  padding: 17px 0;
+  border-bottom: 1px solid var(--line);
+}
+.tools-list strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.tools-list p {
+  margin: 5px 0;
+}
+.tools-list small,
+.tools-dialog footer {
+  font: 10px/1.5 var(--mono);
+}

@@ -10,6 +10,10 @@ import {
   Gamepad2,
   Library,
   Maximize2,
+  Moon,
+  Sun,
+  ChevronLeft,
+  ChevronRight,
   MessageSquare,
   Radio,
   Settings2,
@@ -18,7 +22,12 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { HomeTools, useQuickNote, greeting } from "./components/HomeTools";
+import { ToolsLauncher } from "./components/ToolsLauncher";
+import { AwayPanel } from "./components/AwayPanel";
+import { OutsideWeather } from "./components/OutsideWeather";
+import { GamesPanel } from "./components/GamesPanel";
+import { FilesPanel, WikiPanel } from "./components/LocalContent";
+import { HomeTools, useQuickNote } from "./components/HomeTools";
 import { useBrowserPreferences } from "./bookmarks";
 import { BrowserLibrary, BrowserSettings } from "./components/BrowserLibrary";
 import { KlinekraftBrandLockup, installBrandIcon } from "./components/Brand";
@@ -154,12 +163,14 @@ function Home({
         <div className="clock-panel">
           <span className="eyebrow">LOCAL TIME</span>
           <time className="time" dateTime={now.toISOString()}>
-            {now.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })}
-            <span>{now.toLocaleTimeString([], { second: "2-digit" })}</span>
+            {now
+              .toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })
+              .replace(/\s*[AP]M$/, "")}
+            <span>{now.getHours() < 12 ? "AM" : "PM"}</span>
           </time>
           <span className="date">
             {now.toLocaleDateString("en-US", {
@@ -198,6 +209,13 @@ function Home({
           />
         </div>
       </section>
+      <div className="home-ambient">
+        <OutsideWeather />
+        <div className="home-actions">
+          <ToolsLauncher />
+          <AwayPanel />
+        </div>
+      </div>
       <section className="connections" aria-label="Device readings">
         <div>
           <Cpu size={17} />
@@ -206,7 +224,7 @@ function Home({
             <strong>
               {reading.temperature === null
                 ? "Unavailable"
-                : `${amount(reading.temperature)}°C`}{" "}
+                : `${amount((reading.temperature * 9) / 5 + 32)}°F`}{" "}
               <em>
                 {reading.temperature === null ? "No sensor reading" : detail}
               </em>
@@ -218,7 +236,14 @@ function Home({
           <span>
             <small>BATTERY · X1202</small>
             <strong>
-              Unavailable <em>Not configured</em>
+              {reading.batteryPercent == null
+                ? "Unavailable"
+                : `${reading.batteryPercent.toFixed(0)}%`}
+              <em>
+                {reading.batteryVoltage == null
+                  ? (reading.batteryStatus ?? "Not configured")
+                  : `${reading.batteryVoltage.toFixed(2)} V · estimated · ${detail.toLowerCase()}`}
+              </em>
             </strong>
           </span>
         </div>
@@ -331,10 +356,39 @@ function Feature({ section }: { section: Section }) {
     </section>
   );
 }
+function savedFlag(key: string, fallback = false) {
+  try {
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : value === "true";
+  } catch {
+    return fallback;
+  }
+}
 export default function App() {
+  const [collapsed, setCollapsed] = useState(() =>
+    savedFlag("klinekraft.sidebarCollapsed"),
+  );
+  const [dark, setDark] = useState(() =>
+    savedFlag(
+      "klinekraft.darkMode",
+      window.matchMedia("(prefers-color-scheme: dark)").matches,
+    ),
+  );
+  const [appearanceWarning, setAppearanceWarning] = useState("");
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    try {
+      localStorage.setItem("klinekraft.sidebarCollapsed", String(collapsed));
+      localStorage.setItem("klinekraft.darkMode", String(dark));
+      setAppearanceWarning("");
+    } catch {
+      setAppearanceWarning(
+        "Appearance changes apply now but cannot be saved in this browser.",
+      );
+    }
+  }, [collapsed, dark]);
   const browser = useBrowserPreferences();
   const note = useQuickNote();
-  const [greetingChoice] = useState(() => Math.floor(Math.random() * 4));
   const [section, setSection] = useState<Section>("Home");
   const [now, setNow] = useState(new Date());
   const [paused, setPaused] = useState(false);
@@ -386,16 +440,34 @@ export default function App() {
     }
   }
   return (
-    <div className="app-shell">
+    <div className={`app-shell${collapsed ? " sidebar-collapsed" : ""}`}>
       <aside className="sidebar" inert={exitHelp}>
         <KlinekraftBrandLockup />
-        <div className="sidebar-caption">PORTABLE COMPUTING / 01</div>
-        <nav aria-label="Main navigation">
+        <div className="sidebar-heading">
+          <div className="sidebar-caption">PORTABLE COMPUTING / 01</div>
+          <button
+            className="sidebar-toggle"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
+            aria-controls="main-navigation"
+            onClick={() => setCollapsed(!collapsed)}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <ChevronRight size={14} strokeWidth={1.5} />
+            ) : (
+              <ChevronLeft size={14} strokeWidth={1.5} />
+            )}
+          </button>
+        </div>
+        <nav id="main-navigation" aria-label="Main navigation">
           {sections.map((item, index) => {
             const Icon = icons[item];
             return (
               <button
                 key={item}
+                aria-label={collapsed ? item : undefined}
+                title={collapsed ? item : undefined}
                 aria-current={section === item ? "page" : undefined}
                 onClick={() => navigate(item)}
               >
@@ -403,7 +475,7 @@ export default function App() {
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <Icon size={16} strokeWidth={1.6} />
-                <span>{item}</span>
+                <span className="nav-label">{item}</span>
                 {section === item && <i />}
               </button>
             );
@@ -415,8 +487,13 @@ export default function App() {
             {mode === "preview" ? "PREVIEW MODE" : "HOST TELEMETRY"}
           </div>
           <span>Local workspace · v0.2.0</span>
-          <button onClick={() => setExitHelp(true)}>
-            <ArrowDownLeft size={16} /> Return to desktop
+          <button
+            aria-label="Return to desktop"
+            title="Return to desktop"
+            onClick={() => setExitHelp(true)}
+          >
+            <ArrowDownLeft size={16} />{" "}
+            <span className="nav-label">Return to desktop</span>
           </button>
         </div>
       </aside>
@@ -429,14 +506,21 @@ export default function App() {
                 / {String(sections.indexOf(section) + 1).padStart(2, "0")}
               </span>
             </div>
-            <h1>
-              {section === "Home"
-                ? greeting(now.getHours(), greetingChoice)
-                : section}
+            <h1 className={section === "Home" ? "sr-only" : undefined}>
+              {section}
             </h1>
             {section !== "Home" && <p>{descriptions[section]}</p>}
           </div>
           <div className="header-actions">
+            <button
+              className="icon-button"
+              aria-label="Dark mode"
+              aria-pressed={dark}
+              title={dark ? "Switch to light mode" : "Switch to dark mode"}
+              onClick={() => setDark(!dark)}
+            >
+              {dark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <span className="preview-badge">
               <span /> {label}
             </span>
@@ -450,6 +534,11 @@ export default function App() {
           </div>
         </header>
         <div className="page-content">
+          {appearanceWarning && (
+            <p role="status" className="browser-warning">
+              {appearanceWarning}
+            </p>
+          )}
           {section === "Home" ? (
             <Home
               reading={reading}
@@ -459,15 +548,40 @@ export default function App() {
               browser={browser}
               note={note}
             />
+          ) : section === "Games" ? (
+            <GamesPanel />
           ) : section === "Library" ? (
-            <BrowserLibrary
-              store={browser}
-              openSettings={() => navigate("Settings")}
-            />
+            <>
+              <WikiPanel />
+              <BrowserLibrary
+                store={browser}
+                openSettings={() => navigate("Settings")}
+              />
+            </>
           ) : section === "Settings" ? (
             <>
+              <section className="settings-panel" aria-label="Appearance">
+                <h2>Appearance</h2>
+                <label className="setting-row">
+                  Dark mode
+                  <input
+                    type="checkbox"
+                    checked={dark}
+                    onChange={(e) => setDark(e.target.checked)}
+                  />
+                </label>
+                <label className="setting-row">
+                  Collapse sidebar
+                  <input
+                    type="checkbox"
+                    checked={collapsed}
+                    onChange={(e) => setCollapsed(e.target.checked)}
+                  />
+                </label>
+              </section>
               <BrowserSettings store={browser} />
               <TelemetrySettings
+                storageWarning={telemetry.storageWarning}
                 mode={mode}
                 setMode={setMode}
                 paused={paused}
@@ -475,6 +589,8 @@ export default function App() {
                 label={label}
               />
             </>
+          ) : section === "Files" ? (
+            <FilesPanel />
           ) : section === "System" ? (
             <SystemPanel reading={reading} label={label} />
           ) : section === "Network" ? (

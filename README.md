@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. No Pi hardware, Python service, cloud account or API key is needed for the UI. Dependencies require internet during installation; the built preview uses locally bundled fonts and assets. External websites open only when you choose a bookmark or launch page. Close the tab to leave the application.
+Open http://127.0.0.1:5173. No Pi hardware, Python service, cloud account or API key is needed for the UI. Dependencies require internet during installation; the built preview uses locally bundled fonts and assets. Home requests Tulsa weather from Open-Meteo; other external websites open when you choose a bookmark or launch page. Close the tab to leave the application.
 
 ```sh
 npm run build
@@ -29,8 +29,8 @@ The preview server prints its local URL (normally http://127.0.0.1:4173).
 - Local clock and clearly labeled simulated data, or live CPU/memory/storage/network readings from the service computer.
 - Explicit unavailable temperature/peripheral states and automatic reconnect with stale-data labels.
 - Controlled navigation commands and Cmd/Ctrl+K focus. Try `games`, `gps status`, or `system status`.
-- Switch Preview/Live computer and pause/resume updates in Settings. Telemetry preferences are session-only.
-- Informative integration placeholders; `play`, `wiki` and `ask` explicitly report that their integrations are unavailable.
+- Switch Preview/Live computer and pause/resume updates in Settings. Local installations default to Live computer and remember the data-mode choice in this browser. Pause/resume is session-only.
+- Informative integration placeholders; `play` and `wiki` guide you to their local interfaces; `ask` reports that AI is unavailable.
 - FastAPI health/capabilities/system endpoints, cached background sampling and production static-file hosting.
 
 ## Browser bookmarks and launcher
@@ -69,9 +69,9 @@ npm run desktop
 
 Open **http://127.0.0.1:8000**, select **Settings → Dashboard data → Live computer**, then Home. `npm run desktop` builds the UI and starts the local Python service. Keep Terminal open; Ctrl+C stops it. See [Mac setup and troubleshooting](docs/MAC_DEVELOPMENT.md).
 
-Live data belongs to the computer running the service, not necessarily the browser. On your Mac it reports macOS readings; on a future Pi it reports Linux readings. CPU temperature is normally unavailable on macOS. X1202 and GPS are not configured. Network links do not establish internet access. No simulated fallback is used when the backend is offline.
+Live data belongs to the computer running the service, not necessarily the browser. On your Mac it reports macOS readings; on a future Pi it reports Linux readings. CPU temperature is normally unavailable on macOS. GPS is not configured; X1202 readings require the optional Pi setup. Network links do not establish internet access. No simulated fallback is used when the backend is offline.
 
-For hot-reload frontend development, run `npm run backend` in one Terminal and `npm run dev` in another. `/api/system` provides read-only host snapshots; `/api/capabilities` lists implemented integrations. No command execution endpoint is exposed.
+For hot-reload frontend development, run `npm run backend` in one Terminal and `npm run dev` in another. `/api/system` provides read-only host snapshots; `/api/capabilities` lists implemented integrations. No general shell execution endpoint is exposed; Games has a separate allowlisted launcher.
 
 ## Verification
 
@@ -98,9 +98,19 @@ Browser tests cover the three requested display sizes, local-only resources, nav
 | `tests`, `backend/tests` | Browser acceptance and service contract tests |
 | `docs` | Research, architecture, hardware, design, installation and roadmap |
 
+## Files, offline Wikipedia and X1202 battery
+
+The local app can browse Documents/Downloads and download copies of files. Library includes Kiwix reader status and a link to search installed offline Wikipedia archives. See [Files and Wikipedia setup](docs/FILES_AND_WIKI.md) for the Pi installer and starter archive download.
+
+The optional X1202 adapter reads battery voltage and estimated charge through I2C. See [battery setup](docs/BATTERY_SETUP.md). It does not install automatic shutdown or charging controls. Physical readings still need verification on your Pi.
+
+## Local game library
+
+Games now supports search, system filters, browser-saved favorites and an explicit RetroArch launcher for NES, SNES and Genesis/Mega Drive. The importer reads ROM types inside ZIPs, deduplicates identical content and preserves save backups. See [Pi Games setup](docs/GAMES_SETUP.md). The controller, emulator performance and imported saves still need testing on the Pi.
+
 ## Scope and next steps
 
-ROM catalog/launching, GPS, offline maps, Kiwix, file management, PTY terminal, AI, MCP and power control are **not implemented**. No games, BIOS files, ZIM archives or map data are included. Pi compatibility is an architectural assessment, not hardware certification.
+GPS, offline maps, file editing, PTY terminal, AI, MCP and power control are **not implemented**. Games currently supports only NES, SNES and Genesis/Mega Drive. No games, BIOS files, ZIM archives or map data are bundled; the Pi setup downloads a starter ZIM separately. Pi compatibility is an architectural assessment, not hardware certification.
 
 Next: try live telemetry on your Mac, then add approved desktop launch actions. Validate the same telemetry service on the Pi when hardware is ready. See [roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [GitHub research](docs/GITHUB_RESEARCH.md).
 
@@ -117,3 +127,11 @@ service. Logos and fonts are served with the app. The local `npm run desktop`
 and `npm run dev` workflows retain live-service support.
 
 To preview the hosted build locally: `npm run build:demo && npm run preview`.
+
+## Away and weather
+
+Home includes Tulsa outdoor temperature in Fahrenheit and an Away button with three customizable backgrounds, a simple message/ticker, and optional fullscreen. See [Away and weather](docs/AWAY_AND_WEATHER.md) for behavior, sources, and offline limits. See [candidate tools](docs/TERMINAL_IDEAS.md) for a reviewed shortlist of future additions.
+
+## Desktop Tools
+
+Home → Tools opens nnn, btop and cmus in a desktop terminal after one-time Pi setup. Run `bash scripts/setup-tools.sh` from the Pi desktop Terminal. See [Tools setup](docs/TOOLS_SETUP.md).

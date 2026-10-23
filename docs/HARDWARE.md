@@ -10,7 +10,7 @@ The vendor repository is [geekworm-com/x120x](https://github.com/geekworm-com/x1
 
 The vendor sample also contains automatic shutdown. It was inspected only, never executed or copied. There is no clear root license in the inspected repository. Use it as a hardware reference pending licensing clarification, not reusable source. The actual board revision, bus availability, gauge calibration and any power-loss GPIO behavior require confirmation against vendor documentation and bench measurements. Links in the vendor code reference [X1202 v1.1 documentation](http://suptronics.com/Raspberrypi/Power_mgmt/x1202-v1.1.html); that external page has not been verified here.
 
-The UI reports battery unavailable. A later adapter may expose validated voltage and estimated charge, with sample age and explicit estimated wording. If percentage proves unreliable, omit it and display voltage only. Handle I2C errors, no device and implausible readings without changing the machine's power state.
+The optional read-only adapter now exposes validated voltage and estimated charge, with sample age and explicit estimated wording. See [X1202 setup](BATTERY_SETUP.md). Without setup or a working gauge the UI reports battery unavailable. If percentage proves unreliable, omit it and display voltage only. Handle I2C errors, no device and implausible readings without changing the machine's power state.
 
 ## Deployment validation
 
