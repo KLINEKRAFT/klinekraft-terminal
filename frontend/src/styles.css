@@ -1583,3 +1583,70 @@ button.file-name:hover {
     margin-top: 8px;
   }
 }
+
+.game-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.game-toolbar input,
+.game-toolbar select {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font: 12px var(--sans);
+  padding: 0 12px;
+  border-radius: 0;
+}
+.game-toolbar input {
+  flex: 1;
+  min-width: 180px;
+}
+.game-toolbar select {
+  max-width: 100%;
+  background: var(--paper);
+}
+.game-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.game-list li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 70px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.game-title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.game-title strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.game-title span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.game-favorite {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.game-favorite[aria-pressed="true"] {
+  color: var(--ink);
+}

@@ -21,4 +21,4 @@ class Capabilities(BaseModel):
 
 
 def get_capabilities() -> Capabilities:
-    return Capabilities(battery=os.environ.get("KLINEKRAFT_BATTERY") == "x1202")
+    return Capabilities(game_launch=os.environ.get("KLINEKRAFT_GAMES") == "1", battery=os.environ.get("KLINEKRAFT_BATTERY") == "x1202")

@@ -22,6 +22,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { GamesPanel } from "./components/GamesPanel";
 import { FilesPanel, WikiPanel } from "./components/LocalContent";
 import { HomeTools, useQuickNote, greeting } from "./components/HomeTools";
 import { useBrowserPreferences } from "./bookmarks";
@@ -538,6 +539,8 @@ export default function App() {
               browser={browser}
               note={note}
             />
+          ) : section === "Games" ? (
+            <GamesPanel />
           ) : section === "Library" ? (
             <>
               <WikiPanel />

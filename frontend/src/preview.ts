@@ -79,7 +79,7 @@ export function resolveCommand(value: string): CommandResult {
     return {
       section: "Games",
       message:
-        "Game launching is not connected. No emulator or ROM was opened.",
+        "Choose a game in the library and press Play. Typed commands never launch an emulator.",
     };
   if (command.startsWith("wiki "))
     return {

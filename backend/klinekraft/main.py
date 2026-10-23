@@ -1,10 +1,11 @@
-"""Loopback-only telemetry service. Read-only files; no command execution API."""
+"""Loopback-only telemetry service. Read-only files and an allowlisted game launcher."""
 from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .local_content import router as local_content_router
+from .games import router as games_router
 from .services import Capabilities, get_capabilities
 from .telemetry import HostSnapshot, TelemetryService
 
@@ -44,6 +45,7 @@ def system_status(request: Request, response: Response) -> HostSnapshot:
 
 
 app.include_router(local_content_router)
+app.include_router(games_router)
 
 
 # Build once with npm; production needs no Vite server or external CDN.

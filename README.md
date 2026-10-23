@@ -30,7 +30,7 @@ The preview server prints its local URL (normally http://127.0.0.1:4173).
 - Explicit unavailable temperature/peripheral states and automatic reconnect with stale-data labels.
 - Controlled navigation commands and Cmd/Ctrl+K focus. Try `games`, `gps status`, or `system status`.
 - Switch Preview/Live computer and pause/resume updates in Settings. Telemetry preferences are session-only.
-- Informative integration placeholders; `play`, `wiki` and `ask` explicitly report that their integrations are unavailable.
+- Informative integration placeholders; `play` and `wiki` guide you to their local interfaces; `ask` reports that AI is unavailable.
 - FastAPI health/capabilities/system endpoints, cached background sampling and production static-file hosting.
 
 ## Browser bookmarks and launcher
@@ -71,7 +71,7 @@ Open **http://127.0.0.1:8000**, select **Settings → Dashboard data → Live co
 
 Live data belongs to the computer running the service, not necessarily the browser. On your Mac it reports macOS readings; on a future Pi it reports Linux readings. CPU temperature is normally unavailable on macOS. GPS is not configured; X1202 readings require the optional Pi setup. Network links do not establish internet access. No simulated fallback is used when the backend is offline.
 
-For hot-reload frontend development, run `npm run backend` in one Terminal and `npm run dev` in another. `/api/system` provides read-only host snapshots; `/api/capabilities` lists implemented integrations. No command execution endpoint is exposed.
+For hot-reload frontend development, run `npm run backend` in one Terminal and `npm run dev` in another. `/api/system` provides read-only host snapshots; `/api/capabilities` lists implemented integrations. No general shell execution endpoint is exposed; Games has a separate allowlisted launcher.
 
 ## Verification
 
@@ -104,9 +104,13 @@ The local app can browse Documents/Downloads and download copies of files. Libra
 
 The optional X1202 adapter reads battery voltage and estimated charge through I2C. See [battery setup](docs/BATTERY_SETUP.md). It does not install automatic shutdown or charging controls. Physical readings still need verification on your Pi.
 
+## Local game library
+
+Games now supports search, system filters, browser-saved favorites and an explicit RetroArch launcher for NES, SNES and Genesis/Mega Drive. The importer reads ROM types inside ZIPs, deduplicates identical content and preserves save backups. See [Pi Games setup](docs/GAMES_SETUP.md). The controller, emulator performance and imported saves still need testing on the Pi.
+
 ## Scope and next steps
 
-ROM catalog/launching, GPS, offline maps, file editing, PTY terminal, AI, MCP and power control are **not implemented**. No games, BIOS files, ZIM archives or map data are bundled; the Pi setup downloads a starter ZIM separately. Pi compatibility is an architectural assessment, not hardware certification.
+GPS, offline maps, file editing, PTY terminal, AI, MCP and power control are **not implemented**. Games currently supports only NES, SNES and Genesis/Mega Drive. No games, BIOS files, ZIM archives or map data are bundled; the Pi setup downloads a starter ZIM separately. Pi compatibility is an architectural assessment, not hardware certification.
 
 Next: try live telemetry on your Mac, then add approved desktop launch actions. Validate the same telemetry service on the Pi when hardware is ready. See [roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [GitHub research](docs/GITHUB_RESEARCH.md).
 

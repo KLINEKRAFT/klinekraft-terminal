@@ -62,7 +62,7 @@ test("launch URL persists, rejects unsafe schemes, and clears", async ({
     await page.getByRole("button", { name: "Save launch URL" }).click();
     await expect(
       page
-        .getByRole("region", { name: "Browser bookmarks" })
+        .getByRole("region", { name: "Your starting page" })
         .getByRole("alert"),
     ).toBeVisible();
   }

@@ -42,9 +42,16 @@ for (const [width, height] of [
 test("navigation, commands and settings remain honest", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.goto("/");
+  await page.route("**/api/games", (route) =>
+    route.fulfill({
+      json: { games: [], systems: {}, running: null, lastExitCode: null },
+    }),
+  );
   await page.getByRole("button", { name: "Play something" }).click();
   await expect(
-    page.getByText("No games have been imported.", { exact: false }),
+    page.getByText("Your library is ready for its first games.", {
+      exact: false,
+    }),
   ).toBeVisible();
   await page
     .getByLabel("Workspace command", { exact: true })
@@ -52,7 +59,7 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
   await page.getByRole("button", { name: "Run workspace command" }).click();
   await expect(
     page.getByRole("status", { name: "Command result" }),
-  ).toContainText("No emulator or ROM was opened");
+  ).toContainText("Typed commands never launch an emulator");
   await page
     .getByLabel("Workspace command", { exact: true })
     .fill("system status");
