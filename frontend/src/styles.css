@@ -1245,3 +1245,94 @@ textarea:focus-visible {
     gap: 16px;
   }
 }
+
+/* Appearance preferences apply to every workspace section. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #15191e;
+  --panel: #252c34;
+  --ink: #f0eee8;
+  --muted: #b0b7c0;
+  --line: #3b4550;
+  --blue: #84b5ff;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .command-area form,
+[data-theme="dark"] .browser-launch,
+[data-theme="dark"] .home-note textarea {
+  background: #1d232b;
+}
+[data-theme="dark"] button:hover,
+[data-theme="dark"] nav button[aria-current] {
+  background: var(--panel);
+}
+[data-theme="dark"] .command-area form {
+  border-color: var(--line);
+}
+[data-theme="dark"] .meter {
+  background: var(--line);
+}
+[data-theme="dark"] .eyebrow > span {
+  color: var(--muted);
+}
+[data-theme="dark"] nav button[aria-current] .nav-number,
+[data-theme="dark"] .browser-warning,
+[data-theme="dark"] .home-warning {
+  color: #ffb47c !important;
+}
+[data-theme="dark"] .brand {
+  background: #eae7df;
+  border-radius: 3px;
+}
+.sidebar {
+  overflow-y: auto;
+}
+.sidebar-toggle {
+  display: grid;
+  place-items: center;
+  align-self: flex-end;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 8px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: transparent;
+}
+.app-shell.sidebar-collapsed {
+  grid-template-columns: 72px minmax(0, 1fr);
+}
+.sidebar-collapsed .sidebar {
+  padding: 12px 8px;
+}
+.sidebar-collapsed .sidebar-toggle {
+  align-self: center;
+}
+.sidebar-collapsed .brand,
+.sidebar-collapsed .sidebar-caption,
+.sidebar-collapsed .nav-number,
+.sidebar-collapsed .nav-label,
+.sidebar-collapsed .sidebar-bottom > div,
+.sidebar-collapsed .sidebar-bottom > span {
+  display: none;
+}
+.sidebar-collapsed nav button {
+  justify-content: center;
+  padding: 0;
+}
+.sidebar-collapsed nav button svg {
+  display: block;
+}
+.sidebar-collapsed nav button i {
+  position: absolute;
+  right: 3px;
+}
+.sidebar-collapsed .sidebar-bottom {
+  padding: 12px 0 0;
+}
+.sidebar-collapsed .sidebar-bottom > button {
+  justify-content: center;
+}

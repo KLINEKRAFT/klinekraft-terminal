@@ -61,7 +61,7 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
     page.getByRole("heading", { name: "System", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "09 Settings" }).click();
-  const toggle = page.getByRole("checkbox");
+  const toggle = page.getByRole("checkbox", { name: /Automatic updates/ });
   await toggle.uncheck();
   await expect(toggle).not.toBeChecked();
   await page.keyboard.press("Control+k");

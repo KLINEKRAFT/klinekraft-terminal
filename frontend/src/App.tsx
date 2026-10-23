@@ -10,6 +10,10 @@ import {
   Gamepad2,
   Library,
   Maximize2,
+  Moon,
+  Sun,
+  PanelLeftClose,
+  PanelLeftOpen,
   MessageSquare,
   Radio,
   Settings2,
@@ -331,7 +335,37 @@ function Feature({ section }: { section: Section }) {
     </section>
   );
 }
+function savedFlag(key: string, fallback = false) {
+  try {
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : value === "true";
+  } catch {
+    return fallback;
+  }
+}
 export default function App() {
+  const [collapsed, setCollapsed] = useState(() =>
+    savedFlag("klinekraft.sidebarCollapsed"),
+  );
+  const [dark, setDark] = useState(() =>
+    savedFlag(
+      "klinekraft.darkMode",
+      window.matchMedia("(prefers-color-scheme: dark)").matches,
+    ),
+  );
+  const [appearanceWarning, setAppearanceWarning] = useState("");
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    try {
+      localStorage.setItem("klinekraft.sidebarCollapsed", String(collapsed));
+      localStorage.setItem("klinekraft.darkMode", String(dark));
+      setAppearanceWarning("");
+    } catch {
+      setAppearanceWarning(
+        "Appearance changes apply now but cannot be saved in this browser.",
+      );
+    }
+  }, [collapsed, dark]);
   const browser = useBrowserPreferences();
   const note = useQuickNote();
   const [greetingChoice] = useState(() => Math.floor(Math.random() * 4));
@@ -386,16 +420,32 @@ export default function App() {
     }
   }
   return (
-    <div className="app-shell">
+    <div className={`app-shell${collapsed ? " sidebar-collapsed" : ""}`}>
       <aside className="sidebar" inert={exitHelp}>
+        <button
+          className="sidebar-toggle"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          aria-controls="main-navigation"
+          onClick={() => setCollapsed(!collapsed)}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? (
+            <PanelLeftOpen size={20} />
+          ) : (
+            <PanelLeftClose size={20} />
+          )}
+        </button>
         <KlinekraftBrandLockup />
         <div className="sidebar-caption">PORTABLE COMPUTING / 01</div>
-        <nav aria-label="Main navigation">
+        <nav id="main-navigation" aria-label="Main navigation">
           {sections.map((item, index) => {
             const Icon = icons[item];
             return (
               <button
                 key={item}
+                aria-label={collapsed ? item : undefined}
+                title={collapsed ? item : undefined}
                 aria-current={section === item ? "page" : undefined}
                 onClick={() => navigate(item)}
               >
@@ -403,7 +453,7 @@ export default function App() {
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <Icon size={16} strokeWidth={1.6} />
-                <span>{item}</span>
+                <span className="nav-label">{item}</span>
                 {section === item && <i />}
               </button>
             );
@@ -415,8 +465,13 @@ export default function App() {
             {mode === "preview" ? "PREVIEW MODE" : "HOST TELEMETRY"}
           </div>
           <span>Local workspace · v0.2.0</span>
-          <button onClick={() => setExitHelp(true)}>
-            <ArrowDownLeft size={16} /> Return to desktop
+          <button
+            aria-label="Return to desktop"
+            title="Return to desktop"
+            onClick={() => setExitHelp(true)}
+          >
+            <ArrowDownLeft size={16} />{" "}
+            <span className="nav-label">Return to desktop</span>
           </button>
         </div>
       </aside>
@@ -437,6 +492,15 @@ export default function App() {
             {section !== "Home" && <p>{descriptions[section]}</p>}
           </div>
           <div className="header-actions">
+            <button
+              className="icon-button"
+              aria-label="Dark mode"
+              aria-pressed={dark}
+              title={dark ? "Switch to light mode" : "Switch to dark mode"}
+              onClick={() => setDark(!dark)}
+            >
+              {dark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <span className="preview-badge">
               <span /> {label}
             </span>
@@ -450,6 +514,11 @@ export default function App() {
           </div>
         </header>
         <div className="page-content">
+          {appearanceWarning && (
+            <p role="status" className="browser-warning">
+              {appearanceWarning}
+            </p>
+          )}
           {section === "Home" ? (
             <Home
               reading={reading}
@@ -466,6 +535,25 @@ export default function App() {
             />
           ) : section === "Settings" ? (
             <>
+              <section className="settings-panel" aria-label="Appearance">
+                <h2>Appearance</h2>
+                <label className="setting-row">
+                  Dark mode
+                  <input
+                    type="checkbox"
+                    checked={dark}
+                    onChange={(e) => setDark(e.target.checked)}
+                  />
+                </label>
+                <label className="setting-row">
+                  Collapse sidebar
+                  <input
+                    type="checkbox"
+                    checked={collapsed}
+                    onChange={(e) => setCollapsed(e.target.checked)}
+                  />
+                </label>
+              </section>
               <BrowserSettings store={browser} />
               <TelemetrySettings
                 mode={mode}
