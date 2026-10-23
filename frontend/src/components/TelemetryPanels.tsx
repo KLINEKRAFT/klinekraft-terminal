@@ -55,20 +55,15 @@ export function TelemetrySettings({
         />
       </label>
       {storageWarning && <p role="status">{storageWarning}</p>}
-      <p role="status">
-        {label}.{" "}
-        {mode === "host"
-          ? "Start the Python service on your computer to connect. Missing sensors remain unavailable."
-          : "Preview runs without Python or hardware. No machine readings are collected by the UI."}
-      </p>
-      <p>
-        The clock uses your browser’s local time. X1202 battery readings require
-        Pi setup and Live computer mode. GPS is not configured.
-      </p>
-      <div className="feature-note">
-        Files supports browsing and downloading. Home → Tools opens installed
-        utilities on your desktop.
-      </div>
+      {label !== "LIVE COMPUTER" && (
+        <p role="status">
+          {label}.{" "}
+          {mode === "host"
+            ? "Start the Python service on your computer to connect. Missing sensors remain unavailable."
+            : "Preview runs without Python or hardware. No machine readings are collected by the UI."}
+        </p>
+      )}
+      <p>The clock uses local time. Temperatures are shown in Fahrenheit.</p>
     </section>
   );
 }
@@ -83,7 +78,7 @@ export function SystemPanel({
   const measured = reading.source === "host";
   return (
     <section className="settings-panel">
-      <h2>
+      <h2 className="sr-only">
         System overview <span className="inline-badge">{label}</span>
       </h2>
       <dl className="system-list">
@@ -153,12 +148,11 @@ export function NetworkPanel({
 }) {
   return (
     <section className="settings-panel">
-      <h2>
+      <h2 className="sr-only">
         Network interfaces <span className="inline-badge">{label}</span>
       </h2>
       <p>
-        Link state does not establish internet access. VPNs and virtual adapters
-        may appear here. No connectivity probes are sent.
+        Connected interfaces. An active link does not guarantee internet access.
       </p>
       {reading.interfaces === null ? (
         <p>

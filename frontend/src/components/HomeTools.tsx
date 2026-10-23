@@ -100,7 +100,7 @@ export function HomeTools({
           id="quick-note"
           value={note.text}
           onChange={(e) => note.change(e.target.value)}
-          placeholder="An idea, a reminder, your next mission…"
+          placeholder="Write a quick note…"
           maxLength={20000}
           spellCheck
         />

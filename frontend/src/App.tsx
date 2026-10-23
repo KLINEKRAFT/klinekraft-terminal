@@ -56,17 +56,6 @@ const icons: Record<Section, LucideIcon> = {
   System: Terminal,
   Settings: Settings2,
 };
-const descriptions: Record<Section, string> = {
-  Home: "Your portable workspace, at a glance.",
-  Games: "A place for the classics.",
-  "AI assistant": "A second perspective, when you need it.",
-  "GPS / Maps": "Find your bearings.",
-  Library: "Knowledge, within reach.",
-  Files: "Everything in its place.",
-  Network: "Understand your connection.",
-  System: "A closer look at your machine.",
-  Settings: "Make yourself at home.",
-};
 const integrations: Record<
   string,
   { title: string; body: string; items: string[] }
@@ -276,8 +265,7 @@ function Home({
       </section>
       <section className="quick-section">
         <div className="section-heading">
-          <h2>Pick up where you left off</h2>
-          <span>QUICK ACCESS</span>
+          <h2>Quick access</h2>
         </div>
         <div className="quick-grid">
           {(
@@ -289,16 +277,16 @@ function Home({
                 Icon: Gamepad2,
               },
               {
-                section: "AI assistant",
-                label: "Think it through",
-                detail: "Explore the assistant",
-                Icon: MessageSquare,
+                section: "Files",
+                label: "Browse files",
+                detail: "Documents & downloads",
+                Icon: Folder,
               },
               {
-                section: "GPS / Maps",
-                label: "Find your way",
-                detail: "GPS & offline maps",
-                Icon: Compass,
+                section: "System",
+                label: "Check the Pi",
+                detail: "Battery & system readings",
+                Icon: Cpu,
               },
               {
                 section: "Library",
@@ -333,26 +321,27 @@ function Home({
 }
 function Feature({ section }: { section: Section }) {
   const data = integrations[section];
-  const Icon = icons[section];
   return (
     <section className="feature">
-      <div className="feature-symbol">
-        <Icon size={36} strokeWidth={1.2} />
-      </div>
-      <span className="eyebrow">PLANNED INTEGRATION</span>
-      <h2>{data.title}</h2>
-      <p>{data.body}</p>
-      <ul>
-        {data.items.map((item) => (
-          <li key={item}>
-            <ArrowRight size={14} />
-            {item}
-          </li>
-        ))}
-      </ul>
-      <div className="feature-note">
-        This section is a foundation screen. Integration is not implemented.
-      </div>
+      <span className="eyebrow">NOT CONNECTED</span>
+      <h2>
+        {section === "AI assistant"
+          ? "No AI provider connected."
+          : "No GPS receiver connected."}
+      </h2>
+      <p>
+        {section === "AI assistant"
+          ? "Your local tools work without AI. A provider connection is needed to start a conversation."
+          : "Location will appear here once a GPS receiver and map service are configured."}
+      </p>
+      <details className="feature-plans">
+        <summary>Planned features</summary>
+        <ul>
+          {data.items.map((item) => (
+            <li key={item}>{item.replace(/^Planned: /, "")}</li>
+          ))}
+        </ul>
+      </details>
     </section>
   );
 }
@@ -466,8 +455,12 @@ export default function App() {
             return (
               <button
                 key={item}
-                aria-label={collapsed ? item : undefined}
-                title={collapsed ? item : undefined}
+                aria-label={
+                  collapsed
+                    ? item
+                    : `${String(index + 1).padStart(2, "0")} ${item}`
+                }
+                title={item}
                 aria-current={section === item ? "page" : undefined}
                 onClick={() => navigate(item)}
               >
@@ -497,7 +490,7 @@ export default function App() {
           </button>
         </div>
       </aside>
-      <main inert={exitHelp}>
+      <main inert={exitHelp} data-page={section}>
         <header className="page-header">
           <div>
             <div className="eyebrow">
@@ -509,7 +502,6 @@ export default function App() {
             <h1 className={section === "Home" ? "sr-only" : undefined}>
               {section}
             </h1>
-            {section !== "Home" && <p>{descriptions[section]}</p>}
           </div>
           <div className="header-actions">
             <button
@@ -521,7 +513,10 @@ export default function App() {
             >
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <span className="preview-badge">
+            <span
+              className="preview-badge"
+              data-live={label === "LIVE COMPUTER"}
+            >
               <span /> {label}
             </span>
             <button
@@ -579,7 +574,6 @@ export default function App() {
                   />
                 </label>
               </section>
-              <BrowserSettings store={browser} />
               <TelemetrySettings
                 storageWarning={telemetry.storageWarning}
                 mode={mode}
@@ -588,6 +582,7 @@ export default function App() {
                 setPaused={setPaused}
                 label={label}
               />
+              <BrowserSettings store={browser} />
             </>
           ) : section === "Files" ? (
             <FilesPanel />

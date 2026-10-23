@@ -82,9 +82,9 @@ export function FilesPanel() {
   }
   return (
     <section className="browser-panel" aria-labelledby="files-title">
-      <span className="eyebrow">ON YOUR PI</span>
-      <h2 id="files-title">Your files</h2>
-      <p className="browser-help">Documents and downloads, close at hand.</p>
+      <h2 id="files-title" className="sr-only">
+        Your files
+      </h2>
       {isHostedDemo ? (
         <p className="browser-help">
           Files are available in the local Pi app. This web demo cannot access

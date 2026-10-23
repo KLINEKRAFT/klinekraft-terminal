@@ -128,9 +128,9 @@ export function GamesPanel() {
   const [limit, setLimit] = useState(60);
   return (
     <section className="browser-panel" aria-labelledby="games-title">
-      <span className="eyebrow">YOUR COLLECTION</span>
-      <h2 id="games-title">Your library</h2>
-      <p className="browser-help">Pick a game. Settle in.</p>
+      <h2 id="games-title" className="sr-only">
+        Your library
+      </h2>
       {isHostedDemo ? (
         <p className="browser-help">
           Your games and emulator run in the local Pi app. The web demo cannot

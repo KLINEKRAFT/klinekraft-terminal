@@ -2074,3 +2074,378 @@ button.file-name:hover {
 .tools-dialog footer {
   font: 10px/1.5 var(--mono);
 }
+
+/* A single, compact page hierarchy across the workspace. */
+.page-header {
+  animation: none;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 36px;
+}
+.page-header .eyebrow {
+  font-size: 8px;
+  letter-spacing: 0.6px;
+}
+.page-header h1:not(.sr-only) {
+  margin: 7px 0 0;
+  font-size: 25px;
+  line-height: 1.2;
+  font-weight: 400;
+  letter-spacing: -0.7px;
+}
+.header-actions {
+  gap: 4px;
+  padding: 0;
+  flex-shrink: 0;
+}
+.header-actions .icon-button {
+  width: 36px;
+  height: 36px;
+  margin: 0;
+}
+.preview-badge {
+  border: 0;
+  padding: 6px;
+  font-size: 8px;
+  letter-spacing: 0.2px;
+}
+.preview-badge[data-live="true"] > span {
+  background: #678b70;
+}
+main[data-page="Home"] .page-header {
+  margin-bottom: 4px;
+}
+.overview {
+  border-top: 0;
+  border-bottom: 0;
+  padding-top: 8px;
+}
+.home-ambient {
+  border-top: 0;
+  border-bottom: 0;
+}
+.connections {
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
+}
+.quick-section .section-heading {
+  margin-top: 16px;
+  margin-bottom: 6px;
+}
+.quick-grid {
+  gap: 12px;
+}
+.quick-card {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 10px 4px;
+  min-height: 74px;
+}
+.quick-card > div {
+  margin-bottom: 8px;
+}
+.quick-card > div > svg:first-child {
+  width: 18px;
+  height: 18px;
+}
+.quick-card > div > svg:last-child {
+  width: 13px;
+  height: 13px;
+}
+.quick-card strong {
+  font-size: 12px;
+}
+.quick-card > span {
+  font-size: 10px;
+  line-height: 1.4;
+}
+.home-tools {
+  border-top: 0;
+}
+.command-area form {
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+[data-theme="dark"] .command-area form {
+  background: transparent;
+}
+.browser-panel,
+.settings-panel,
+.feature {
+  border-top: 0;
+  padding-top: 0;
+}
+.browser-panel + .browser-panel,
+.settings-panel + .settings-panel {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  margin-top: 16px;
+}
+.browser-panel h2:not(.sr-only),
+.settings-panel h2 {
+  font-size: 17px;
+  letter-spacing: -0.3px;
+  font-weight: 500;
+  margin: 0 0 14px;
+}
+.browser-panel > .eyebrow,
+.browser-heading .eyebrow {
+  display: none;
+}
+.browser-heading {
+  align-items: flex-start;
+}
+.browser-heading h2 {
+  margin-bottom: 8px;
+}
+.browser-help {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.browser-button {
+  border-radius: 0;
+  min-height: 36px;
+  font-size: 11px;
+}
+.game-toolbar {
+  margin-top: 0;
+  gap: 8px;
+}
+.game-toolbar input,
+.game-toolbar select {
+  border-radius: 0;
+  min-height: 36px;
+  font-size: 12px;
+}
+.file-tabs {
+  margin-top: 0;
+}
+.file-location {
+  margin-top: 0;
+}
+.setting-row {
+  padding: 12px 0;
+  gap: 20px;
+}
+.setting-row select {
+  min-height: 36px;
+  font-size: 12px;
+}
+.setting-row small {
+  font-size: 11px;
+  line-height: 1.5;
+  max-width: 44em;
+}
+.system-list > div {
+  padding: 12px 0;
+}
+.feature {
+  max-width: 600px;
+  padding: 12px 0;
+}
+.feature h2 {
+  font-size: 20px;
+  font-weight: 400;
+  margin: 12px 0;
+}
+.feature p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.feature-plans {
+  margin-top: 24px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.feature-plans summary {
+  cursor: pointer;
+  min-height: 32px;
+}
+.feature-plans li {
+  padding: 6px 0;
+  line-height: 1.5;
+}
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+@media (min-width: 850px) and (max-height: 650px) {
+  main {
+    padding-top: 12px;
+  }
+  .page-header {
+    margin-bottom: 16px;
+  }
+  main[data-page="Home"] .page-header {
+    margin-bottom: 0;
+  }
+  .quick-section .section-heading {
+    margin-top: 10px;
+  }
+  .quick-card {
+    min-height: 70px;
+    padding: 8px 4px;
+  }
+  .home-tools {
+    margin-top: 12px;
+  }
+}
+@media (max-width: 850px) {
+  .header-actions {
+    flex-direction: row;
+    align-items: center;
+  }
+  .page-header {
+    flex-wrap: wrap;
+  }
+  .header-actions .preview-badge {
+    font-size: 7px;
+  }
+  .home-ambient {
+    flex-wrap: wrap;
+  }
+  .metrics {
+    gap: 12px;
+  }
+  .metric-value {
+    font-size: 28px;
+  }
+  .connections strong {
+    white-space: normal;
+  }
+}
+@media (max-width: 600px) {
+  .app-shell {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+  .sidebar {
+    padding: 16px 6px;
+  }
+  .sidebar .brand {
+    display: none;
+  }
+  .sidebar-heading .sidebar-caption,
+  .sidebar nav .nav-label,
+  .sidebar nav .nav-number {
+    display: none;
+  }
+  .sidebar nav button {
+    justify-content: center;
+    padding: 0;
+  }
+  .sidebar-heading {
+    justify-content: center;
+  }
+  .sidebar-bottom {
+    padding: 0;
+  }
+  .sidebar-bottom > div,
+  .sidebar-bottom > p {
+    display: none;
+  }
+  .sidebar-bottom > button {
+    font-size: 0;
+    justify-content: center;
+  }
+  main {
+    padding: 16px 14px;
+  }
+  .page-header {
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .page-header .eyebrow {
+    font-size: 7px;
+  }
+  .page-header h1:not(.sr-only) {
+    font-size: 22px;
+  }
+  .home-actions {
+    gap: 16px;
+  }
+  .quick-grid {
+    gap: 12px;
+  }
+  .setting-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .setting-row select {
+    max-width: 100%;
+  }
+  .system-list > div {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .browser-heading {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 600px) {
+  .sidebar nav button svg {
+    display: block;
+  }
+  .sidebar nav button i {
+    position: absolute;
+    left: 0;
+    width: 2px;
+    height: 14px;
+    border-radius: 0;
+  }
+  .sidebar-heading,
+  .sidebar-bottom > span {
+    display: none;
+  }
+  .sidebar nav {
+    border: 0;
+    padding-top: 0;
+  }
+}
+.setting-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: var(--ink);
+}
+.setting-row {
+  min-height: 52px;
+  cursor: pointer;
+}
+.settings-panel + .browser-panel,
+.browser-panel + .settings-panel {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.browser-settings .bookmark-form {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+@media (max-width: 600px) {
+  .system-list > div {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .system-list dd {
+    margin: 0;
+    text-align: left;
+  }
+}
+.settings-panel + .settings-panel,
+.settings-panel + .browser-panel {
+  border-top: 0;
+  margin-top: 20px;
+  padding-top: 8px;
+}
+.settings-panel .feature-note {
+  border-top: 0;
+  padding-top: 8px;
+}
