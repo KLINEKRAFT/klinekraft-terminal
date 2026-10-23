@@ -24,7 +24,8 @@ for (const [width, height] of [
     await page.evaluate(() => document.fonts.ready);
     await expect(
       page.getByRole("heading", {
-        name: /Colin/,
+        name: "Home",
+        exact: true,
       }),
     ).toBeVisible();
     await expect(

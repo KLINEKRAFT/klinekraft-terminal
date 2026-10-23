@@ -34,31 +34,6 @@ export function useQuickNote() {
   return { ...state, change };
 }
 
-export function greeting(hour: number, choice: number) {
-  const period = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
-  const options = {
-    morning: [
-      "Good morning, Colin.",
-      "Morning, Colin. Systems ready.",
-      "Rise and tinker, Colin.",
-      "Morning mission, Colin?",
-    ],
-    afternoon: [
-      "Good afternoon, Colin.",
-      "Afternoon, Colin. Make something.",
-      "Your afternoon command post, Colin.",
-      "Afternoon mission, Colin?",
-    ],
-    evening: [
-      "Good evening, Colin.",
-      "Evening shift, Colin.",
-      "After-hours mode, Colin.",
-      "Evening, Colin. One more idea?",
-    ],
-  };
-  return options[period][choice];
-}
-
 export function HomeTools({
   browser,
   note,

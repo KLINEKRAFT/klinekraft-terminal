@@ -27,7 +27,7 @@ import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
 import { FilesPanel, WikiPanel } from "./components/LocalContent";
-import { HomeTools, useQuickNote, greeting } from "./components/HomeTools";
+import { HomeTools, useQuickNote } from "./components/HomeTools";
 import { useBrowserPreferences } from "./bookmarks";
 import { BrowserLibrary, BrowserSettings } from "./components/BrowserLibrary";
 import { KlinekraftBrandLockup, installBrandIcon } from "./components/Brand";
@@ -389,7 +389,6 @@ export default function App() {
   }, [collapsed, dark]);
   const browser = useBrowserPreferences();
   const note = useQuickNote();
-  const [greetingChoice] = useState(() => Math.floor(Math.random() * 4));
   const [section, setSection] = useState<Section>("Home");
   const [now, setNow] = useState(new Date());
   const [paused, setPaused] = useState(false);
@@ -507,10 +506,8 @@ export default function App() {
                 / {String(sections.indexOf(section) + 1).padStart(2, "0")}
               </span>
             </div>
-            <h1>
-              {section === "Home"
-                ? greeting(now.getHours(), greetingChoice)
-                : section}
+            <h1 className={section === "Home" ? "sr-only" : undefined}>
+              {section}
             </h1>
             {section !== "Home" && <p>{descriptions[section]}</p>}
           </div>
