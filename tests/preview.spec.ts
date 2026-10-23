@@ -1,4 +1,9 @@
 import { test, expect } from "@playwright/test";
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem("klinekraft.dataMode.v1", "preview"),
+  );
+});
 for (const [width, height] of [
   [1024, 600],
   [1280, 720],

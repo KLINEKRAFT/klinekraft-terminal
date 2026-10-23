@@ -22,6 +22,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { ToolsLauncher } from "./components/ToolsLauncher";
 import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
@@ -210,7 +211,10 @@ function Home({
       </section>
       <div className="home-ambient">
         <OutsideWeather />
-        <AwayPanel />
+        <div className="home-actions">
+          <ToolsLauncher />
+          <AwayPanel />
+        </div>
       </div>
       <section className="connections" aria-label="Device readings">
         <div>
@@ -580,6 +584,7 @@ export default function App() {
               </section>
               <BrowserSettings store={browser} />
               <TelemetrySettings
+                storageWarning={telemetry.storageWarning}
                 mode={mode}
                 setMode={setMode}
                 paused={paused}

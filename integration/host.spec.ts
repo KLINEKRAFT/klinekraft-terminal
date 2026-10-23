@@ -14,11 +14,6 @@ test("built UI reads the real running service over its own origin", async ({
   expect(response.headers()["cache-control"]).toBe("no-store");
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.goto("/");
-  await page
-    .getByRole("navigation")
-    .getByRole("button", { name: "09 Settings" })
-    .click();
-  await page.getByLabel("Dashboard data").selectOption("host");
   await expect(page.locator(".preview-badge")).toHaveText("LIVE COMPUTER");
   await page
     .getByRole("navigation")

@@ -2007,3 +2007,70 @@ button.file-name:hover {
     flex-wrap: wrap;
   }
 }
+.home-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+.tools-dialog {
+  width: min(500px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 24px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.tools-dialog::backdrop {
+  background: rgb(0 0 0 / 0.6);
+}
+.tools-dialog header,
+.tools-dialog footer,
+.tools-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.tools-dialog h2 {
+  margin: 8px 0 0;
+  font-weight: 400;
+  font-size: 24px;
+}
+.tools-dialog button {
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 8px;
+  font: 11px var(--mono);
+}
+.tools-dialog button:disabled {
+  opacity: 0.4;
+}
+.tools-dialog p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.tools-intro,
+.tools-dialog small {
+  color: var(--muted);
+}
+.tools-list {
+  margin: 20px 0;
+  border-top: 1px solid var(--line);
+}
+.tools-list > div {
+  padding: 17px 0;
+  border-bottom: 1px solid var(--line);
+}
+.tools-list strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.tools-list p {
+  margin: 5px 0;
+}
+.tools-list small,
+.tools-dialog footer {
+  font: 10px/1.5 var(--mono);
+}

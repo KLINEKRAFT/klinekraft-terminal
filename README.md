@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. No Pi hardware, Python service, cloud account or API key is needed for the UI. Dependencies require internet during installation; the built preview uses locally bundled fonts and assets. External websites open only when you choose a bookmark or launch page. Close the tab to leave the application.
+Open http://127.0.0.1:5173. No Pi hardware, Python service, cloud account or API key is needed for the UI. Dependencies require internet during installation; the built preview uses locally bundled fonts and assets. Home requests Tulsa weather from Open-Meteo; other external websites open when you choose a bookmark or launch page. Close the tab to leave the application.
 
 ```sh
 npm run build
@@ -29,7 +29,7 @@ The preview server prints its local URL (normally http://127.0.0.1:4173).
 - Local clock and clearly labeled simulated data, or live CPU/memory/storage/network readings from the service computer.
 - Explicit unavailable temperature/peripheral states and automatic reconnect with stale-data labels.
 - Controlled navigation commands and Cmd/Ctrl+K focus. Try `games`, `gps status`, or `system status`.
-- Switch Preview/Live computer and pause/resume updates in Settings. Telemetry preferences are session-only.
+- Switch Preview/Live computer and pause/resume updates in Settings. Local installations default to Live computer and remember the data-mode choice in this browser. Pause/resume is session-only.
 - Informative integration placeholders; `play` and `wiki` guide you to their local interfaces; `ask` reports that AI is unavailable.
 - FastAPI health/capabilities/system endpoints, cached background sampling and production static-file hosting.
 
@@ -131,3 +131,7 @@ To preview the hosted build locally: `npm run build:demo && npm run preview`.
 ## Away and weather
 
 Home includes Tulsa outdoor temperature in Fahrenheit and an Away button with three customizable backgrounds, a simple message/ticker, and optional fullscreen. See [Away and weather](docs/AWAY_AND_WEATHER.md) for behavior, sources, and offline limits. See [candidate tools](docs/TERMINAL_IDEAS.md) for a reviewed shortlist of future additions.
+
+## Desktop Tools
+
+Home → Tools opens nnn, btop and cmus in a desktop terminal after one-time Pi setup. Run `bash scripts/setup-tools.sh` from the Pi desktop Terminal. See [Tools setup](docs/TOOLS_SETUP.md).

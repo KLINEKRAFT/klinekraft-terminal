@@ -9,12 +9,14 @@ export function TelemetrySettings({
   paused,
   setPaused,
   label,
+  storageWarning,
 }: {
   mode: DataMode;
   setMode: (mode: DataMode) => void;
   paused: boolean;
   setPaused: (paused: boolean) => void;
   label: string;
+  storageWarning: string;
 }) {
   return (
     <section className="settings-panel">
@@ -25,7 +27,7 @@ export function TelemetrySettings({
           <small>
             {isHostedDemo
               ? "Web demo · simulated data. Live readings require the local app on your Mac or Raspberry Pi."
-              : "Live readings come from the computer running the local service."}
+              : "Live computer is the default. Your data-mode choice is saved in this browser."}
           </small>
         </span>
         <select
@@ -52,6 +54,7 @@ export function TelemetrySettings({
           onChange={(event) => setPaused(!event.target.checked)}
         />
       </label>
+      {storageWarning && <p role="status">{storageWarning}</p>}
       <p role="status">
         {label}.{" "}
         {mode === "host"
@@ -63,8 +66,8 @@ export function TelemetrySettings({
         Pi setup and Live computer mode. GPS is not configured.
       </p>
       <div className="feature-note">
-        Files supports browsing and downloading. Native app launching and a
-        native desktop exit are still planned.
+        Files supports browsing and downloading. Home → Tools opens installed
+        utilities on your desktop.
       </div>
     </section>
   );

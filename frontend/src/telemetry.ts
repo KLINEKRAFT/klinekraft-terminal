@@ -73,11 +73,21 @@ function parseSnapshot(value: unknown): Reading {
 }
 
 export function useTelemetry(paused: boolean, now: number) {
-  const [mode, changeMode] = useState<DataMode>("preview");
+  const [mode, changeMode] = useState<DataMode>(() => {
+    if (isHostedDemo) return "preview";
+    try {
+      return localStorage.getItem("klinekraft.dataMode.v1") === "preview"
+        ? "preview"
+        : "host";
+    } catch {
+      return "host";
+    }
+  });
   const [preview, setPreview] = useState(initialReading);
   const [host, setHost] = useState<Reading | null>(null);
   const [connection, setConnection] = useState<Connection>("connecting");
   const [receivedAt, setReceivedAt] = useState(0);
+  const [storageWarning, setStorageWarning] = useState("");
 
   const setMode = (next: DataMode) => {
     if (next === mode || (isHostedDemo && next === "host")) return;
@@ -85,6 +95,14 @@ export function useTelemetry(paused: boolean, now: number) {
     setReceivedAt(0);
     setConnection("connecting");
     changeMode(next);
+    try {
+      localStorage.setItem("klinekraft.dataMode.v1", next);
+      setStorageWarning("");
+    } catch {
+      setStorageWarning(
+        "Data mode could not be saved. This choice lasts until you reload.",
+      );
+    }
   };
 
   useEffect(() => {
@@ -156,7 +174,16 @@ export function useTelemetry(paused: boolean, now: number) {
         : stale
           ? "Stale"
           : "Measured";
-  return { mode, setMode, reading, label, detail, stale, connection };
+  return {
+    mode,
+    setMode,
+    reading,
+    label,
+    detail,
+    stale,
+    connection,
+    storageWarning,
+  };
 }
 
 export function amount(value: number | null, digits = 1): string {
