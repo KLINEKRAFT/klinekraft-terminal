@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ArrowUp, Plus, SlidersHorizontal, X } from "lucide-react";
 import { isHostedDemo } from "../runtime";
 import {
   ArticleDialog,
@@ -40,6 +41,9 @@ export function AssistantPanel({
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<WikiReference | null>(null);
   const [revision, setRevision] = useState(0);
+  const end = useRef<HTMLDivElement | null>(null);
+  const input = useRef<HTMLTextAreaElement | null>(null);
+  const [pending, setPending] = useState("");
   const controller = useRef<AbortController | null>(null);
   useEffect(() => {
     if (isHostedDemo) return;
@@ -47,29 +51,35 @@ export function AssistantPanel({
     void localJSON("/api/ai/status", {
       signal: AbortSignal.any([request.signal, AbortSignal.timeout(8000)]),
     })
-      .then(setStatus)
+      .then((data) => {
+        if (!request.signal.aborted) setStatus(data);
+      })
       .catch((e) => {
         if (!request.signal.aborted) setError(e.message);
       });
     return () => request.abort();
   }, [revision]);
   useEffect(() => () => controller.current?.abort(), []);
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "nearest" });
+  }, [turns.length, busy]);
   async function ask(e: FormEvent) {
     e.preventDefault();
-    if (!question.trim() || busy) return;
+    if (!question.trim() || busy || !status?.configured || isHostedDemo) return;
+    const sent = question;
+    const request = new AbortController();
+    controller.current = request;
+    setPending(sent);
+    setQuestion("");
     setBusy(true);
     setError("");
-    controller.current = new AbortController();
     try {
       const data = await localJSON("/api/ai/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.any([
-          controller.current.signal,
-          AbortSignal.timeout(120000),
-        ]),
+        signal: AbortSignal.any([request.signal, AbortSignal.timeout(120000)]),
         body: JSON.stringify({
-          question,
+          question: sent,
           history: turns
             .flatMap((t) => [
               { role: "user", content: t.question },
@@ -80,148 +90,221 @@ export function AssistantPanel({
           article_path: useWiki ? context?.path : null,
         }),
       });
-      onTurns([...turns, { question, ...data }].slice(-12));
-      setQuestion("");
+      if (request.signal.aborted) return;
+      onTurns([...turns, { question: sent, ...data }].slice(-12));
+      requestAnimationFrame(() => input.current?.focus());
     } catch (e) {
-      if (!controller.current.signal.aborted)
+      if (!request.signal.aborted) {
+        setQuestion(sent);
         setError(
           (e as Error).name === "TimeoutError"
             ? "The answer timed out. The provider may still have processed the request."
             : (e as Error).message,
         );
+      }
     } finally {
-      setBusy(false);
+      if (!request.signal.aborted) {
+        setPending("");
+        setBusy(false);
+      }
     }
   }
   return (
-    <section className="assistant-panel" aria-label="Cloud AI assistant">
-      <div className="assistant-meta">
-        <span className="eyebrow">
-          {isHostedDemo
-            ? "LOCAL APP REQUIRED"
-            : status?.configured
-              ? "OPENAI · CONFIGURED"
-              : "OPENAI · SETUP NEEDED"}
-        </span>
+    <section
+      className="assistant-panel ai-chat"
+      aria-label="Cloud AI assistant"
+    >
+      <div className="ai-chat-toolbar">
         <button
-          className="browser-button"
-          disabled={busy || !turns.length}
-          onClick={() => onTurns([])}
+          className="ai-quiet-button"
+          disabled={busy || (!turns.length && !context)}
+          onClick={() => {
+            onTurns([]);
+            onClearContext();
+            setQuestion("");
+            setError("");
+            input.current?.focus();
+          }}
         >
-          Clear chat
+          <Plus size={15} /> New chat
         </button>
+        <details className="ai-options">
+          <summary aria-label="Chat settings">
+            <SlidersHorizontal size={16} />
+            <span>Settings</span>
+          </summary>
+          <div className="ai-options-content">
+            <label>
+              <input
+                type="checkbox"
+                checked={useWiki}
+                onChange={(e) => setUseWiki(e.target.checked)}
+                disabled={busy}
+              />{" "}
+              Use local Wikipedia
+            </label>
+            <p>OpenAI · {status?.model || "gpt-4.1-mini"}</p>
+            <p>
+              Questions, recent messages and relevant wiki excerpts go to
+              OpenAI. Internet and API billing required.
+            </p>
+            <p>Chat clears on reload. Wikipedia stays available offline.</p>
+          </div>
+        </details>
       </div>
-      <p className="browser-help">
-        Ask a question or explore your local Wikipedia. Questions, recent
-        conversation and relevant article excerpts go to OpenAI. Internet and
-        API billing are required.
-      </p>
-      {!isHostedDemo && status && !status.configured && (
-        <div className="ai-setup">
-          <p>Add your API key in the Pi’s Terminal. It stays on the Pi.</p>
-          <pre>cd ~/klinekraft-terminal{"\n"}python3 scripts/setup-ai.py</pre>
-          <button
-            className="browser-button"
-            onClick={() => {
-              setError("");
-              setRevision((r) => r + 1);
-            }}
-          >
-            Check setup
-          </button>
-        </div>
-      )}
-      {context && (
-        <div className="ai-context">
-          <span>Article: {context.title}</span>
-          <button disabled={busy} onClick={onClearContext}>
-            Remove
-          </button>
-        </div>
-      )}
-      <div className="ai-conversation">
-        {turns.map((turn, i) => (
-          <article className="ai-turn" key={i}>
-            <h2>{turn.question}</h2>
-            {turn.notice && <p className="ai-notice">{turn.notice}</p>}
-            <div className="ai-answer">{turn.answer}</div>
-            {!!turn.sources.length && (
-              <div className="ai-sources">
-                <span className="eyebrow">SOURCES CONSULTED</span>
-                {turn.sources.map((s) => (
-                  <button key={s.id} onClick={() => setSelected(s)}>
-                    [{s.id}] {s.title}
-                  </button>
-                ))}
-              </div>
-            )}
-            {!!turn.images.length && (
-              <div className="ai-images">
-                {turn.images.map((img) => (
-                  <div key={img.path}>
-                    <WikiImage path={img.path} caption={img.caption} />
-                    <button
-                      onClick={() =>
-                        setSelected({ path: img.articlePath, title: img.title })
-                      }
-                    >
-                      From {img.title} · image credits
-                    </button>
+      <div className="ai-chat-scroll" tabIndex={0} aria-label="Conversation">
+        {isHostedDemo ? (
+          <p className="ai-empty">Open the local Pi app to chat.</p>
+        ) : status && !status.configured ? (
+          <div className="ai-setup">
+            <p>Connect your assistant.</p>
+            <p className="ai-footnote">
+              Run this on the Pi to enter your OpenAI API key privately.
+            </p>
+            <pre>python3 ~/klinekraft-terminal/scripts/setup-ai.py</pre>
+            <button
+              className="ai-quiet-button"
+              onClick={() => {
+                setError("");
+                setRevision((r) => r + 1);
+              }}
+            >
+              Check setup
+            </button>
+          </div>
+        ) : !turns.length && !busy ? (
+          <div className="ai-empty">
+            <p>What would you like to explore?</p>
+            <span>Ask anything. Bring your Wikipedia along.</span>
+          </div>
+        ) : null}
+        <div className="ai-conversation">
+          {turns.map((turn, i) => (
+            <article className="ai-turn" key={i}>
+              <h2 className="ai-user-message">{turn.question}</h2>
+              <div className="ai-answer">{turn.answer}</div>
+              {turn.notice && <p className="ai-notice">{turn.notice}</p>}
+              {!!turn.images.length && (
+                <div className="ai-images">
+                  {turn.images.map((img) => (
+                    <div key={img.path}>
+                      <WikiImage path={img.path} caption={img.caption} />
+                      <button
+                        onClick={() =>
+                          setSelected({
+                            path: img.articlePath,
+                            title: img.title,
+                          })
+                        }
+                      >
+                        From {img.title} · image credits
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!!turn.sources.length && (
+                <details className="ai-source-details">
+                  <summary>
+                    {turn.sources.length === 1
+                      ? "1 source"
+                      : turn.sources.length + " sources"}
+                  </summary>
+                  <div className="ai-sources">
+                    {turn.sources.map((s) => (
+                      <button key={s.id} onClick={() => setSelected(s)}>
+                        [{s.id}] {s.title}
+                      </button>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-            <small className="ai-footnote">
-              AI-generated. Check important claims against the linked articles.
-            </small>
-          </article>
-        ))}
-      </div>
-      <form className="ai-composer" onSubmit={ask}>
-        <label htmlFor="ai-question">Your question</label>
-        <textarea
-          id="ai-question"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          maxLength={3000}
-          rows={3}
-          placeholder="What would you like to explore?"
-          disabled={busy || isHostedDemo}
-        />
-        <div>
-          <label>
-            <input
-              type="checkbox"
-              checked={useWiki}
-              onChange={(e) => setUseWiki(e.target.checked)}
-              disabled={busy}
-            />{" "}
-            Refer to local Wikipedia
-          </label>
-          <button
-            className="browser-button primary"
-            disabled={
-              busy || !status?.configured || !question.trim() || isHostedDemo
-            }
-          >
-            {busy ? "Preparing answer…" : "Ask"}
-          </button>
+                </details>
+              )}
+            </article>
+          ))}
+          {busy && (
+            <article className="ai-turn">
+              <h2 className="ai-user-message">{pending}</h2>
+              <p className="ai-thinking" role="status">
+                {useWiki ? "Reading and thinking…" : "Thinking…"}
+              </p>
+            </article>
+          )}
+          <div ref={end} />
         </div>
-      </form>
-      {busy && (
-        <p role="status">
-          Reading available sources and preparing your answer…
+      </div>
+      <div className="ai-compose-area">
+        {error && (
+          <p role="alert" className="browser-warning">
+            {error}
+          </p>
+        )}
+        <form className="ai-composer" onSubmit={ask}>
+          {context && (
+            <div className="ai-context">
+              <span>
+                Article: {context.title}
+                {!useWiki && " · not included"}
+              </span>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={onClearContext}
+                aria-label="Remove article"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+          <label className="sr-only" htmlFor="ai-question">
+            Your question
+          </label>
+          <textarea
+            ref={input}
+            id="ai-question"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !e.nativeEvent.isComposing
+              ) {
+                e.preventDefault();
+                e.currentTarget.form?.requestSubmit();
+              }
+            }}
+            maxLength={3000}
+            rows={2}
+            placeholder="Message Klinekraft…"
+            disabled={busy || isHostedDemo}
+            aria-describedby="ai-keyboard-hint"
+          />
+          <div className="ai-compose-controls">
+            <button
+              className="ai-wiki-toggle"
+              type="button"
+              aria-pressed={useWiki}
+              disabled={busy}
+              onClick={() => setUseWiki((v) => !v)}
+            >
+              Wikipedia {useWiki ? "on" : "off"}
+            </button>
+            <button
+              className="ai-send"
+              aria-label="Send message"
+              title="Send message"
+              disabled={
+                busy || !status?.configured || !question.trim() || isHostedDemo
+              }
+            >
+              <ArrowUp size={18} />
+            </button>
+          </div>
+        </form>
+        <p id="ai-keyboard-hint" className="ai-chat-footer">
+          Enter to send · Shift + Enter for a new line. AI can make mistakes.
         </p>
-      )}
-      {error && (
-        <p role="alert" className="browser-warning">
-          {error}
-        </p>
-      )}
-      <p className="ai-footnote">
-        Chat lasts until this page is reloaded. Wikipedia remains readable
-        offline.
-      </p>
+      </div>
       {selected && (
         <ArticleDialog reference={selected} onClose={() => setSelected(null)} />
       )}

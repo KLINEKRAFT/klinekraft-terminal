@@ -428,7 +428,7 @@ export default function App() {
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        input.current?.focus();
+        (document.getElementById("ai-question") ?? input.current)?.focus();
       }
       if (e.key === "Escape") {
         setExitHelp(false);
@@ -650,42 +650,44 @@ export default function App() {
             <Feature section={section} />
           )}
         </div>
-        <footer className="command-area">
-          {feedback && (
-            <div
-              className="command-feedback"
-              role="status"
-              aria-label="Command result"
-            >
-              <span>{feedback}</span>
-              <button
-                aria-label="Dismiss command result"
-                onClick={() => setFeedback("")}
+        {section !== "AI assistant" && (
+          <footer className="command-area">
+            {feedback && (
+              <div
+                className="command-feedback"
+                role="status"
+                aria-label="Command result"
               >
-                <X size={16} />
+                <span>{feedback}</span>
+                <button
+                  aria-label="Dismiss command result"
+                  onClick={() => setFeedback("")}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+            <form onSubmit={submit}>
+              <Terminal size={18} />
+              <label className="sr-only" htmlFor="command">
+                Workspace command
+              </label>
+              <input
+                ref={input}
+                id="command"
+                value={command}
+                onChange={(e) => setCommand(e.target.value)}
+                placeholder="Where would you like to go? Try ‘games’ or ‘system status’"
+                autoComplete="off"
+                maxLength={240}
+              />
+              <kbd>⌘ / Ctrl K</kbd>
+              <button aria-label="Run workspace command" type="submit">
+                <ArrowRight size={18} />
               </button>
-            </div>
-          )}
-          <form onSubmit={submit}>
-            <Terminal size={18} />
-            <label className="sr-only" htmlFor="command">
-              Workspace command
-            </label>
-            <input
-              ref={input}
-              id="command"
-              value={command}
-              onChange={(e) => setCommand(e.target.value)}
-              placeholder="Where would you like to go? Try ‘games’ or ‘system status’"
-              autoComplete="off"
-              maxLength={240}
-            />
-            <kbd>⌘ / Ctrl K</kbd>
-            <button aria-label="Run workspace command" type="submit">
-              <ArrowRight size={18} />
-            </button>
-          </form>
-        </footer>
+            </form>
+          </footer>
+        )}
       </main>
       {exitHelp && (
         <div className="modal-backdrop" onClick={() => setExitHelp(false)}>
