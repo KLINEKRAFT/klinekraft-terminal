@@ -6,6 +6,8 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .local_content import router as local_content_router, local_request
 from .games import router as games_router
+from .wiki_reader import router as wiki_reader_router
+from .assistant import router as assistant_router
 from .tools_launcher import router as tools_router
 from .services import Capabilities, get_capabilities
 from .telemetry import HostSnapshot, TelemetryService
@@ -56,6 +58,8 @@ def processes(request: Request, response: Response):
 
 app.include_router(local_content_router)
 app.include_router(games_router)
+app.include_router(wiki_reader_router)
+app.include_router(assistant_router)
 app.include_router(tools_router)
 
 

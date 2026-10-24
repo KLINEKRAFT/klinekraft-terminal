@@ -7,7 +7,7 @@ name = "klinekraft-terminal"
 version = "0.2.0"
 description = "Local service foundation for Klinekraft Terminal"
 requires-python = ">=3.11"
-dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.34,<1", "psutil>=7,<8"]
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.34,<1", "psutil>=7,<8", "beautifulsoup4>=4.12,<5", "defusedxml>=0.7,<1"]
 
 [project.optional-dependencies]
 battery = ["smbus2>=0.5,<1"]

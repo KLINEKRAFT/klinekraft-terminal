@@ -33,7 +33,9 @@ import { ToolsLauncher } from "./components/ToolsLauncher";
 import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
-import { FilesPanel, WikiPanel } from "./components/LocalContent";
+import { AssistantPanel, type Turn } from "./components/AssistantPanel";
+import { WikiBrowser, type WikiReference } from "./components/WikiReader";
+import { FilesPanel } from "./components/LocalContent";
 import { HomeTools, useQuickNote } from "./components/HomeTools";
 import { useBrowserPreferences } from "./bookmarks";
 import { BrowserLibrary, BrowserSettings } from "./components/BrowserLibrary";
@@ -406,6 +408,8 @@ export default function App() {
   }, [collapsed, dark]);
   const browser = useBrowserPreferences();
   const note = useQuickNote();
+  const [aiTurns, setAiTurns] = useState<Turn[]>([]);
+  const [wikiContext, setWikiContext] = useState<WikiReference | null>(null);
   const [section, setSection] = useState<Section>("Home");
   const [now, setNow] = useState(new Date());
   const [paused, setPaused] = useState(false);
@@ -572,11 +576,23 @@ export default function App() {
               browser={browser}
               note={note}
             />
+          ) : section === "AI assistant" ? (
+            <AssistantPanel
+              turns={aiTurns}
+              onTurns={setAiTurns}
+              context={wikiContext}
+              onClearContext={() => setWikiContext(null)}
+            />
           ) : section === "Games" ? (
             <GamesPanel />
           ) : section === "Library" ? (
             <>
-              <WikiPanel />
+              <WikiBrowser
+                onAsk={(article) => {
+                  setWikiContext(article);
+                  navigate("AI assistant");
+                }}
+              />
               <BrowserLibrary
                 store={browser}
                 openSettings={() => navigate("Settings")}

@@ -2569,3 +2569,273 @@ textarea:focus-visible {
   font: 12px var(--sans);
   padding: 12px 0;
 }
+
+/* Shared reading and conversation surfaces. */
+.wiki-search,
+.assistant-meta,
+.ai-context,
+.ai-composer > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+.wiki-search {
+  margin: 20px 0 12px;
+}
+.wiki-search input,
+.wiki-book select,
+.ai-composer textarea {
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 12px;
+  font: inherit;
+  min-width: 0;
+}
+.wiki-search input {
+  flex: 1;
+}
+.wiki-book {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.wiki-results {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0;
+}
+.wiki-results li {
+  border-top: 1px solid var(--line);
+  padding: 16px 0;
+}
+.wiki-results button,
+.wiki-related button,
+.ai-sources button,
+.ai-images button,
+.ai-context button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.wiki-results button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-weight: 500;
+}
+.wiki-results p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 8px 0 0;
+}
+.knowledge-dialog {
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  width: min(860px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+}
+.knowledge-dialog::backdrop {
+  background: #0008;
+}
+.knowledge-surface {
+  background: var(--paper);
+  color: var(--ink);
+}
+.knowledge-surface:fullscreen {
+  overflow-y: auto;
+}
+.knowledge-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.knowledge-toolbar > div {
+  display: flex;
+  gap: 8px;
+}
+.knowledge-toolbar button {
+  background: transparent;
+  color: inherit;
+  border: 0;
+  cursor: pointer;
+  min-width: 36px;
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+}
+.wiki-article {
+  max-width: 690px;
+  margin: auto;
+  padding: 28px 24px 40px;
+}
+.wiki-article > h2 {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  margin: 0 0 20px;
+}
+.wiki-credit,
+.ai-footnote {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.wiki-credit a {
+  color: inherit;
+}
+.wiki-prose {
+  font-size: 15px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+.wiki-prose h3 {
+  font-size: 21px;
+  font-weight: 500;
+  margin-top: 32px;
+}
+.wiki-prose h4 {
+  font-size: 17px;
+  font-weight: 500;
+  margin-top: 24px;
+}
+.wiki-list-line {
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+}
+.wiki-image {
+  margin: 24px 0;
+}
+.wiki-image img {
+  display: block;
+  max-width: 100%;
+  max-height: 340px;
+  width: auto;
+  height: auto;
+  margin: auto;
+  object-fit: contain;
+}
+.wiki-image figcaption {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 12px;
+}
+.wiki-image-placeholder {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 16px 0;
+}
+.wiki-related {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0;
+}
+.assistant-panel {
+  max-width: 800px;
+}
+.assistant-panel .browser-help {
+  max-width: 650px;
+}
+.ai-setup {
+  padding: 16px 0;
+}
+.ai-setup pre {
+  overflow-x: auto;
+  font: 12px/1.8 var(--mono);
+}
+.ai-context {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.ai-context button {
+  text-decoration: underline;
+}
+.ai-turn {
+  padding: 26px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ai-turn h2 {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 16px;
+}
+.ai-answer {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.ai-notice {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.ai-sources {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0;
+  font-size: 12px;
+}
+.ai-sources button {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ai-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  font-size: 12px;
+}
+.ai-composer {
+  display: grid;
+  gap: 12px;
+  margin: 28px 0 12px;
+}
+.ai-composer > label {
+  font-size: 13px;
+}
+.ai-composer textarea {
+  width: 100%;
+  resize: vertical;
+  line-height: 1.6;
+}
+.ai-composer > div > label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .knowledge-toolbar {
+    padding: 10px 12px;
+  }
+  .knowledge-toolbar .eyebrow {
+    font-size: 9px;
+  }
+  .wiki-article {
+    padding: 24px 18px;
+  }
+  .ai-composer > div {
+    flex-wrap: wrap;
+  }
+}
