@@ -2449,3 +2449,123 @@ textarea:focus-visible {
   border-top: 0;
   padding-top: 8px;
 }
+.resource-graph {
+  display: block;
+  width: 100%;
+  height: 48px;
+  overflow: hidden;
+  color: var(--ink);
+}
+.graph-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+}
+.graph-baseline {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.resource-graph circle {
+  fill: currentColor;
+}
+.metric .resource-graph {
+  height: 24px;
+  margin: 0 0 6px;
+}
+.metric:has(.resource-graph) .metric-value {
+  margin: 8px 0;
+}
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 28px;
+  margin-bottom: 24px;
+}
+.resource-grid article {
+  min-width: 0;
+}
+.resource-grid header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font: 11px var(--mono);
+  margin-bottom: 12px;
+}
+.resource-grid strong {
+  font-weight: 400;
+}
+.resource-grid small {
+  font: 9px var(--mono);
+  color: var(--muted);
+}
+.resource-grid .resource-graph {
+  height: 80px;
+  margin-bottom: 8px;
+}
+.process-panel {
+  margin-top: 24px;
+}
+.process-scroll {
+  overflow-x: auto;
+}
+.process-panel table {
+  border-collapse: collapse;
+  width: 100%;
+  font: 11px var(--mono);
+}
+.process-panel th,
+.process-panel td {
+  padding: 10px 8px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.process-panel th {
+  font-weight: 400;
+  color: var(--muted);
+}
+.process-panel th:first-child,
+.process-panel td:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.process-panel td:first-child {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 600px) {
+  .resource-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.metrics {
+  align-items: start;
+}
+.metric .metric-value {
+  margin: 8px 0;
+}
+.metric-graph-space {
+  height: 24px;
+  margin-bottom: 6px;
+}
+.process-scroll {
+  max-height: 320px;
+}
+.process-panel thead {
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+}
+.resource-hardware {
+  margin-top: 24px;
+}
+.resource-hardware summary {
+  cursor: pointer;
+  font: 12px var(--sans);
+  padding: 12px 0;
+}

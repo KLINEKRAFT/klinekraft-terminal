@@ -22,6 +22,13 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import {
+  Sparkline,
+  ResourceGraphs,
+  ProcessList,
+  rate,
+} from "./components/ResourceGraphs";
+import type { HistoryPoint } from "./telemetry";
 import { ToolsLauncher } from "./components/ToolsLauncher";
 import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
@@ -103,12 +110,16 @@ function Metric({
   unit,
   detail,
   percent,
+  history,
+  field,
 }: {
   label: string;
   value: string;
   unit: string;
   detail: string;
   percent: number | null;
+  history?: HistoryPoint[];
+  field?: "cpu" | "memory";
 }) {
   return (
     <article className="metric">
@@ -117,6 +128,11 @@ function Metric({
         {value}
         <span>{unit}</span>
       </div>
+      {history && field ? (
+        <Sparkline history={history} field={field} label={label} />
+      ) : (
+        <div className="metric-graph-space" aria-hidden="true" />
+      )}
       <div
         className="meter"
         role={percent === null ? undefined : "meter"}
@@ -132,6 +148,7 @@ function Metric({
   );
 }
 function Home({
+  history,
   reading,
   now,
   navigate,
@@ -139,6 +156,7 @@ function Home({
   browser,
   note,
 }: {
+  history: HistoryPoint[];
   browser: ReturnType<typeof useBrowserPreferences>;
   note: ReturnType<typeof useQuickNote>;
   reading: Reading;
@@ -176,6 +194,8 @@ function Home({
         </div>
         <div className="metrics">
           <Metric
+            history={history}
+            field="cpu"
             label="CPU LOAD"
             value={amount(reading.cpu, 0)}
             unit="%"
@@ -183,6 +203,8 @@ function Home({
             detail={`${reading.cpuCores ?? "—"} cores · ${detail.toLowerCase()}`}
           />
           <Metric
+            history={history}
+            field="memory"
             label="MEMORY"
             value={amount(reading.memoryUsed)}
             unit="GB"
@@ -241,9 +263,15 @@ function Home({
           <span>
             <small>NETWORK</small>
             <strong>
-              {networkSummary(reading)}{" "}
+              {reading.networkDownload == null
+                ? networkSummary(reading)
+                : `↓ ${rate(reading.networkDownload)}`}{" "}
               <em>
-                {reading.interfaces === null ? "No interface data" : detail}
+                {reading.networkUpload == null
+                  ? reading.interfaces === null
+                    ? "No interface data"
+                    : detail
+                  : `↑ ${rate(reading.networkUpload)} · ${detail.toLowerCase()}`}
               </em>
             </strong>
           </span>
@@ -536,6 +564,7 @@ export default function App() {
           )}
           {section === "Home" ? (
             <Home
+              history={telemetry.history}
               reading={reading}
               now={now}
               navigate={navigate}
@@ -587,7 +616,18 @@ export default function App() {
           ) : section === "Files" ? (
             <FilesPanel />
           ) : section === "System" ? (
-            <SystemPanel reading={reading} label={label} />
+            <>
+              <ResourceGraphs
+                history={telemetry.history}
+                reading={reading}
+                label={label}
+              />
+              <ProcessList live={mode === "host"} paused={paused} />
+              <details className="resource-hardware">
+                <summary>Hardware & sensors</summary>
+                <SystemPanel reading={reading} label={label} />
+              </details>
+            </>
           ) : section === "Network" ? (
             <NetworkPanel reading={reading} label={label} />
           ) : (

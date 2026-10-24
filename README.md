@@ -135,3 +135,7 @@ Home includes Tulsa outdoor temperature in Fahrenheit and an Away button with th
 ## Desktop Tools
 
 Home → Tools opens nnn, btop and cmus in a desktop terminal after one-time Pi setup. Run `bash scripts/setup-tools.sh` from the Pi desktop Terminal. See [Tools setup](docs/TOOLS_SETUP.md).
+
+## Live activity
+
+Home includes three-minute CPU/memory traces and upload/download rates. System adds larger graphs and a read-only process list. All readings work offline; history builds during the current browser session. See [resource monitor](docs/RESOURCE_MONITOR.md) for sampling and scale details.

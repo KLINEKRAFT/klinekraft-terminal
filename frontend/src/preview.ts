@@ -1,4 +1,6 @@
 export type Reading = {
+  networkDownload?: number | null;
+  networkUpload?: number | null;
   source: "simulated" | "host";
   batteryPercent?: number | null;
   batteryVoltage?: number | null;

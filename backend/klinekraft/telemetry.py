@@ -9,6 +9,7 @@ import platform
 from typing import Literal
 
 from .battery import read_battery
+from .resources import ResourceSampler
 
 import psutil
 from pydantic import BaseModel, ConfigDict, Field
@@ -43,6 +44,8 @@ class HostSnapshot(WireModel):
     battery_percent: float | None = Field(default=None, ge=0, le=100)
     battery_voltage: float | None = None
     battery_status: str = "Not configured"
+    network_download: float | None = Field(default=None, ge=0)
+    network_upload: float | None = Field(default=None, ge=0)
 
 
 def number(value: float | None) -> float | None:
@@ -102,10 +105,15 @@ class TelemetryService:
     def __init__(self):
         self.snapshot: HostSnapshot | None = None
         self.task: asyncio.Task | None = None
+        self.resources = ResourceSampler()
+        self.processes = None
 
     async def _sample(self):
         try:
-            self.snapshot = await asyncio.to_thread(collect_snapshot)
+            snapshot = await asyncio.to_thread(collect_snapshot)
+            rates, processes = await asyncio.to_thread(self.resources.sample)
+            self.processes = processes
+            self.snapshot = snapshot.model_copy(update=rates)
         except Exception:
             # Keep the old timestamp so failed sampling never looks fresh.
             log.exception("Host telemetry sampling failed")
