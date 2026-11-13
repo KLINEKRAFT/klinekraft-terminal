@@ -1,5 +1,5 @@
 """Local project notebook."""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 
 from .conversations import Turn, database
@@ -28,10 +28,17 @@ def save(entry: Entry):
 
 
 @router.get("")
-def entries():
+def entries(before: int | None = Query(default=None, ge=1), q: str = Query(default="", max_length=200)):
     with database() as connection:
         init(connection)
         return [
             {"id": row["id"], **Entry.model_validate_json(row["payload"]).model_dump()}
-            for row in connection.execute("SELECT id, payload FROM notebook ORDER BY id DESC LIMIT 200")
+            for row in connection.execute(
+                """SELECT id, payload FROM notebook WHERE (? IS NULL OR id < ?)
+                AND (instr(lower(json_extract(payload, '$.project')), lower(?)) > 0
+                  OR instr(lower(json_extract(payload, '$.note')), lower(?)) > 0
+                  OR instr(lower(json_extract(payload, '$.turn.question')), lower(?)) > 0
+                  OR instr(lower(json_extract(payload, '$.turn.answer')), lower(?)) > 0)
+                ORDER BY id DESC LIMIT 200""", (before, before, q, q, q, q)
+            )
         ]

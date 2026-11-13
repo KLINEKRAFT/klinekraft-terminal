@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { isHostedDemo } from "../runtime";
 import { ArticleDialog, localJSON } from "./WikiReader";
+import { downloadJSON } from "./useConversations";
 import type { Turn } from "./AssistantPanel";
 
 type Entry = { id: number; project: string; note: string; turn: Turn };
@@ -58,6 +59,10 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
     onAsk(new File([text], "notebook-entry.txt", { type: "text/plain" }));
   }
 
+  const [query, setQuery] = useState("");
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [cursor, setCursor] = useState<number | null>(null);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [project, setProject] = useState("");
   const [error, setError] = useState("");
@@ -67,12 +72,23 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
   useEffect(() => {
     if (isHostedDemo) return;
     const request = new AbortController();
-    void localJSON("/api/notebook", { signal: request.signal }).then(setEntries)
+    setLoading(true);
+    setError("");
+    const params = new URLSearchParams({ q: query });
+    if (cursor !== null) params.set("before", String(cursor));
+    void localJSON(`/api/notebook?${params}`, { signal: request.signal })
+      .then((page: Entry[]) => {
+        if (request.signal.aborted) return;
+        setEntries((previous) => cursor === null ? page : [...previous, ...page]);
+        setHasMore(page.length === 200);
+      })
       .catch((failure: Error) => {
         if (!request.signal.aborted) setError(failure.message);
+      }).finally(() => {
+        if (!request.signal.aborted) setLoading(false);
       });
     return () => request.abort();
-  }, []);
+  }, [query, cursor]);
 
   useEffect(() => () => {
     if (file) URL.revokeObjectURL(file.url);
@@ -98,12 +114,22 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
   if (isHostedDemo) return null;
   return <section className="settings-panel research-library" aria-label="Project notebook">
     <h2>Project notebook</h2>
+    <label>Search notebook <input type="search" value={query} maxLength={200}
+      onChange={(event) => {
+        setQuery(event.target.value);
+        setCursor(null);
+        setProject("");
+        setEntries([]);
+      }} /></label>
+    {!!entries.length && <button disabled={loading} onClick={() =>
+      downloadJSON(entries.filter((entry) => !project || entry.project === project), "klinekraft-notebook.json")
+    }>Export loaded entries</button>}
     {error && <p role="alert">{error}</p>}
     {entries.length ? <label>Project <select value={project} onChange={(event) => setProject(event.target.value)}>
       <option value="">All projects</option>
       {[...new Set(entries.map((entry) => entry.project))].sort().map((name) =>
         <option key={name}>{name}</option>)}
-    </select></label> : <p>Save an assistant answer to start a project.</p>}
+    </select></label> : <p>{loading ? "Loading notebook…" : query ? "No matching entries." : "Save an assistant answer to start a project."}</p>}
     {entries.filter((entry) => !project || entry.project === project).map((entry) =>
       <details key={entry.id}>
         <summary>{entry.turn.question} · {entry.project}</summary>
@@ -116,6 +142,9 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
           </button></li>
         )}</ul>}
       </details>)}
+    {hasMore && <button disabled={loading} onClick={() => setCursor(entries[entries.length - 1].id)}>
+      {loading ? "Loading…" : "Load older entries"}
+    </button>}
     {file && <p><a href={file.url + (file.source.page ? `#page=${file.source.page}` : "")}
       target="_blank" rel="noopener noreferrer">Open {file.source.title}</a>
       {" "}<button onClick={() => setFile(null)}>Close citation</button></p>}
