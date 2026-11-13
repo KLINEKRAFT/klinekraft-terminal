@@ -13,7 +13,7 @@ export type Turn = {
   attachmentName?: string | null;
   answer: string;
   notice: string;
-  sources: (WikiReference & { id: number })[];
+  sources: (WikiReference & { id: number; fileId?: number | null; page?: number | null })[];
   images: {
     path: string;
     caption: string;
@@ -69,6 +69,11 @@ export function AssistantPanel({
     setPreview(url);
     return () => URL.revokeObjectURL(url);
   }, [attachment]);
+  const [useResearch, setUseResearch] = useState(false);
+  const [researchSource, setResearchSource] = useState<{ title: string; url: string; page?: number | null } | null>(null);
+  useEffect(() => () => {
+    if (researchSource) URL.revokeObjectURL(researchSource.url);
+  }, [researchSource]);
   const [useWiki, setUseWiki] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -133,6 +138,7 @@ export function AssistantPanel({
             ])
             .slice(-6),
           use_wiki: useWiki,
+          use_research: useResearch,
           article_path: useWiki ? articleContext?.path : null,
         }),
       });
@@ -156,6 +162,21 @@ export function AssistantPanel({
       }
     }
   }
+  async function openResearchSource(source: Turn["sources"][number]) {
+    setError("");
+    try {
+      const response = await fetch(`/api/research/${source.fileId}`, {
+        headers: { "X-Klinekraft-Client": "local-ui" },
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("Could not open this research source.");
+      const url = URL.createObjectURL(await response.blob());
+      setResearchSource({ title: source.title, url, page: source.page });
+    } catch (failure) {
+      setError((failure as Error).message);
+    }
+  }
+
   return (
     <section
       className="assistant-panel ai-chat"
@@ -385,8 +406,8 @@ export function AssistantPanel({
                   </summary>
                   <div className="ai-sources">
                     {turn.sources.map((s) => (
-                      <button key={s.id} onClick={() => setSelected(s)}>
-                        [{s.id}] {s.title}
+                      <button key={s.id} onClick={() => s.fileId ? void openResearchSource(s) : setSelected(s)}>
+                        [{s.id}] {s.title}{s.page ? ` · page ${s.page}` : ""}
                       </button>
                     ))}
                   </div>
@@ -513,7 +534,12 @@ export function AssistantPanel({
             }
             aria-describedby={attachment ? "ai-keyboard-hint ai-upload-note" : "ai-keyboard-hint"}
           />
+          {useResearch && <p className="ai-notice">Sending shares matching library excerpts with OpenAI.</p>}
           <div className="ai-compose-controls">
+            <button className="ai-wiki-toggle" type="button" aria-pressed={useResearch}
+              disabled={composerDisabled} onClick={() => setUseResearch((value) => !value)}>
+              Research {useResearch ? "on" : "off"}
+            </button>
             <button
               className="ai-quiet-button"
               type="button"
@@ -563,6 +589,17 @@ export function AssistantPanel({
           · Enter to send. AI can make mistakes.
         </p>
       </div>
+      {researchSource && (
+        <section className="ai-context" aria-label="Research citation">
+          <a href={researchSource.url + (researchSource.page ? `#page=${researchSource.page}` : "")}
+            target="_blank" rel="noopener noreferrer">
+            Open {researchSource.title}{researchSource.page ? ` · page ${researchSource.page}` : ""}
+          </a>
+          <button type="button" onClick={() => setResearchSource(null)} aria-label="Close research citation">
+            <X size={14} />
+          </button>
+        </section>
+      )}
       {selected && (
         <ArticleDialog reference={selected} onClose={() => setSelected(null)} />
       )}

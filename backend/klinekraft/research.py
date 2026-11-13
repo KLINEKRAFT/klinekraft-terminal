@@ -131,3 +131,38 @@ def read_file(file_id: int):
         raise HTTPException(404, "Research file not found.")
     return FileResponse(files_root() / row["digest"], media_type=row["mime"],
                         headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"})
+
+
+def relevant_passages(question):
+    """Return a few local excerpts with their original PDF page numbers."""
+    import re
+
+    stop = set("what where when which who why how does from about this that with have find explain please".split())
+    terms = [term for term in dict.fromkeys(re.findall(r"[^\W_]{3,}", question.lower())) if term not in stop][:8]
+    if not terms:
+        return []
+    clause = " OR ".join("instr(lower(name || ' ' || extracted), ?) > 0" for _ in terms)
+    with database() as connection:
+        init(connection)
+        rows = connection.execute(
+            f"SELECT id, name, mime, extracted FROM research_files WHERE {clause} ORDER BY id DESC LIMIT 100",
+            terms,
+        ).fetchall()
+    matches = []
+    for row in rows:
+        pdf = row["mime"] == "application/pdf"
+        pages = row["extracted"].split("\f") if pdf else [row["extracted"]]
+        for number, page in enumerate(pages, 1):
+            lower = page.lower()
+            positions = [lower.find(term) for term in terms if term in lower]
+            if not positions:
+                continue
+            start = max(0, min(positions) - 250)
+            matches.append((len(positions), {
+                "fileId": row["id"],
+                "title": row["name"],
+                "page": number if pdf else None,
+                "text": page[start:start + 1800].strip(),
+            }))
+    matches.sort(key=lambda item: item[0], reverse=True)
+    return [passage for _, passage in matches[:4]]
