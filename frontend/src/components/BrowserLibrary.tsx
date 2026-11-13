@@ -214,13 +214,6 @@ export function BrowserLibrary({
           </div>
         )
       )}
-      <details className="archive-plan">
-        <summary>Offline archives · planned</summary>
-        <p>
-          Kiwix will serve locally installed ZIM archives. No archive is
-          installed, and offline article search is not connected.
-        </p>
-      </details>
     </section>
   );
 }

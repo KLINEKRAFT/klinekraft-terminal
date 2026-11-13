@@ -3,6 +3,13 @@ import { initialReading, previewReading, type Reading } from "./preview";
 
 import { isHostedDemo } from "./runtime";
 
+export type HistoryPoint = {
+  time: number;
+  cpu: number | null;
+  memory: number | null;
+  download: number | null;
+  upload: number | null;
+};
 export type DataMode = "preview" | "host";
 type Connection = "connecting" | "ready" | "error";
 export const emptyReading: Reading = {
@@ -62,22 +69,57 @@ function parseSnapshot(value: unknown): Reading {
     throw new Error("Invalid interface list");
   if (typeof data.cpu === "number" && (data.cpu < 0 || data.cpu > 100))
     throw new Error("Invalid CPU load");
+  for (const key of ["batteryPercent", "batteryVoltage"]) {
+    const value = data[key];
+    if (value != null && (typeof value !== "number" || !Number.isFinite(value)))
+      throw new Error("Invalid battery measurement");
+  }
+  if (data.batteryStatus != null && typeof data.batteryStatus !== "string")
+    throw new Error("Invalid battery status");
+  for (const key of ["networkDownload", "networkUpload"]) {
+    const value = data[key];
+    if (
+      value != null &&
+      (typeof value !== "number" || !Number.isFinite(value) || value < 0)
+    )
+      throw new Error("Invalid network rate");
+  }
   return data as unknown as Reading;
 }
 
 export function useTelemetry(paused: boolean, now: number) {
-  const [mode, changeMode] = useState<DataMode>("preview");
+  const [mode, changeMode] = useState<DataMode>(() => {
+    if (isHostedDemo) return "preview";
+    try {
+      return localStorage.getItem("klinekraft.dataMode.v1") === "preview"
+        ? "preview"
+        : "host";
+    } catch {
+      return "host";
+    }
+  });
   const [preview, setPreview] = useState(initialReading);
   const [host, setHost] = useState<Reading | null>(null);
   const [connection, setConnection] = useState<Connection>("connecting");
   const [receivedAt, setReceivedAt] = useState(0);
+  const [history, setHistory] = useState<HistoryPoint[]>([]);
+  const [storageWarning, setStorageWarning] = useState("");
 
   const setMode = (next: DataMode) => {
     if (next === mode || (isHostedDemo && next === "host")) return;
+    setHistory([]);
     setHost(null);
     setReceivedAt(0);
     setConnection("connecting");
     changeMode(next);
+    try {
+      localStorage.setItem("klinekraft.dataMode.v1", next);
+      setStorageWarning("");
+    } catch {
+      setStorageWarning(
+        "Data mode could not be saved. This choice lasts until you reload.",
+      );
+    }
   };
 
   useEffect(() => {
@@ -104,6 +146,22 @@ export function useTelemetry(paused: boolean, now: number) {
         const snapshot = parseSnapshot(await response.json());
         if (!stopped) {
           setHost(snapshot);
+          if (!snapshot.stale)
+            setHistory((points) => {
+              const time = Date.parse(snapshot.sampledAt!);
+              if (points.length && time <= points[points.length - 1].time)
+                return points;
+              return [
+                ...points.filter((p) => p.time >= time - 180000),
+                {
+                  time,
+                  cpu: snapshot.cpu,
+                  memory: percent(snapshot.memoryUsed, snapshot.memoryTotal),
+                  download: snapshot.networkDownload ?? null,
+                  upload: snapshot.networkUpload ?? null,
+                },
+              ].slice(-61);
+            });
           setReceivedAt(Date.now());
           setConnection("ready");
         }
@@ -149,7 +207,17 @@ export function useTelemetry(paused: boolean, now: number) {
         : stale
           ? "Stale"
           : "Measured";
-  return { mode, setMode, reading, label, detail, stale, connection };
+  return {
+    mode,
+    setMode,
+    reading,
+    label,
+    detail,
+    stale,
+    connection,
+    storageWarning,
+    history,
+  };
 }
 
 export function amount(value: number | null, digits = 1): string {

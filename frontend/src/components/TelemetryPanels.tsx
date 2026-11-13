@@ -9,12 +9,14 @@ export function TelemetrySettings({
   paused,
   setPaused,
   label,
+  storageWarning,
 }: {
   mode: DataMode;
   setMode: (mode: DataMode) => void;
   paused: boolean;
   setPaused: (paused: boolean) => void;
   label: string;
+  storageWarning: string;
 }) {
   return (
     <section className="settings-panel">
@@ -25,7 +27,7 @@ export function TelemetrySettings({
           <small>
             {isHostedDemo
               ? "Web demo · simulated data. Live readings require the local app on your Mac or Raspberry Pi."
-              : "Live readings come from the computer running the local service."}
+              : "Live computer is the default. Your data-mode choice is saved in this browser."}
           </small>
         </span>
         <select
@@ -52,20 +54,16 @@ export function TelemetrySettings({
           onChange={(event) => setPaused(!event.target.checked)}
         />
       </label>
-      <p role="status">
-        {label}.{" "}
-        {mode === "host"
-          ? "Start the Python service on your computer to connect. Missing sensors remain unavailable."
-          : "Preview runs without Python or hardware. No machine readings are collected by the UI."}
-      </p>
-      <p>
-        The clock always uses your browser’s local time. GPS and X1202
-        integration are not configured.
-      </p>
-      <div className="feature-note">
-        Native app launching, file management and a native desktop exit are
-        still planned.
-      </div>
+      {storageWarning && <p role="status">{storageWarning}</p>}
+      {label !== "LIVE COMPUTER" && (
+        <p role="status">
+          {label}.{" "}
+          {mode === "host"
+            ? "Start the Python service on your computer to connect. Missing sensors remain unavailable."
+            : "Preview runs without Python or hardware. No machine readings are collected by the UI."}
+        </p>
+      )}
+      <p>The clock uses local time. Temperatures are shown in Fahrenheit.</p>
     </section>
   );
 }
@@ -80,7 +78,7 @@ export function SystemPanel({
   const measured = reading.source === "host";
   return (
     <section className="settings-panel">
-      <h2>
+      <h2 className="sr-only">
         System overview <span className="inline-badge">{label}</span>
       </h2>
       <dl className="system-list">
@@ -107,13 +105,21 @@ export function SystemPanel({
             "CPU temperature",
             reading.temperature === null
               ? "Unavailable on this host"
-              : `${amount(reading.temperature)}°C`,
+              : `${amount((reading.temperature * 9) / 5 + 32)}°F`,
           ],
-          ["X1202 / GPS", "Unavailable · integration not configured"],
+          [
+            "X1202 battery",
+            reading.batteryPercent == null
+              ? (reading.batteryStatus ?? "Not configured")
+              : `${reading.batteryPercent.toFixed(0)}% estimated · ${reading.batteryVoltage?.toFixed(2)} V`,
+          ],
+          ["GPS", "Unavailable · integration not configured"],
           [
             "Last sample",
             reading.sampledAt
-              ? new Date(reading.sampledAt).toLocaleTimeString()
+              ? new Date(reading.sampledAt).toLocaleTimeString("en-US", {
+                  hour12: true,
+                })
               : measured
                 ? "No sample received"
                 : "Simulated fixture",
@@ -142,12 +148,11 @@ export function NetworkPanel({
 }) {
   return (
     <section className="settings-panel">
-      <h2>
+      <h2 className="sr-only">
         Network interfaces <span className="inline-badge">{label}</span>
       </h2>
       <p>
-        Link state does not establish internet access. VPNs and virtual adapters
-        may appear here. No connectivity probes are sent.
+        Connected interfaces. An active link does not guarantee internet access.
       </p>
       {reading.interfaces === null ? (
         <p>

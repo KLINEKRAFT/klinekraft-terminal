@@ -10,11 +10,11 @@ Import the provided logo using `npm run brand:import -- "/absolute/path/to/kline
 
 ## Python development
 
-Use Python 3.11+, ideally 3.12. Create `.venv` with `python3 -m venv .venv`, activate it, and run `python -m pip install -e './backend[dev]'`. Start `python -m uvicorn klinekraft.main:app --host 127.0.0.1 --port 8000`. The development Vite server proxies `/api` to that address. The simulated preview does not depend on it. Choose Live computer in Settings to use `/api/system`. Production static hosting is available after `npm run build`; start/restart the backend after building because mount detection happens on startup.
+Use Python 3.11+, ideally 3.12. Create `.venv` with `python3 -m venv .venv`, activate it, and run `python -m pip install -e './backend[dev]'`. Start `python -m uvicorn klinekraft.main:app --host 127.0.0.1 --port 8000`. The development Vite server proxies `/api` to that address. The simulated preview does not depend on it. Local builds default to Live computer using `/api/system`. Settings saves your data-mode choice in this browser; choose Preview for UI work without a service. The hosted demo always stays simulated. Production static hosting is available after `npm run build`; start/restart the backend after building because mount detection happens on startup.
 
 ## Raspberry Pi — proposed preview deployment
 
-These are untested Pi deployment instructions for the preview, not completion of hardware integration. Start with Raspberry Pi OS 64-bit Desktop and its Chromium browser. Place the repository at `~/klinekraft-terminal`, build/install dependencies as above. Never run the application as root. The Python service provides psutil host metrics but no GPS or UPS drivers yet.
+These are untested Pi deployment instructions for the preview, not completion of hardware integration. Start with Raspberry Pi OS 64-bit Desktop and its Chromium browser. Place the repository at `~/klinekraft-terminal`, build/install dependencies as above. Never run the application as root. The Python service provides psutil host metrics. Optional X1202 battery setup is now available; GPS remains unavailable. See [battery setup](BATTERY_SETUP.md) and [Files and Wikipedia](FILES_AND_WIKI.md).
 
 Copy `deploy/klinekraft.service.example` to `~/.config/systemd/user/klinekraft.service` after reviewing paths. Run `systemctl --user daemon-reload`, then `systemctl --user enable --now klinekraft`. Visit http://127.0.0.1:8000 and check `journalctl --user -u klinekraft`. To stop/remove autostart, `systemctl --user disable --now klinekraft`.
 

@@ -1,4 +1,9 @@
 import { test, expect } from "@playwright/test";
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem("klinekraft.dataMode.v1", "preview"),
+  );
+});
 for (const [width, height] of [
   [1024, 600],
   [1280, 720],
@@ -19,7 +24,8 @@ for (const [width, height] of [
     await page.evaluate(() => document.fonts.ready);
     await expect(
       page.getByRole("heading", {
-        name: /Colin/,
+        name: "Home",
+        exact: true,
       }),
     ).toBeVisible();
     await expect(
@@ -42,9 +48,16 @@ for (const [width, height] of [
 test("navigation, commands and settings remain honest", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.goto("/");
+  await page.route("**/api/games", (route) =>
+    route.fulfill({
+      json: { games: [], systems: {}, running: null, lastExitCode: null },
+    }),
+  );
   await page.getByRole("button", { name: "Play something" }).click();
   await expect(
-    page.getByText("No games have been imported.", { exact: false }),
+    page.getByText("Your library is ready for its first games.", {
+      exact: false,
+    }),
   ).toBeVisible();
   await page
     .getByLabel("Workspace command", { exact: true })
@@ -52,7 +65,7 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
   await page.getByRole("button", { name: "Run workspace command" }).click();
   await expect(
     page.getByRole("status", { name: "Command result" }),
-  ).toContainText("No emulator or ROM was opened");
+  ).toContainText("Typed commands never launch an emulator");
   await page
     .getByLabel("Workspace command", { exact: true })
     .fill("system status");
@@ -61,7 +74,7 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
     page.getByRole("heading", { name: "System", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "09 Settings" }).click();
-  const toggle = page.getByRole("checkbox");
+  const toggle = page.getByRole("checkbox", { name: /Automatic updates/ });
   await toggle.uncheck();
   await expect(toggle).not.toBeChecked();
   await page.keyboard.press("Control+k");

@@ -11,7 +11,15 @@ test("hosted demo keeps navigation working without a local service", async ({
   });
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setViewportSize({ width: 1024, height: 600 });
+  await page.addInitScript(() =>
+    localStorage.setItem("klinekraft.dataMode.v1", "host"),
+  );
   await page.goto("/");
+  await page.getByRole("button", { name: "Tools", exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "web demo cannot open desktop utilities",
+  );
+  await page.getByRole("button", { name: "Close Tools" }).click();
   await expect(page.getByText("SIMULATED DATA", { exact: true })).toBeVisible();
   for (const name of [
     "Games",

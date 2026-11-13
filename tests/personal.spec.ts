@@ -93,25 +93,3 @@ test("failed note storage is explicit and the draft survives navigation", async 
     "Keep this draft",
   );
 });
-
-test("playful greeting stays stable during a session and changes with time", async ({
-  page,
-}) => {
-  await page.addInitScript(() => {
-    Math.random = () => 0.3;
-  });
-  await page.clock.install({ time: new Date(2026, 9, 22, 11, 59, 59) });
-  await page.goto("/");
-  await expect(
-    page.getByRole("heading", { name: "Morning, Colin. Systems ready." }),
-  ).toBeVisible();
-  await page.clock.runFor(2000);
-  await expect(
-    page.getByRole("heading", { name: "Afternoon, Colin. Make something." }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "05 Library" }).click();
-  await page.getByRole("button", { name: "01 Home" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Afternoon, Colin. Make something." }),
-  ).toBeVisible();
-});

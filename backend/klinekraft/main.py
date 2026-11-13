@@ -1,9 +1,15 @@
-"""Loopback-only telemetry service. No command execution or filesystem API."""
+"""Loopback-only telemetry service. Read-only files and an allowlisted game launcher."""
 from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response, Depends
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from .local_content import router as local_content_router, local_request
+from .games import router as games_router
+from .wiki_reader import router as wiki_reader_router
+from .assistant import router as assistant_router
+from .tools_launcher import router as tools_router
+from .conversations import router as conversations_router
 from .services import Capabilities, get_capabilities
 from .telemetry import HostSnapshot, TelemetryService
 
@@ -40,6 +46,23 @@ def system_status(request: Request, response: Response) -> HostSnapshot:
     if snapshot is None:
         raise HTTPException(status_code=503, detail="Host telemetry is not available yet")
     return snapshot
+
+
+@app.get("/api/processes", dependencies=[Depends(local_request)])
+def processes(request: Request, response: Response):
+    response.headers["Cache-Control"] = "no-store"
+    service = request.app.state.telemetry
+    snapshot = service.read()
+    return {"sampledAt": snapshot.sampled_at if snapshot else None,
+            "stale": snapshot.stale if snapshot else True, "processes": service.processes}
+
+
+app.include_router(local_content_router)
+app.include_router(games_router)
+app.include_router(wiki_reader_router)
+app.include_router(assistant_router)
+app.include_router(conversations_router)
+app.include_router(tools_router)
 
 
 # Build once with npm; production needs no Vite server or external CDN.

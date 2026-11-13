@@ -10,6 +10,10 @@ import {
   Gamepad2,
   Library,
   Maximize2,
+  Moon,
+  Sun,
+  ChevronLeft,
+  ChevronRight,
   MessageSquare,
   Radio,
   Settings2,
@@ -18,7 +22,21 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { HomeTools, useQuickNote, greeting } from "./components/HomeTools";
+import {
+  Sparkline,
+  ResourceGraphs,
+  ProcessList,
+  rate,
+} from "./components/ResourceGraphs";
+import type { HistoryPoint } from "./telemetry";
+import { ToolsLauncher } from "./components/ToolsLauncher";
+import { AwayPanel } from "./components/AwayPanel";
+import { OutsideWeather } from "./components/OutsideWeather";
+import { GamesPanel } from "./components/GamesPanel";
+import { AssistantPanel } from "./components/AssistantPanel";
+import { WikiBrowser, type WikiReference } from "./components/WikiReader";
+import { FilesPanel } from "./components/LocalContent";
+import { HomeTools, useQuickNote } from "./components/HomeTools";
 import { useBrowserPreferences } from "./bookmarks";
 import { BrowserLibrary, BrowserSettings } from "./components/BrowserLibrary";
 import { KlinekraftBrandLockup, installBrandIcon } from "./components/Brand";
@@ -46,17 +64,6 @@ const icons: Record<Section, LucideIcon> = {
   Network: Wifi,
   System: Terminal,
   Settings: Settings2,
-};
-const descriptions: Record<Section, string> = {
-  Home: "Your portable workspace, at a glance.",
-  Games: "A place for the classics.",
-  "AI assistant": "A second perspective, when you need it.",
-  "GPS / Maps": "Find your bearings.",
-  Library: "Knowledge, within reach.",
-  Files: "Everything in its place.",
-  Network: "Understand your connection.",
-  System: "A closer look at your machine.",
-  Settings: "Make yourself at home.",
 };
 const integrations: Record<
   string,
@@ -105,12 +112,16 @@ function Metric({
   unit,
   detail,
   percent,
+  history,
+  field,
 }: {
   label: string;
   value: string;
   unit: string;
   detail: string;
   percent: number | null;
+  history?: HistoryPoint[];
+  field?: "cpu" | "memory";
 }) {
   return (
     <article className="metric">
@@ -119,6 +130,11 @@ function Metric({
         {value}
         <span>{unit}</span>
       </div>
+      {history && field ? (
+        <Sparkline history={history} field={field} label={label} />
+      ) : (
+        <div className="metric-graph-space" aria-hidden="true" />
+      )}
       <div
         className="meter"
         role={percent === null ? undefined : "meter"}
@@ -134,6 +150,7 @@ function Metric({
   );
 }
 function Home({
+  history,
   reading,
   now,
   navigate,
@@ -141,6 +158,7 @@ function Home({
   browser,
   note,
 }: {
+  history: HistoryPoint[];
   browser: ReturnType<typeof useBrowserPreferences>;
   note: ReturnType<typeof useQuickNote>;
   reading: Reading;
@@ -154,12 +172,14 @@ function Home({
         <div className="clock-panel">
           <span className="eyebrow">LOCAL TIME</span>
           <time className="time" dateTime={now.toISOString()}>
-            {now.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })}
-            <span>{now.toLocaleTimeString([], { second: "2-digit" })}</span>
+            {now
+              .toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })
+              .replace(/\s*[AP]M$/, "")}
+            <span>{now.getHours() < 12 ? "AM" : "PM"}</span>
           </time>
           <span className="date">
             {now.toLocaleDateString("en-US", {
@@ -176,6 +196,8 @@ function Home({
         </div>
         <div className="metrics">
           <Metric
+            history={history}
+            field="cpu"
             label="CPU LOAD"
             value={amount(reading.cpu, 0)}
             unit="%"
@@ -183,6 +205,8 @@ function Home({
             detail={`${reading.cpuCores ?? "—"} cores · ${detail.toLowerCase()}`}
           />
           <Metric
+            history={history}
+            field="memory"
             label="MEMORY"
             value={amount(reading.memoryUsed)}
             unit="GB"
@@ -198,6 +222,13 @@ function Home({
           />
         </div>
       </section>
+      <div className="home-ambient">
+        <OutsideWeather />
+        <div className="home-actions">
+          <ToolsLauncher />
+          <AwayPanel />
+        </div>
+      </div>
       <section className="connections" aria-label="Device readings">
         <div>
           <Cpu size={17} />
@@ -206,7 +237,7 @@ function Home({
             <strong>
               {reading.temperature === null
                 ? "Unavailable"
-                : `${amount(reading.temperature)}°C`}{" "}
+                : `${amount((reading.temperature * 9) / 5 + 32)}°F`}{" "}
               <em>
                 {reading.temperature === null ? "No sensor reading" : detail}
               </em>
@@ -218,7 +249,14 @@ function Home({
           <span>
             <small>BATTERY · X1202</small>
             <strong>
-              Unavailable <em>Not configured</em>
+              {reading.batteryPercent == null
+                ? "Unavailable"
+                : `${reading.batteryPercent.toFixed(0)}%`}
+              <em>
+                {reading.batteryVoltage == null
+                  ? (reading.batteryStatus ?? "Not configured")
+                  : `${reading.batteryVoltage.toFixed(2)} V · estimated · ${detail.toLowerCase()}`}
+              </em>
             </strong>
           </span>
         </div>
@@ -227,9 +265,15 @@ function Home({
           <span>
             <small>NETWORK</small>
             <strong>
-              {networkSummary(reading)}{" "}
+              {reading.networkDownload == null
+                ? networkSummary(reading)
+                : `↓ ${rate(reading.networkDownload)}`}{" "}
               <em>
-                {reading.interfaces === null ? "No interface data" : detail}
+                {reading.networkUpload == null
+                  ? reading.interfaces === null
+                    ? "No interface data"
+                    : detail
+                  : `↑ ${rate(reading.networkUpload)} · ${detail.toLowerCase()}`}
               </em>
             </strong>
           </span>
@@ -251,8 +295,7 @@ function Home({
       </section>
       <section className="quick-section">
         <div className="section-heading">
-          <h2>Pick up where you left off</h2>
-          <span>QUICK ACCESS</span>
+          <h2>Quick access</h2>
         </div>
         <div className="quick-grid">
           {(
@@ -264,16 +307,16 @@ function Home({
                 Icon: Gamepad2,
               },
               {
-                section: "AI assistant",
-                label: "Think it through",
-                detail: "Explore the assistant",
-                Icon: MessageSquare,
+                section: "Files",
+                label: "Browse files",
+                detail: "Documents & downloads",
+                Icon: Folder,
               },
               {
-                section: "GPS / Maps",
-                label: "Find your way",
-                detail: "GPS & offline maps",
-                Icon: Compass,
+                section: "System",
+                label: "Check the Pi",
+                detail: "Battery & system readings",
+                Icon: Cpu,
               },
               {
                 section: "Library",
@@ -308,33 +351,64 @@ function Home({
 }
 function Feature({ section }: { section: Section }) {
   const data = integrations[section];
-  const Icon = icons[section];
   return (
     <section className="feature">
-      <div className="feature-symbol">
-        <Icon size={36} strokeWidth={1.2} />
-      </div>
-      <span className="eyebrow">PLANNED INTEGRATION</span>
-      <h2>{data.title}</h2>
-      <p>{data.body}</p>
-      <ul>
-        {data.items.map((item) => (
-          <li key={item}>
-            <ArrowRight size={14} />
-            {item}
-          </li>
-        ))}
-      </ul>
-      <div className="feature-note">
-        This section is a foundation screen. Integration is not implemented.
-      </div>
+      <span className="eyebrow">NOT CONNECTED</span>
+      <h2>
+        {section === "AI assistant"
+          ? "No AI provider connected."
+          : "No GPS receiver connected."}
+      </h2>
+      <p>
+        {section === "AI assistant"
+          ? "Your local tools work without AI. A provider connection is needed to start a conversation."
+          : "Location will appear here once a GPS receiver and map service are configured."}
+      </p>
+      <details className="feature-plans">
+        <summary>Planned features</summary>
+        <ul>
+          {data.items.map((item) => (
+            <li key={item}>{item.replace(/^Planned: /, "")}</li>
+          ))}
+        </ul>
+      </details>
     </section>
   );
 }
+function savedFlag(key: string, fallback = false) {
+  try {
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : value === "true";
+  } catch {
+    return fallback;
+  }
+}
 export default function App() {
+  const [collapsed, setCollapsed] = useState(() =>
+    savedFlag("klinekraft.sidebarCollapsed"),
+  );
+  const [dark, setDark] = useState(() =>
+    savedFlag(
+      "klinekraft.darkMode",
+      window.matchMedia("(prefers-color-scheme: dark)").matches,
+    ),
+  );
+  const [appearanceWarning, setAppearanceWarning] = useState("");
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    try {
+      localStorage.setItem("klinekraft.sidebarCollapsed", String(collapsed));
+      localStorage.setItem("klinekraft.darkMode", String(dark));
+      setAppearanceWarning("");
+    } catch {
+      setAppearanceWarning(
+        "Appearance changes apply now but cannot be saved in this browser.",
+      );
+    }
+  }, [collapsed, dark]);
   const browser = useBrowserPreferences();
   const note = useQuickNote();
-  const [greetingChoice] = useState(() => Math.floor(Math.random() * 4));
+  const [wikiContext, setWikiContext] = useState<WikiReference | null>(null);
   const [section, setSection] = useState<Section>("Home");
   const [now, setNow] = useState(new Date());
   const [paused, setPaused] = useState(false);
@@ -353,7 +427,7 @@ export default function App() {
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        input.current?.focus();
+        (document.getElementById("ai-question") ?? input.current)?.focus();
       }
       if (e.key === "Escape") {
         setExitHelp(false);
@@ -386,16 +460,38 @@ export default function App() {
     }
   }
   return (
-    <div className="app-shell">
+    <div className={`app-shell${collapsed ? " sidebar-collapsed" : ""}`}>
       <aside className="sidebar" inert={exitHelp}>
         <KlinekraftBrandLockup />
-        <div className="sidebar-caption">PORTABLE COMPUTING / 01</div>
-        <nav aria-label="Main navigation">
+        <div className="sidebar-heading">
+          <div className="sidebar-caption">PORTABLE COMPUTING / 01</div>
+          <button
+            className="sidebar-toggle"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
+            aria-controls="main-navigation"
+            onClick={() => setCollapsed(!collapsed)}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <ChevronRight size={14} strokeWidth={1.5} />
+            ) : (
+              <ChevronLeft size={14} strokeWidth={1.5} />
+            )}
+          </button>
+        </div>
+        <nav id="main-navigation" aria-label="Main navigation">
           {sections.map((item, index) => {
             const Icon = icons[item];
             return (
               <button
                 key={item}
+                aria-label={
+                  collapsed
+                    ? item
+                    : `${String(index + 1).padStart(2, "0")} ${item}`
+                }
+                title={item}
                 aria-current={section === item ? "page" : undefined}
                 onClick={() => navigate(item)}
               >
@@ -403,7 +499,7 @@ export default function App() {
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <Icon size={16} strokeWidth={1.6} />
-                <span>{item}</span>
+                <span className="nav-label">{item}</span>
                 {section === item && <i />}
               </button>
             );
@@ -415,12 +511,17 @@ export default function App() {
             {mode === "preview" ? "PREVIEW MODE" : "HOST TELEMETRY"}
           </div>
           <span>Local workspace · v0.2.0</span>
-          <button onClick={() => setExitHelp(true)}>
-            <ArrowDownLeft size={16} /> Return to desktop
+          <button
+            aria-label="Return to desktop"
+            title="Return to desktop"
+            onClick={() => setExitHelp(true)}
+          >
+            <ArrowDownLeft size={16} />{" "}
+            <span className="nav-label">Return to desktop</span>
           </button>
         </div>
       </aside>
-      <main inert={exitHelp}>
+      <main inert={exitHelp} data-page={section}>
         <header className="page-header">
           <div>
             <div className="eyebrow">
@@ -429,15 +530,24 @@ export default function App() {
                 / {String(sections.indexOf(section) + 1).padStart(2, "0")}
               </span>
             </div>
-            <h1>
-              {section === "Home"
-                ? greeting(now.getHours(), greetingChoice)
-                : section}
+            <h1 className={section === "Home" ? "sr-only" : undefined}>
+              {section}
             </h1>
-            {section !== "Home" && <p>{descriptions[section]}</p>}
           </div>
           <div className="header-actions">
-            <span className="preview-badge">
+            <button
+              className="icon-button"
+              aria-label="Dark mode"
+              aria-pressed={dark}
+              title={dark ? "Switch to light mode" : "Switch to dark mode"}
+              onClick={() => setDark(!dark)}
+            >
+              {dark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <span
+              className="preview-badge"
+              data-live={label === "LIVE COMPUTER"}
+            >
               <span /> {label}
             </span>
             <button
@@ -450,8 +560,14 @@ export default function App() {
           </div>
         </header>
         <div className="page-content">
+          {appearanceWarning && (
+            <p role="status" className="browser-warning">
+              {appearanceWarning}
+            </p>
+          )}
           {section === "Home" ? (
             <Home
+              history={telemetry.history}
               reading={reading}
               now={now}
               navigate={navigate}
@@ -459,66 +575,116 @@ export default function App() {
               browser={browser}
               note={note}
             />
-          ) : section === "Library" ? (
-            <BrowserLibrary
-              store={browser}
-              openSettings={() => navigate("Settings")}
+          ) : section === "AI assistant" ? (
+            <AssistantPanel
+              context={wikiContext}
+              onClearContext={() => setWikiContext(null)}
             />
+          ) : section === "Games" ? (
+            <GamesPanel />
+          ) : section === "Library" ? (
+            <>
+              <WikiBrowser
+                onAsk={(article) => {
+                  setWikiContext(article);
+                  navigate("AI assistant");
+                }}
+              />
+              <BrowserLibrary
+                store={browser}
+                openSettings={() => navigate("Settings")}
+              />
+            </>
           ) : section === "Settings" ? (
             <>
-              <BrowserSettings store={browser} />
+              <section className="settings-panel" aria-label="Appearance">
+                <h2>Appearance</h2>
+                <label className="setting-row">
+                  Dark mode
+                  <input
+                    type="checkbox"
+                    checked={dark}
+                    onChange={(e) => setDark(e.target.checked)}
+                  />
+                </label>
+                <label className="setting-row">
+                  Collapse sidebar
+                  <input
+                    type="checkbox"
+                    checked={collapsed}
+                    onChange={(e) => setCollapsed(e.target.checked)}
+                  />
+                </label>
+              </section>
               <TelemetrySettings
+                storageWarning={telemetry.storageWarning}
                 mode={mode}
                 setMode={setMode}
                 paused={paused}
                 setPaused={setPaused}
                 label={label}
               />
+              <BrowserSettings store={browser} />
             </>
+          ) : section === "Files" ? (
+            <FilesPanel />
           ) : section === "System" ? (
-            <SystemPanel reading={reading} label={label} />
+            <>
+              <ResourceGraphs
+                history={telemetry.history}
+                reading={reading}
+                label={label}
+              />
+              <ProcessList live={mode === "host"} paused={paused} />
+              <details className="resource-hardware">
+                <summary>Hardware & sensors</summary>
+                <SystemPanel reading={reading} label={label} />
+              </details>
+            </>
           ) : section === "Network" ? (
             <NetworkPanel reading={reading} label={label} />
           ) : (
             <Feature section={section} />
           )}
         </div>
-        <footer className="command-area">
-          {feedback && (
-            <div
-              className="command-feedback"
-              role="status"
-              aria-label="Command result"
-            >
-              <span>{feedback}</span>
-              <button
-                aria-label="Dismiss command result"
-                onClick={() => setFeedback("")}
+        {section !== "AI assistant" && (
+          <footer className="command-area">
+            {feedback && (
+              <div
+                className="command-feedback"
+                role="status"
+                aria-label="Command result"
               >
-                <X size={16} />
+                <span>{feedback}</span>
+                <button
+                  aria-label="Dismiss command result"
+                  onClick={() => setFeedback("")}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+            <form onSubmit={submit}>
+              <Terminal size={18} />
+              <label className="sr-only" htmlFor="command">
+                Workspace command
+              </label>
+              <input
+                ref={input}
+                id="command"
+                value={command}
+                onChange={(e) => setCommand(e.target.value)}
+                placeholder="Where would you like to go? Try ‘games’ or ‘system status’"
+                autoComplete="off"
+                maxLength={240}
+              />
+              <kbd>⌘ / Ctrl K</kbd>
+              <button aria-label="Run workspace command" type="submit">
+                <ArrowRight size={18} />
               </button>
-            </div>
-          )}
-          <form onSubmit={submit}>
-            <Terminal size={18} />
-            <label className="sr-only" htmlFor="command">
-              Workspace command
-            </label>
-            <input
-              ref={input}
-              id="command"
-              value={command}
-              onChange={(e) => setCommand(e.target.value)}
-              placeholder="Where would you like to go? Try ‘games’ or ‘system status’"
-              autoComplete="off"
-              maxLength={240}
-            />
-            <kbd>⌘ / Ctrl K</kbd>
-            <button aria-label="Run workspace command" type="submit">
-              <ArrowRight size={18} />
-            </button>
-          </form>
-        </footer>
+            </form>
+          </footer>
+        )}
       </main>
       {exitHelp && (
         <div className="modal-backdrop" onClick={() => setExitHelp(false)}>
