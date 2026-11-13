@@ -11,6 +11,7 @@ from .assistant import router as assistant_router
 from .tools_launcher import router as tools_router
 from .conversations import router as conversations_router
 from .research import router as research_router
+from .notebook import router as notebook_router
 from .services import Capabilities, get_capabilities
 from .telemetry import HostSnapshot, TelemetryService
 
@@ -64,6 +65,7 @@ app.include_router(wiki_reader_router)
 app.include_router(assistant_router)
 app.include_router(conversations_router)
 app.include_router(research_router)
+app.include_router(notebook_router)
 app.include_router(tools_router)
 
 
