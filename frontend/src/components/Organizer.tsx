@@ -15,6 +15,7 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
   const [draft, setDraft] = useState<Item | null>(null);
   const [query, setQuery] = useState("");
   const [trash, setTrash] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -34,6 +35,7 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
         const restored = JSON.parse(raw) as Item;
         if (restored.kind === kind && typeof restored.title === "string" && typeof restored.body === "string") {
           setDraft(restored);
+          setDirty(true);
           setStatus("Recovered draft on this browser.");
         }
       }
@@ -43,6 +45,7 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
 
   function edit(next: Item | null) {
     setDraft(next);
+    setDirty(!!next);
     try {
       if (next) localStorage.setItem(draftKey, JSON.stringify(next));
       else localStorage.removeItem(draftKey);
@@ -57,11 +60,18 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
         method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft),
       });
       setItems((previous) => [saved, ...previous.filter((item) => item.id !== saved.id)]);
-      edit(null);
+      setDraft(saved);
+      setDirty(false);
+      localStorage.removeItem(draftKey);
       setStatus("Saved on Pi.");
-    } catch (error) { setStatus((error as Error).message); }
+    } catch (error) { setDirty(false); setStatus((error as Error).message); }
     finally { setBusy(false); }
   }
+  useEffect(() => {
+    if (!dirty || busy || !draft?.title.trim() || (kind === "event" && !draft.day)) return;
+    const timer = window.setTimeout(() => { void save(); }, 900);
+    return () => clearTimeout(timer);
+  }, [draft, dirty, busy]);
   const visible = items.filter((item) => item.archived === trash &&
     (item.title + " " + item.body).toLowerCase().includes(query.toLowerCase()) &&
     (kind === "note" || !!query || item.day === day))
@@ -109,7 +119,7 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
         </button>)}
       </aside>
       <div className="organizer-editor">
-        {status && <p role="status">{status}</p>}
+        {<p role="status">{busy ? "Saving…" : dirty ? "Unsaved changes · saving shortly" : status || "Changes save automatically on the Pi."}</p>}
         {draft ? <form onSubmit={(event) => { event.preventDefault(); void save(); }}>
           <label>Title<input required maxLength={200} value={draft.title} disabled={busy}
             onChange={(event) => edit({ ...draft, title: event.target.value })} /></label>
@@ -123,7 +133,7 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
             onChange={(event) => edit({ ...draft, body: event.target.value })} /></label>
           <div className="organizer-toolbar">
             <button type="submit" disabled={busy || !draft.title.trim()}>{busy ? "Saving…" : "Save on Pi"}</button>
-            <button type="button" disabled={busy} onClick={() => edit(null)}>Close without saving</button>
+            <button type="button" disabled={busy} onClick={() => edit(null)}>Close editor</button>
             {draft.revision > 0 && <label><input type="checkbox" checked={draft.archived} disabled={busy}
               onChange={(event) => edit({ ...draft, archived: event.target.checked })} /> In trash</label>}
           </div>

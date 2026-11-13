@@ -77,7 +77,43 @@ export function GamesPanel() {
       clearTimeout(retry);
     };
   }, [revision]);
-  function favorite(id: string) {
+  const [favoritesReady, setFavoritesReady] = useState(isHostedDemo);
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
+  useEffect(() => {
+    if (isHostedDemo) return;
+    let active = true;
+    async function restore() {
+      const migrated = localStorage.getItem("klinekraft.games.favorites.pi-migrated");
+      if (!migrated) {
+        for (const id of favorites) {
+          const response = await fetch("/api/games/favorites/" + id, {
+            method: "PUT", headers: { ...headers, "Content-Type": "application/json" },
+            body: JSON.stringify({ selected: true }),
+          });
+          if (!response.ok) throw Error("Could not migrate game favorites to the Pi.");
+        }
+        localStorage.setItem("klinekraft.games.favorites.pi-migrated", "true");
+      }
+      const response = await fetch("/api/games/favorites", { headers, cache: "no-store" });
+      if (!response.ok) throw Error("Could not load saved game favorites.");
+      const saved: string[] = await response.json();
+      if (active) { setFavorites(saved); setFavoritesReady(true); }
+    }
+    void restore().catch((error: Error) => { if (active) setStorageWarning(error.message); });
+    return () => { active = false; };
+  }, []);
+  async function favorite(id: string) {
+    if (!favoritesReady || favoriteBusy) return;
+    setFavoriteBusy(true);
+    try {
+      if (!isHostedDemo) {
+        const response = await fetch("/api/games/favorites/" + id, {
+          method: "PUT", headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify({ selected: !favorites.includes(id) }),
+        });
+        if (!response.ok) throw Error("Favorite was not saved on the Pi. Please retry.");
+      }
+
     const next = favorites.includes(id)
       ? favorites.filter((item) => item !== id)
       : [...favorites, id];
@@ -93,6 +129,8 @@ export function GamesPanel() {
         "Favorites apply now but cannot be saved in this browser.",
       );
     }
+    } catch (error) { setStorageWarning((error as Error).message); }
+    finally { setFavoriteBusy(false); }
   }
   async function play(game: Game) {
     setLaunching(true);

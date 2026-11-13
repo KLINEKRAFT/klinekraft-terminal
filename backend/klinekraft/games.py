@@ -101,3 +101,29 @@ def launch_game(body: LaunchRequest):
             raise HTTPException(503, 'Unable to start RetroArch. Check the Pi desktop session and Games setup.')
         finally:
             lock_file.close()
+
+
+class Favorite(BaseModel):
+    selected: bool
+
+
+@router.get('/favorites')
+def favorites():
+    from .conversations import database
+    with database() as connection:
+        connection.execute("CREATE TABLE IF NOT EXISTS game_favorites (id TEXT PRIMARY KEY)")
+        return [row[0] for row in connection.execute("SELECT id FROM game_favorites")]
+
+
+@router.put('/favorites/{game_id}')
+def set_favorite(game_id: str, body: Favorite):
+    from .conversations import database
+    if not re.fullmatch('[a-f0-9]{64}', game_id):
+        raise HTTPException(400, 'Invalid game ID.')
+    with database() as connection:
+        connection.execute("CREATE TABLE IF NOT EXISTS game_favorites (id TEXT PRIMARY KEY)")
+        if body.selected:
+            connection.execute("INSERT OR IGNORE INTO game_favorites VALUES (?)", (game_id,))
+        else:
+            connection.execute("DELETE FROM game_favorites WHERE id=?", (game_id,))
+    return {'saved': True}
