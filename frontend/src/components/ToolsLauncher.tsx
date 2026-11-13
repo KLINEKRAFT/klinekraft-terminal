@@ -104,12 +104,12 @@ function ToolsDialog({ onClose }: { onClose: () => void }) {
             : "Could not open utility.",
         );
       setMessage(
-        `${tool.title} requested. Look for its terminal window; Alt + Tab switches windows.`,
+        `${tool.title} requested. Look for its desktop window; Alt + Tab switches windows.`,
       );
     } catch (e) {
       setError(
         (e as Error).name === "TimeoutError"
-          ? "Launch response timed out. Check for an open terminal before retrying."
+          ? "Launch response timed out. Check for an open window before retrying."
           : (e as Error).message,
       );
     } finally {
@@ -136,7 +136,7 @@ function ToolsDialog({ onClose }: { onClose: () => void }) {
         </button>
       </header>
       <p className="tools-intro">
-        Small tools. Each opens in its own terminal window.
+        Desktop utilities and file sharing. Each opens in its own window.
       </p>
       {isHostedDemo ? (
         <p>
