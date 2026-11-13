@@ -50,13 +50,21 @@ export function Calculator() {
   const [expression, setExpression] = useState("");
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
-  const [history, setHistory] = useState<{ expression: string; result: string }[]>([]);
+  const [history, setHistory] = useState<{ expression: string; result: string }[]>(() => {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem("klinekraft.calculator.history") || "[]");
+      return Array.isArray(saved) ? saved.filter((item) => typeof item?.expression === "string" && typeof item?.result === "string").slice(0, 8) : [];
+    } catch { return []; }
+  });
   function evaluate() {
     try {
       const answer = String(calculate(expression));
       setResult(answer);
       setError("");
-      setHistory((previous) => [{ expression, result: answer }, ...previous].slice(0, 8));
+      const next = [{ expression, result: answer }, ...history].slice(0, 8);
+      setHistory(next);
+      try { localStorage.setItem("klinekraft.calculator.history", JSON.stringify(next)); }
+      catch { setError("Calculated, but history could not be saved in this browser."); }
     } catch (failure) { setError((failure as Error).message); setResult(""); }
   }
   function press(key: string) {
