@@ -15,10 +15,20 @@ def collect():
     for name in SERVICES:
         try:
             result = subprocess.run(
-                ["systemctl", "--user", "show", name, "--property=ActiveState,SubState,Result,ExecMainStatus"],
+                ["systemctl", "--user", "show", name, "--property=ActiveState,SubState,Result,ExecMainStatus,ExecMainCode,NRestarts,StateChangeTimestamp"],
                 capture_output=True, text=True, timeout=3, check=True,
             )
-            services[name] = dict(line.split("=", 1) for line in result.stdout.splitlines() if "=" in line)
+            state = dict(line.split("=", 1) for line in result.stdout.splitlines() if "=" in line)
+            explanations = {
+                "exit-code": "A service process exited with an error code.",
+                "signal": "A service process was terminated by a signal.",
+                "core-dump": "A service process crashed and generated a core dump.",
+                "timeout": "A service operation exceeded its configured time limit.",
+                "oom-kill": "The service was terminated because of memory pressure.",
+                "start-limit-hit": "Repeated start failures reached the service restart limit.",
+            }
+            state["explanation"] = explanations.get(state.get("Result"), "No recorded service failure." if state.get("Result") == "success" else "Failure cause unavailable.")
+            services[name] = state
         except (OSError, subprocess.SubprocessError):
             services[name] = {"status": "unavailable"}
     return {"measurements": snapshot, "units": {"temperature": "Celsius", "memory": "GB", "storage": "GB",
