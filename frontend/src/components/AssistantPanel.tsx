@@ -36,8 +36,12 @@ function encodeAttachment(file: File): Promise<string> {
 export function AssistantPanel({
   context,
   onClearContext,
+  initialAttachment,
+  onConsumeAttachment,
 }: {
   context: WikiReference | null;
+  initialAttachment?: File | null;
+  onConsumeAttachment?: () => void;
   onClearContext: () => void;
 }) {
   const store = useConversations(context);
@@ -46,13 +50,14 @@ export function AssistantPanel({
   const [rename, setRename] = useState("");
   useEffect(() => {
     onClearContext();
+    onConsumeAttachment?.();
   }, []);
   const [status, setStatus] = useState<{
     configured: boolean;
     model: string;
   } | null>(null);
   const [question, setQuestion] = useState("");
-  const [attachment, setAttachment] = useState<File | null>(null);
+  const [attachment, setAttachment] = useState<File | null>(initialAttachment ?? null);
   const [preview, setPreview] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -433,9 +438,9 @@ export function AssistantPanel({
           />
           {attachment && (
             <div className="ai-attachment">
-              {preview && (attachment.type === "application/pdf" ? (
+              {preview && (!attachment.type.startsWith("image/") ? (
                 <a href={preview} target="_blank" rel="noopener noreferrer">
-                  Preview PDF
+                  Preview attachment
                 </a>
               ) : (
                 <img src={preview} alt="Attachment preview" />
@@ -451,8 +456,10 @@ export function AssistantPanel({
                 <X size={14} />
               </button>
               <p id="ai-upload-note" className="ai-notice">
-                Sending uploads this file to OpenAI for this answer. Chat history
-                saves the filename and answer on the Pi.
+                {attachment.type === "text/plain"
+                  ? "Sending shares the first 32,000 bytes of this note with OpenAI. Chat history"
+                  : "Sending uploads this file to OpenAI for this answer. Chat history"}
+                {" "}saves the filename and answer on the Pi.
               </p>
             </div>
           )}
