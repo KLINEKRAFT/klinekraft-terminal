@@ -47,6 +47,7 @@ export const sections = [
   "GPS / Maps",
   "Library",
   "Notes",
+  "Paint",
   "Calendar",
   "Calculator",
   "Files",
