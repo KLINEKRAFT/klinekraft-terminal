@@ -13,6 +13,7 @@ from .conversations import router as conversations_router
 from .research import router as research_router
 from .diagnostics import router as diagnostics_router
 from .notebook import router as notebook_router
+from .organizer import router as organizer_router
 from .services import Capabilities, get_capabilities
 from .telemetry import HostSnapshot, TelemetryService
 
@@ -67,6 +68,7 @@ app.include_router(assistant_router)
 app.include_router(conversations_router)
 app.include_router(research_router)
 app.include_router(notebook_router)
+app.include_router(organizer_router)
 app.include_router(diagnostics_router)
 app.include_router(tools_router)
 
