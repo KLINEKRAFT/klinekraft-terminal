@@ -70,6 +70,7 @@ export function AssistantPanel({
     setPreview(url);
     return () => URL.revokeObjectURL(url);
   }, [attachment]);
+  const [useDiagnostics, setUseDiagnostics] = useState(false);
   const [useResearch, setUseResearch] = useState(false);
   const [researchSource, setResearchSource] = useState<{ title: string; url: string; page?: number | null } | null>(null);
   useEffect(() => () => {
@@ -140,6 +141,7 @@ export function AssistantPanel({
             .slice(-6),
           use_wiki: useWiki,
           use_research: useResearch,
+          use_diagnostics: useDiagnostics,
           article_path: useWiki ? articleContext?.path : null,
         }),
       });
@@ -536,8 +538,13 @@ export function AssistantPanel({
             }
             aria-describedby={attachment ? "ai-keyboard-hint ai-upload-note" : "ai-keyboard-hint"}
           />
+          {useDiagnostics && <p className="ai-notice">Sending shares current CPU, memory, storage, temperature, battery and Klinekraft service status with OpenAI.</p>}
           {useResearch && <p className="ai-notice">Sending shares matching library excerpts with OpenAI.</p>}
           <div className="ai-compose-controls">
+            <button className="ai-wiki-toggle" type="button" aria-pressed={useDiagnostics}
+              disabled={composerDisabled} onClick={() => setUseDiagnostics((value) => !value)}>
+              Pi diagnostics {useDiagnostics ? "on" : "off"}
+            </button>
             <button className="ai-wiki-toggle" type="button" aria-pressed={useResearch}
               disabled={composerDisabled} onClick={() => setUseResearch((value) => !value)}>
               Research {useResearch ? "on" : "off"}
