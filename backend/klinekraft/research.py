@@ -65,16 +65,18 @@ def import_folder(body: FolderImport):
         raise HTTPException(400, "Choose a folder.")
     collection = body.collection.strip()
     files_root().mkdir(mode=0o700, parents=True, exist_ok=True)
-    imported = skipped = examined = 0
+    imported = skipped = examined = visited = 0
     for current, folders, names in os.walk(folder):
-        folders[:] = sorted(name for name in folders if not name.startswith("."))
+        visited += 1
+        if visited > 1000:
+            return {"imported": imported, "skipped": skipped, "limited": True}
+        folders[:] = sorted(name for name in folders if not name.startswith(".") and not (Path(current) / name).is_symlink())
         for name in sorted(names):
             path = Path(current) / name
             mime = TYPES.get(path.suffix.lower())
             if name.startswith(".") or not mime or path.is_symlink():
                 continue
-            examined += 1
-            if examined > 50:
+            if imported >= 50:
                 return {"imported": imported, "skipped": skipped, "limited": True}
             try:
                 if not path.is_file() or path.stat().st_size > MAX_BYTES:
@@ -89,6 +91,18 @@ def import_folder(body: FolderImport):
                 skipped += 1
                 continue
             digest = hashlib.sha256(data).hexdigest()
+            with database() as connection:
+                init(connection)
+                exists = connection.execute(
+                    "SELECT 1 FROM research_files WHERE collection=? AND name=? AND digest=?",
+                    (collection, str(path.relative_to(folder)), digest),
+                ).fetchone()
+            if exists:
+                skipped += 1
+                continue
+            examined += 1
+            if examined > 50:
+                return {"imported": imported, "skipped": skipped, "limited": True}
             destination = files_root() / digest
             if not destination.exists():
                 with tempfile.NamedTemporaryFile(dir=files_root(), delete=False) as stream:
