@@ -20,6 +20,8 @@ class Reference(BaseModel):
 
 class Source(Reference):
     id: int
+    fileId: int | None = None
+    page: int | None = None
 
 
 class Image(BaseModel):
