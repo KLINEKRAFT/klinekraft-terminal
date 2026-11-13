@@ -3256,3 +3256,14 @@ main[data-page="AI assistant"] .page-content {
   .calendar-grid button { padding: 7px; min-height: 52px; }
   .calendar-grid small { font-size: 8px; }
 }
+.paint { margin-top: 20px; }
+.paint button, .paint input, .paint select { color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; font: inherit; }
+.paint label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.paint-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 18px 10px; }
+.paint button[aria-pressed="true"] { outline: 2px solid var(--orange); outline-offset: 1px; }
+.paint button:disabled { opacity: .4; }
+.paint input[type="color"] { padding: 2px; width: 40px; height: 32px; }
+.paint-palette { display: flex; gap: 8px; }
+.paint-palette button { width: 26px; height: 26px; padding: 0; }
+.paint-surface { background: var(--panel); padding: 16px; border: 1px solid var(--line); overflow: auto; }
+.paint canvas { display: block; width: 100%; max-width: 960px; height: auto; background: white; touch-action: none; cursor: crosshair; }
