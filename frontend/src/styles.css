@@ -3256,14 +3256,43 @@ main[data-page="AI assistant"] .page-content {
   .calendar-grid button { padding: 7px; min-height: 52px; }
   .calendar-grid small { font-size: 8px; }
 }
-.paint { margin-top: 20px; }
-.paint button, .paint input, .paint select { color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; font: inherit; }
-.paint label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-.paint-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 18px 10px; }
-.paint button[aria-pressed="true"] { outline: 2px solid var(--orange); outline-offset: 1px; }
-.paint button:disabled { opacity: .4; }
-.paint input[type="color"] { padding: 2px; width: 40px; height: 32px; }
-.paint-palette { display: flex; gap: 8px; }
-.paint-palette button { width: 26px; height: 26px; padding: 0; }
-.paint-surface { background: var(--panel); padding: 16px; border: 1px solid var(--line); overflow: auto; }
-.paint canvas { display: block; width: 100%; max-width: 960px; height: auto; background: white; touch-action: none; cursor: crosshair; }
+/* Paint follows the classic toolbox / canvas / palette arrangement. */
+.paint { margin-top: 20px; min-width: 0; }
+.paint button, .paint input, .paint select { color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 3px; padding: 8px 10px; font: 12px var(--mono); min-width: 0; }
+.paint button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+.paint button:hover:not(:disabled) { background: var(--panel); border-color: var(--ink); }
+.paint button:focus-visible, .paint select:focus-visible, .paint input:focus-visible, .paint-surface:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.paint button[aria-pressed="true"] { border-color: var(--orange); box-shadow: inset 0 -2px var(--orange); }
+.paint button:disabled { opacity: .4; cursor: default; }
+.paint label { display: flex; align-items: center; gap: 8px; font: 11px var(--mono); color: var(--muted); }
+.paint-document-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; padding-bottom: 16px; }
+.paint-name { flex: 1 1 250px; }
+.paint-name input { font: 18px var(--sans); width: 100%; max-width: 400px; }
+.paint-save-status { font: 11px/1.5 var(--mono); color: var(--muted); flex: 1 1 200px; text-align: right; overflow-wrap: anywhere; }
+.paint-command-bar, .paint-options, .paint-color-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px; border: 1px solid var(--line); }
+.paint-command-bar { background: var(--panel); border-bottom: 0; }
+.paint-command-bar select { max-width: 220px; }
+.paint-divider { height: 20px; border-left: 1px solid var(--line); margin-inline: 4px; }
+.paint-options { border-bottom: 0; gap: 12px; }
+.paint-options strong { font: 12px var(--mono); color: var(--orange); min-width: 65px; }
+.paint-editor { display: grid; grid-template-columns: 118px minmax(0,1fr); border: 1px solid var(--line); min-height: 380px; }
+.paint-toolbox { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-content: start; gap: 4px; padding: 8px; border-right: 1px solid var(--line); background: var(--paper); }
+.paint-toolbox button { flex-direction: column; padding: 10px 2px; min-height: 58px; font-size: 9px; }
+.paint-toolbox button[aria-pressed="true"] { color: var(--orange); background: var(--panel); }
+.paint-surface { background: var(--panel); background-image: radial-gradient(var(--line) 1px,transparent 1px); background-size: 12px 12px; padding: 24px; overflow: auto; min-width: 0; max-height: 72vh; }
+.paint-canvas-wrap { position: relative; line-height: 0; margin: 0 auto; box-shadow: 0 2px 14px #0002; }
+.paint canvas { display: block; width: 100%; height: auto; background: white; touch-action: none; cursor: crosshair; image-rendering: pixelated; }
+.paint-selection { position: absolute; border: 1px dashed #000; outline: 1px dashed #fff; pointer-events: none; }
+.paint-color-bar { border-top: 0; }
+.paint input[type="color"] { padding: 2px; width: 34px; height: 32px; }
+.paint-palette { display: grid; grid-template-columns: repeat(8,24px); gap: 4px; margin-left: auto; }
+.paint-palette button { width: 24px; height: 24px; padding: 0; border: 1px solid #888; }
+.paint-palette button[aria-pressed="true"] { outline: 2px solid var(--orange); outline-offset: 1px; box-shadow: none; }
+.paint-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; font: 11px var(--mono); color: var(--muted); }
+@media(max-width:700px) {
+  .paint-editor { grid-template-columns: 1fr; min-height: 280px; }
+  .paint-toolbox { grid-template-columns: repeat(5,minmax(0,1fr)); border-right: 0; border-bottom: 1px solid var(--line); }
+  .paint-surface { padding: 12px; min-height: 240px; }
+  .paint-save-status { text-align: left; }
+  .paint-palette { margin-left: 0; }
+}
