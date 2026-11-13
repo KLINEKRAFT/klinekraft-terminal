@@ -411,6 +411,10 @@ export default function App() {
   const browser = useBrowserPreferences();
   const note = useQuickNote();
   const [researchAttachment, setResearchAttachment] = useState<File | null>(null);
+  function askAboutFile(file: File) {
+    setResearchAttachment(file);
+    navigate("AI assistant");
+  }
   const [wikiContext, setWikiContext] = useState<WikiReference | null>(null);
   const [section, setSection] = useState<Section>("Home");
   const [now, setNow] = useState(new Date());
@@ -589,11 +593,8 @@ export default function App() {
             <GamesPanel />
           ) : section === "Library" ? (
             <>
-              <Notebook />
-              <ResearchLibrary onAsk={(file) => {
-                setResearchAttachment(file);
-                navigate("AI assistant");
-              }} />
+              <Notebook onAsk={askAboutFile} />
+              <ResearchLibrary onAsk={askAboutFile} />
               <WikiBrowser
                 onAsk={(article) => {
                   setWikiContext(article);
