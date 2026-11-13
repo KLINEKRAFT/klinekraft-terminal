@@ -3142,3 +3142,26 @@ main[data-page="AI assistant"] .page-content {
     flex-basis: 100%;
   }
 }
+
+.ai-chat .ai-attachment {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-attachment img {
+  max-width: 72px;
+  max-height: 48px;
+  object-fit: contain;
+}
+
+.ai-attachment span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ai-attachment .ai-notice {
+  flex-basis: 100%;
+  margin: 0;
+}
