@@ -1,6 +1,6 @@
 import { useConversations, downloadJSON } from "./useConversations";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowUp, Plus, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUp, Paperclip, Plus, SlidersHorizontal, X } from "lucide-react";
 import { isHostedDemo } from "../runtime";
 import {
   ArticleDialog,
@@ -10,6 +10,7 @@ import {
 } from "./WikiReader";
 export type Turn = {
   question: string;
+  attachmentName?: string | null;
   answer: string;
   notice: string;
   sources: (WikiReference & { id: number })[];
@@ -21,6 +22,17 @@ export type Turn = {
     sourceId: number;
   }[];
 };
+const attachmentTypes = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
+
+function encodeAttachment(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",", 2)[1]);
+    reader.onerror = () => reject(new Error("The attachment could not be read."));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function AssistantPanel({
   context,
   onClearContext,
@@ -40,6 +52,18 @@ export function AssistantPanel({
     model: string;
   } | null>(null);
   const [question, setQuestion] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!attachment) {
+      setPreview("");
+      return;
+    }
+    const url = URL.createObjectURL(attachment);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [attachment]);
   const [useWiki, setUseWiki] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -67,17 +91,15 @@ export function AssistantPanel({
   useEffect(() => {
     end.current?.scrollIntoView({ block: "nearest" });
   }, [turns.length, busy]);
+  const composerDisabled =
+    busy || isHostedDemo || store.loading || store.saving || store.dirty ||
+    turns.length >= 200;
   async function ask(e: FormEvent) {
     e.preventDefault();
     if (
       !question.trim() ||
-      busy ||
-      !status?.configured ||
-      isHostedDemo ||
-      store.loading ||
-      store.saving ||
-      store.dirty ||
-      turns.length >= 200
+      composerDisabled ||
+      !status?.configured
     )
       return;
     const sent = question;
@@ -88,12 +110,17 @@ export function AssistantPanel({
     setBusy(true);
     setError("");
     try {
+      const upload = attachment && {
+        mime: attachment.type,
+        data: await encodeAttachment(attachment),
+      };
       const data = await localJSON("/api/ai/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: AbortSignal.any([request.signal, AbortSignal.timeout(120000)]),
         body: JSON.stringify({
           question: sent,
+          attachment: upload,
           history: turns
             .flatMap((t) => [
               { role: "user", content: t.question },
@@ -105,7 +132,8 @@ export function AssistantPanel({
         }),
       });
       if (request.signal.aborted) return;
-      await store.update([...turns, { question: sent, ...data }]);
+      setAttachment(null);
+      await store.update([...turns, { question: sent, attachmentName: attachment?.name, ...data }]);
       requestAnimationFrame(() => input.current?.focus());
     } catch (e) {
       if (!request.signal.aborted) {
@@ -142,6 +170,7 @@ export function AssistantPanel({
             void store.update([]);
             onClearContext();
             setQuestion("");
+            setAttachment(null);
             setError("");
             input.current?.focus();
           }}
@@ -208,6 +237,7 @@ export function AssistantPanel({
                 aria-current={item.id === store.chat.id ? "true" : undefined}
                 key={item.id}
                 onClick={() => {
+                  setAttachment(null);
                   void store.open(item.id);
                   setHistoryOpen(false);
                 }}
@@ -319,6 +349,7 @@ export function AssistantPanel({
           {turns.map((turn, i) => (
             <article className="ai-turn" key={i}>
               <h2 className="ai-user-message">{turn.question}</h2>
+              {turn.attachmentName && <p className="ai-notice">Attachment: {turn.attachmentName}</p>}
               <div className="ai-answer">{turn.answer}</div>
               {turn.notice && <p className="ai-notice">{turn.notice}</p>}
               {!!turn.images.length && (
@@ -382,6 +413,49 @@ export function AssistantPanel({
           </p>
         )}
         <form className="ai-composer" onSubmit={ask}>
+          <input
+            type="file"
+            ref={fileInput}
+            accept={attachmentTypes.join(",")}
+            hidden
+            onChange={(e) => {
+              const file = e.currentTarget.files?.[0];
+              e.currentTarget.value = "";
+              if (!file) return;
+              if (!attachmentTypes.includes(file.type) || !file.size ||
+                  file.size > 8 * 1024 * 1024 || file.name.length > 255) {
+                setError("Choose a PNG, JPEG, WebP or PDF up to 8 MiB with a filename of 255 characters or fewer.");
+                return;
+              }
+              setAttachment(file);
+              setError("");
+            }}
+          />
+          {attachment && (
+            <div className="ai-attachment">
+              {preview && (attachment.type === "application/pdf" ? (
+                <a href={preview} target="_blank" rel="noopener noreferrer">
+                  Preview PDF
+                </a>
+              ) : (
+                <img src={preview} alt="Attachment preview" />
+              ))}
+              <span>{attachment.name}</span>
+              <button
+                type="button"
+                className="ai-quiet-button"
+                disabled={busy}
+                onClick={() => setAttachment(null)}
+                aria-label="Remove attachment"
+              >
+                <X size={14} />
+              </button>
+              <p id="ai-upload-note" className="ai-notice">
+                Sending uploads this file to OpenAI for this answer. Chat history
+                saves the filename and answer on the Pi.
+              </p>
+            </div>
+          )}
           {articleContext && (
             <div className="ai-context">
               <span>
@@ -430,9 +504,19 @@ export function AssistantPanel({
               store.dirty ||
               turns.length >= 200
             }
-            aria-describedby="ai-keyboard-hint"
+            aria-describedby={attachment ? "ai-keyboard-hint ai-upload-note" : "ai-keyboard-hint"}
           />
           <div className="ai-compose-controls">
+            <button
+              className="ai-quiet-button"
+              type="button"
+              aria-label="Attach image or PDF"
+              title="Attach image or PDF"
+              disabled={composerDisabled || !status?.configured}
+              onClick={() => fileInput.current?.click()}
+            >
+              <Paperclip size={17} />
+            </button>
             <button
               className="ai-wiki-toggle"
               type="button"
