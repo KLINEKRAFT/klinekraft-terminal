@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
+  Paintbrush,
   StickyNote, CalendarDays, Calculator as CalculatorIcon,
   ArrowDownLeft,
   ArrowRight,
@@ -35,6 +36,7 @@ import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
 import { ResearchLibrary } from "./components/ResearchLibrary";
+import { Paint } from "./components/Paint";
 import { Organizer } from "./components/Organizer";
 import { Calculator } from "./components/Calculator";
 import { Notebook } from "./components/Notebook";
@@ -61,6 +63,7 @@ import {
 
 const icons: Record<Section, LucideIcon> = {
   Home: Cpu,
+  Paint: Paintbrush,
   Notes: StickyNote,
   Calendar: CalendarDays,
   Calculator: CalculatorIcon,
@@ -595,6 +598,8 @@ export default function App() {
               onConsumeAttachment={() => setResearchAttachment(null)}
               onClearContext={() => setWikiContext(null)}
             />
+          ) : section === "Paint" ? (
+            <Paint />
           ) : section === "Notes" ? (
             <Organizer key="notes" kind="note" />
           ) : section === "Calendar" ? (
