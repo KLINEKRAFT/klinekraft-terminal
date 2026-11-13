@@ -10,6 +10,7 @@ type Catalog = {
   lastExitCode: number | null;
 };
 const names: Record<string, string> = {
+  n64: "Nintendo 64",
   nes: "NES",
   snes: "Super Nintendo",
   megadrive: "Genesis / Mega Drive",

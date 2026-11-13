@@ -33,6 +33,7 @@ import { ToolsLauncher } from "./components/ToolsLauncher";
 import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
+import { ResearchLibrary } from "./components/ResearchLibrary";
 import { AssistantPanel } from "./components/AssistantPanel";
 import { WikiBrowser, type WikiReference } from "./components/WikiReader";
 import { FilesPanel } from "./components/LocalContent";
@@ -408,6 +409,7 @@ export default function App() {
   }, [collapsed, dark]);
   const browser = useBrowserPreferences();
   const note = useQuickNote();
+  const [researchAttachment, setResearchAttachment] = useState<File | null>(null);
   const [wikiContext, setWikiContext] = useState<WikiReference | null>(null);
   const [section, setSection] = useState<Section>("Home");
   const [now, setNow] = useState(new Date());
@@ -578,12 +580,18 @@ export default function App() {
           ) : section === "AI assistant" ? (
             <AssistantPanel
               context={wikiContext}
+              initialAttachment={researchAttachment}
+              onConsumeAttachment={() => setResearchAttachment(null)}
               onClearContext={() => setWikiContext(null)}
             />
           ) : section === "Games" ? (
             <GamesPanel />
           ) : section === "Library" ? (
             <>
+              <ResearchLibrary onAsk={(file) => {
+                setResearchAttachment(file);
+                navigate("AI assistant");
+              }} />
               <WikiBrowser
                 onAsk={(article) => {
                   setWikiContext(article);

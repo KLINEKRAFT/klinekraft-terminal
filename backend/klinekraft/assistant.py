@@ -30,7 +30,7 @@ MAX_BASE64_LENGTH = 4 * ((MAX_ATTACHMENT_BYTES + 2) // 3)
 
 
 class Attachment(BaseModel):
-    mime: Literal['image/png', 'image/jpeg', 'image/webp', 'application/pdf']
+    mime: Literal['image/png', 'image/jpeg', 'image/webp', 'application/pdf', 'text/plain']
     data: str = Field(min_length=1, max_length=MAX_BASE64_LENGTH)
 
     def content_part(self):
@@ -40,6 +40,8 @@ class Attachment(BaseModel):
             raise HTTPException(400, 'The attachment could not be read.')
         if len(raw) > MAX_ATTACHMENT_BYTES:
             raise HTTPException(413, 'Attachments must be 8 MiB or smaller.')
+        if self.mime == 'text/plain':
+            return {'type': 'text', 'text': 'Attached note (first 32,000 bytes):\n' + raw[:32000].decode('utf-8', errors='replace')}
         matches_format = {
             'image/png': raw.startswith(b'\x89PNG\r\n\x1a\n'),
             'image/jpeg': raw.startswith(b'\xff\xd8\xff'),
