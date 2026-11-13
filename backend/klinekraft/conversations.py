@@ -32,6 +32,7 @@ class Image(BaseModel):
 
 class Turn(BaseModel):
     question: str = Field(max_length=3000)
+    attachmentName: str | None = Field(default=None, max_length=255)
     answer: str = Field(max_length=16000)
     notice: str = Field(default="", max_length=1000)
     sources: list[Source] = Field(default_factory=list, max_length=12)
