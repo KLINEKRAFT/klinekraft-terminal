@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Klinekraft backup
+
+[Timer]
+OnCalendar=*-*-* 20:00:00
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
