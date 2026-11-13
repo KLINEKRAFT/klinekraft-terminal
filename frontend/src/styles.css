@@ -3165,3 +3165,31 @@ main[data-page="AI assistant"] .page-content {
   flex-basis: 100%;
   margin: 0;
 }
+
+.research-library form,
+.research-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-block: 12px;
+}
+
+.research-library label {
+  display: grid;
+  gap: 4px;
+}
+
+.research-library li {
+  margin-block: 6px;
+}
+
+.research-library li span {
+  margin-inline-start: 8px;
+}
+
+.research-preview img {
+  display: block;
+  max-width: 100%;
+  margin-top: 12px;
+}
