@@ -1,3 +1,4 @@
+import { NotebookSave } from "./Notebook";
 import { useConversations, downloadJSON } from "./useConversations";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowUp, Paperclip, Plus, SlidersHorizontal, X } from "lucide-react";
@@ -377,6 +378,7 @@ export function AssistantPanel({
               <h2 className="ai-user-message">{turn.question}</h2>
               {turn.attachmentName && <p className="ai-notice">Attachment: {turn.attachmentName}</p>}
               <div className="ai-answer">{turn.answer}</div>
+              <NotebookSave turn={turn} />
               {turn.notice && <p className="ai-notice">{turn.notice}</p>}
               {!!turn.images.length && (
                 <div className="ai-images">
