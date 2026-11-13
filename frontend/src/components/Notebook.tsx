@@ -43,7 +43,21 @@ export function NotebookSave({ turn }: { turn: Turn }) {
   </details>;
 }
 
-export function Notebook() {
+export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
+  function ask(entry: Entry) {
+    const citations = entry.turn.sources.map((source) =>
+      `[${source.id}] ${source.title}${source.page ? `, page ${source.page}` : ""}`
+    );
+    const text = [
+      `Project: ${entry.project}`,
+      `Question: ${entry.turn.question}`,
+      `Saved answer: ${entry.turn.answer}`,
+      entry.note && `Note: ${entry.note}`,
+      citations.length && ["Saved citations", ...citations].join("\n"),
+    ].filter(Boolean).join("\n\n");
+    onAsk(new File([text], "notebook-entry.txt", { type: "text/plain" }));
+  }
+
   const [entries, setEntries] = useState<Entry[]>([]);
   const [project, setProject] = useState("");
   const [error, setError] = useState("");
@@ -95,6 +109,7 @@ export function Notebook() {
         <summary>{entry.turn.question} · {entry.project}</summary>
         {entry.note && <p>{entry.note}</p>}
         <p className="ai-answer">{entry.turn.answer}</p>
+        <button type="button" onClick={() => ask(entry)}>Ask about this entry</button>
         {!!entry.turn.sources.length && <ul>{entry.turn.sources.map((source) =>
           <li key={source.id}><button onClick={() => void open(source)}>
             [{source.id}] {source.title}{source.page ? ` · page ${source.page}` : ""}
