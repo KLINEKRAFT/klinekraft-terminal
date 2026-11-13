@@ -50,4 +50,8 @@ Never overwrite live data during a restore test.
 
 Initial preparation validation: an encrypted local repository, backup, restic
 check, and byte-for-byte restore of all 46 staged files passed. This local test
-is not an off-device backup. Google Drive activation is pending authorization.
+was followed by cloud activation on November 13, 2026. Snapshot `63750f3c`
+passed `restic check --read-data` and a cloud restore matched all 46 files
+byte-for-byte. The daily timer is enabled. Local rclone requests are limited to
+one per second to reduce bursts; Google shared-client quota delays were observed
+during setup. The dedicated OAuth client recommendation above still applies.
