@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
+  StickyNote, CalendarDays, Calculator as CalculatorIcon,
   ArrowDownLeft,
   ArrowRight,
   ArrowUpRight,
@@ -34,6 +35,8 @@ import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
 import { ResearchLibrary } from "./components/ResearchLibrary";
+import { Organizer } from "./components/Organizer";
+import { Calculator } from "./components/Calculator";
 import { Notebook } from "./components/Notebook";
 import { AssistantPanel } from "./components/AssistantPanel";
 import { WikiBrowser, type WikiReference } from "./components/WikiReader";
@@ -58,6 +61,9 @@ import {
 
 const icons: Record<Section, LucideIcon> = {
   Home: Cpu,
+  Notes: StickyNote,
+  Calendar: CalendarDays,
+  Calculator: CalculatorIcon,
   Games: Gamepad2,
   "AI assistant": MessageSquare,
   "GPS / Maps": Compass,
@@ -589,6 +595,12 @@ export default function App() {
               onConsumeAttachment={() => setResearchAttachment(null)}
               onClearContext={() => setWikiContext(null)}
             />
+          ) : section === "Notes" ? (
+            <Organizer key="notes" kind="note" />
+          ) : section === "Calendar" ? (
+            <Organizer key="calendar" kind="event" />
+          ) : section === "Calculator" ? (
+            <Calculator />
           ) : section === "Games" ? (
             <GamesPanel />
           ) : section === "Library" ? (

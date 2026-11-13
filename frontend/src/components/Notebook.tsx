@@ -4,7 +4,7 @@ import { ArticleDialog, localJSON } from "./WikiReader";
 import { downloadJSON } from "./useConversations";
 import type { Turn } from "./AssistantPanel";
 
-type Entry = { id: number; project: string; note: string; turn: Turn };
+type Entry = { id: number; revision: string; project: string; note: string; turn: Turn };
 type Source = Turn["sources"][number];
 
 export function NotebookSave({ turn }: { turn: Turn }) {
@@ -59,6 +59,36 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
     onAsk(new File([text], "notebook-entry.txt", { type: "text/plain" }));
   }
 
+  const [trash, setTrash] = useState(false);
+  const [editing, setEditing] = useState<Entry | null>(null);
+  const [saving, setSaving] = useState(false);
+  async function updateEntry(event: FormEvent) {
+    event.preventDefault();
+    if (!editing) return;
+    setSaving(true);
+    setError("");
+    try {
+      const updated = await localJSON(`/api/notebook/${editing.id}`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project: editing.project, note: editing.note, revision: editing.revision }),
+      });
+      setEntries((items) => items.map((item) => item.id === updated.id ? updated : item));
+      setProject("");
+      setEditing(null);
+    } catch (failure) { setError((failure as Error).message); }
+    finally { setSaving(false); }
+  }
+  async function moveEntry(entry: Entry) {
+    setSaving(true);
+    setError("");
+    try {
+      await localJSON(`/api/notebook/${entry.id}/trash?trash=${!trash}`, { method: "POST" });
+      setEntries((items) => items.filter((item) => item.id !== entry.id));
+      setProject("");
+    } catch (failure) { setError((failure as Error).message); }
+    finally { setSaving(false); }
+  }
+
   const [query, setQuery] = useState("");
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -74,7 +104,7 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
     const request = new AbortController();
     setLoading(true);
     setError("");
-    const params = new URLSearchParams({ q: query });
+    const params = new URLSearchParams({ q: query, trash: String(trash) });
     if (cursor !== null) params.set("before", String(cursor));
     void localJSON(`/api/notebook?${params}`, { signal: request.signal })
       .then((page: Entry[]) => {
@@ -88,7 +118,7 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
         if (!request.signal.aborted) setLoading(false);
       });
     return () => request.abort();
-  }, [query, cursor]);
+  }, [query, cursor, trash]);
 
   useEffect(() => () => {
     if (file) URL.revokeObjectURL(file.url);
@@ -114,6 +144,18 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
   if (isHostedDemo) return null;
   return <section className="settings-panel research-library" aria-label="Project notebook">
     <h2>Project notebook</h2>
+    <button disabled={saving} onClick={() => {
+      setTrash((value) => !value); setCursor(null); setEntries([]); setHasMore(false);
+      setProject(""); setEditing(null);
+    }}>{trash ? "Back to notebook" : "Trash"}</button>
+    {editing && <form className="research-fields" onSubmit={updateEntry}>
+      <label>Edit project <input required maxLength={80} value={editing.project}
+        onChange={(event) => setEditing({ ...editing, project: event.target.value })} /></label>
+      <label>Edit note <textarea maxLength={4000} value={editing.note}
+        onChange={(event) => setEditing({ ...editing, note: event.target.value })} /></label>
+      <button disabled={saving || !editing.project.trim()}>Save changes</button>
+      <button type="button" disabled={saving} onClick={() => setEditing(null)}>Cancel</button>
+    </form>}
     <label>Search notebook <input type="search" value={query} maxLength={200}
       onChange={(event) => {
         setQuery(event.target.value);
@@ -135,6 +177,8 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
         <summary>{entry.turn.question} · {entry.project}</summary>
         {entry.note && <p>{entry.note}</p>}
         <p className="ai-answer">{entry.turn.answer}</p>
+        <button disabled={saving} onClick={() => setEditing(entry)}>Edit note</button>
+        <button disabled={saving} onClick={() => void moveEntry(entry)}>{trash ? "Restore" : "Move to trash"}</button>
         <button type="button" onClick={() => ask(entry)}>Ask about this entry</button>
         {!!entry.turn.sources.length && <ul>{entry.turn.sources.map((source) =>
           <li key={source.id}><button onClick={() => void open(source)}>
@@ -142,7 +186,7 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
           </button></li>
         )}</ul>}
       </details>)}
-    {hasMore && <button disabled={loading} onClick={() => setCursor(entries[entries.length - 1].id)}>
+    {hasMore && !!entries.length && <button disabled={loading} onClick={() => setCursor(entries[entries.length - 1].id)}>
       {loading ? "Loading…" : "Load older entries"}
     </button>}
     {file && <p><a href={file.url + (file.source.page ? `#page=${file.source.page}` : "")}
