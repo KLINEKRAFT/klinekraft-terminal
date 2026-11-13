@@ -34,6 +34,7 @@ import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
 import { ResearchLibrary } from "./components/ResearchLibrary";
+import { Notebook } from "./components/Notebook";
 import { AssistantPanel } from "./components/AssistantPanel";
 import { WikiBrowser, type WikiReference } from "./components/WikiReader";
 import { FilesPanel } from "./components/LocalContent";
@@ -588,6 +589,7 @@ export default function App() {
             <GamesPanel />
           ) : section === "Library" ? (
             <>
+              <Notebook />
               <ResearchLibrary onAsk={(file) => {
                 setResearchAttachment(file);
                 navigate("AI assistant");
