@@ -33,7 +33,7 @@ import { ToolsLauncher } from "./components/ToolsLauncher";
 import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
-import { AssistantPanel, type Turn } from "./components/AssistantPanel";
+import { AssistantPanel } from "./components/AssistantPanel";
 import { WikiBrowser, type WikiReference } from "./components/WikiReader";
 import { FilesPanel } from "./components/LocalContent";
 import { HomeTools, useQuickNote } from "./components/HomeTools";
@@ -408,7 +408,6 @@ export default function App() {
   }, [collapsed, dark]);
   const browser = useBrowserPreferences();
   const note = useQuickNote();
-  const [aiTurns, setAiTurns] = useState<Turn[]>([]);
   const [wikiContext, setWikiContext] = useState<WikiReference | null>(null);
   const [section, setSection] = useState<Section>("Home");
   const [now, setNow] = useState(new Date());
@@ -578,8 +577,6 @@ export default function App() {
             />
           ) : section === "AI assistant" ? (
             <AssistantPanel
-              turns={aiTurns}
-              onTurns={setAiTurns}
               context={wikiContext}
               onClearContext={() => setWikiContext(null)}
             />

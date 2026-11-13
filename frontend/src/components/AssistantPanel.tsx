@@ -1,3 +1,4 @@
+import { useConversations, downloadJSON } from "./useConversations";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowUp, Plus, SlidersHorizontal, X } from "lucide-react";
 import { isHostedDemo } from "../runtime";
@@ -21,16 +22,19 @@ export type Turn = {
   }[];
 };
 export function AssistantPanel({
-  turns,
-  onTurns,
   context,
   onClearContext,
 }: {
-  turns: Turn[];
-  onTurns: (t: Turn[]) => void;
   context: WikiReference | null;
   onClearContext: () => void;
 }) {
+  const store = useConversations(context);
+  const { turns, context: articleContext } = store.chat;
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [rename, setRename] = useState("");
+  useEffect(() => {
+    onClearContext();
+  }, []);
   const [status, setStatus] = useState<{
     configured: boolean;
     model: string;
@@ -65,7 +69,17 @@ export function AssistantPanel({
   }, [turns.length, busy]);
   async function ask(e: FormEvent) {
     e.preventDefault();
-    if (!question.trim() || busy || !status?.configured || isHostedDemo) return;
+    if (
+      !question.trim() ||
+      busy ||
+      !status?.configured ||
+      isHostedDemo ||
+      store.loading ||
+      store.saving ||
+      store.dirty ||
+      turns.length >= 200
+    )
+      return;
     const sent = question;
     const request = new AbortController();
     controller.current = request;
@@ -87,11 +101,11 @@ export function AssistantPanel({
             ])
             .slice(-6),
           use_wiki: useWiki,
-          article_path: useWiki ? context?.path : null,
+          article_path: useWiki ? articleContext?.path : null,
         }),
       });
       if (request.signal.aborted) return;
-      onTurns([...turns, { question: sent, ...data }].slice(-12));
+      await store.update([...turns, { question: sent, ...data }]);
       requestAnimationFrame(() => input.current?.focus());
     } catch (e) {
       if (!request.signal.aborted) {
@@ -117,9 +131,15 @@ export function AssistantPanel({
       <div className="ai-chat-toolbar">
         <button
           className="ai-quiet-button"
-          disabled={busy || (!turns.length && !context)}
+          disabled={
+            busy ||
+            store.loading ||
+            store.saving ||
+            store.dirty ||
+            (!turns.length && !articleContext)
+          }
           onClick={() => {
-            onTurns([]);
+            void store.update([]);
             onClearContext();
             setQuestion("");
             setError("");
@@ -127,6 +147,16 @@ export function AssistantPanel({
           }}
         >
           <Plus size={15} /> New chat
+        </button>
+        <button
+          className="ai-quiet-button"
+          onClick={() => {
+            setHistoryOpen((v) => !v);
+            setRename(store.chat.title);
+          }}
+          aria-expanded={historyOpen}
+        >
+          History
         </button>
         <details className="ai-options">
           <summary aria-label="Chat settings">
@@ -148,10 +178,117 @@ export function AssistantPanel({
               Questions, recent messages and relevant wiki excerpts go to
               OpenAI. Internet and API billing required.
             </p>
-            <p>Chat clears on reload. Wikipedia stays available offline.</p>
+            <p>
+              Chats are saved on this Pi. Only recent messages are sent with
+              each question. Wikipedia stays available offline.
+            </p>
           </div>
         </details>
       </div>
+      {historyOpen && (
+        <aside className="ai-history" aria-label="Saved conversations">
+          <div className="ai-history-heading">
+            <input
+              aria-label="Search conversations"
+              placeholder="Search conversations"
+              value={store.query}
+              onChange={(e) => store.setQuery(e.target.value)}
+            />
+            <button
+              className="ai-quiet-button"
+              onClick={() => setHistoryOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+          <div className="ai-history-list">
+            {store.items.map((item) => (
+              <button
+                disabled={busy || store.saving || store.loading || store.dirty}
+                aria-current={item.id === store.chat.id ? "true" : undefined}
+                key={item.id}
+                onClick={() => {
+                  void store.open(item.id);
+                  setHistoryOpen(false);
+                }}
+              >
+                {item.title}
+                <small>{new Date(item.updated).toLocaleDateString()}</small>
+              </button>
+            ))}
+            {!store.items.length && <p>No saved conversations found.</p>}
+          </div>
+          {store.chat.revision > 0 && (
+            <form
+              className="ai-rename"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (rename.trim())
+                  void store.save({ ...store.chat, title: rename.trim() });
+              }}
+            >
+              <input
+                aria-label="Conversation title"
+                value={rename}
+                maxLength={120}
+                onChange={(e) => setRename(e.target.value)}
+              />
+              <button
+                disabled={busy || store.saving || store.dirty || !rename.trim()}
+              >
+                Rename
+              </button>
+              <button
+                type="button"
+                disabled={busy || store.saving || store.dirty}
+                onClick={() => void store.remove()}
+              >
+                Delete
+              </button>
+            </form>
+          )}
+          <div className="ai-history-heading">
+            <button
+              className="ai-quiet-button"
+              onClick={() => void store.exportAll()}
+            >
+              Export all chats
+            </button>
+            <button className="ai-quiet-button" onClick={store.refresh}>
+              Refresh
+            </button>
+          </div>
+        </aside>
+      )}
+      {store.error && (
+        <div role="alert" className="ai-save-error">
+          {store.error}
+          {store.dirty && (
+            <div>
+              <button
+                disabled={store.saving}
+                onClick={() => void store.retry()}
+              >
+                Retry save
+              </button>
+              <button disabled={store.saving} onClick={() => void store.copy()}>
+                Save separate copy
+              </button>
+              <button
+                onClick={() =>
+                  downloadJSON(
+                    { format: "klinekraft-chats-v1", chats: [store.chat] },
+                    "klinekraft-unsaved-chat.json",
+                  )
+                }
+              >
+                Export this chat
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      {store.loading && <p role="status">Opening saved conversation…</p>}
       <div className="ai-chat-scroll" tabIndex={0} aria-label="Conversation">
         {isHostedDemo ? (
           <p className="ai-empty">Open the local Pi app to chat.</p>
@@ -233,22 +370,31 @@ export function AssistantPanel({
         </div>
       </div>
       <div className="ai-compose-area">
+        {turns.length >= 200 && (
+          <p>
+            This conversation has reached 200 answers. Start a new chat to
+            continue; this one remains saved.
+          </p>
+        )}
         {error && (
           <p role="alert" className="browser-warning">
             {error}
           </p>
         )}
         <form className="ai-composer" onSubmit={ask}>
-          {context && (
+          {articleContext && (
             <div className="ai-context">
               <span>
-                Article: {context.title}
+                Article: {articleContext.title}
                 {!useWiki && " · not included"}
               </span>
               <button
                 type="button"
-                disabled={busy}
-                onClick={onClearContext}
+                disabled={busy || store.saving || store.dirty}
+                onClick={() => {
+                  store.clearContext();
+                  onClearContext();
+                }}
                 aria-label="Remove article"
               >
                 <X size={14} />
@@ -276,7 +422,14 @@ export function AssistantPanel({
             maxLength={3000}
             rows={2}
             placeholder="Message Klinekraft…"
-            disabled={busy || isHostedDemo}
+            disabled={
+              busy ||
+              isHostedDemo ||
+              store.loading ||
+              store.saving ||
+              store.dirty ||
+              turns.length >= 200
+            }
             aria-describedby="ai-keyboard-hint"
           />
           <div className="ai-compose-controls">
@@ -294,7 +447,14 @@ export function AssistantPanel({
               aria-label="Send message"
               title="Send message"
               disabled={
-                busy || !status?.configured || !question.trim() || isHostedDemo
+                busy ||
+                store.loading ||
+                store.saving ||
+                store.dirty ||
+                turns.length >= 200 ||
+                !status?.configured ||
+                !question.trim() ||
+                isHostedDemo
               }
             >
               <ArrowUp size={18} />
@@ -302,7 +462,14 @@ export function AssistantPanel({
           </div>
         </form>
         <p id="ai-keyboard-hint" className="ai-chat-footer">
-          Enter to send · Shift + Enter for a new line. AI can make mistakes.
+          {store.saving
+            ? "Saving on Pi…"
+            : store.dirty
+              ? "Not saved yet"
+              : store.chat.revision
+                ? "Saved on Pi"
+                : "Saves on Pi after your first answer"}{" "}
+          · Enter to send. AI can make mistakes.
         </p>
       </div>
       {selected && (

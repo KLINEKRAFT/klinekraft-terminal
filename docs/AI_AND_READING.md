@@ -17,7 +17,7 @@ The hidden prompt writes ~/.config/klinekraft/ai.env with owner-only permissions
 
 Use **AI assistant**, or open a Library article and choose **Ask AI about this**. With local Wikipedia enabled, general questions search the first installed Wikipedia archive for up to three articles. Article-context questions use that article. Only small excerpts, image captions, the question and up to six recent messages are sent to OpenAI. The archive and image files stay on the Pi. Images displayed with answers are chosen from retrieved articles, not generated. Images may be omitted when unavailable or not relevant.
 
-Citations are restricted to retrieved sources, but an AI claim can still be wrong; inspect its sources. If the starter archive does not cover the topic, the answer explicitly indicates the lack of local sources and may use model knowledge. Chat is kept in memory until reload, with at most twelve turns displayed. Cloud AI needs internet. Local Wikipedia remains available independently.
+Citations are restricted to retrieved sources, but an AI claim can still be wrong; inspect its sources. If the starter archive does not cover the topic, the answer explicitly indicates the lack of local sources and may use model knowledge. Completed answers are saved on the Pi, with up to 200 turns per conversation. See [Saved conversations](SAVED_CONVERSATIONS.md) for History, export and backup. Cloud AI needs internet. Local Wikipedia remains available independently.
 
 Local endpoints require the terminal's custom request header. Kiwix access is fixed to 127.0.0.1:8081 and archive content paths, with bounded reads and redirects. The AI has no shell or file-modification tools.
 

@@ -1,4 +1,17 @@
 import { test, expect } from "@playwright/test";
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/conversations**", (r) => {
+    if (r.request().method() === "PUT")
+      return r.fulfill({
+        json: {
+          id: r.request().url().split("/").at(-1),
+          revision: 1,
+          updated: new Date().toISOString(),
+        },
+      });
+    return r.fulfill({ json: { chats: [] } });
+  });
+});
 test("local article flows into cloud answer with verified source and image", async ({
   page,
 }) => {

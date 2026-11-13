@@ -3055,3 +3055,90 @@ main[data-page="AI assistant"] .page-content {
     font-size: 9px;
   }
 }
+
+.ai-chat {
+  position: relative;
+}
+.ai-history {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  max-height: min(380px, 65dvh);
+  overflow-y: auto;
+  box-shadow: 0 10px 30px #0002;
+  font-size: 12px;
+}
+.ai-history-heading,
+.ai-rename {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+.ai-history input {
+  min-width: 0;
+  flex: 1;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 9px;
+  font: inherit;
+}
+.ai-history-list {
+  margin: 12px 0;
+}
+.ai-history-list button {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  padding: 12px 4px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font: inherit;
+  overflow-wrap: anywhere;
+}
+.ai-history-list button[aria-current="true"] {
+  background: var(--panel);
+}
+.ai-history-list small {
+  flex: none;
+  color: var(--muted);
+  font: 10px var(--mono);
+}
+.ai-rename button,
+.ai-save-error button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: inherit;
+  padding: 8px;
+  font: inherit;
+}
+.ai-save-error {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.ai-save-error > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .ai-rename {
+    flex-wrap: wrap;
+  }
+  .ai-rename input {
+    flex-basis: 100%;
+  }
+}
