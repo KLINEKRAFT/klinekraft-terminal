@@ -57,7 +57,7 @@ export function ResearchLibrary({ onAsk }: { onAsk: (file: File) => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ collection, root, path }),
       });
-      setMessage(`Imported ${report.imported} · skipped ${report.skipped}${report.limited ? " · first 50 supported files checked" : ""}`);
+      setMessage(`Imported ${report.imported} · skipped ${report.skipped}${report.limited ? " · import limit reached; import again to continue" : ""}`);
       setFilter("");
       setQuery("");
       setRevision((value) => value + 1);

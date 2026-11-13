@@ -8,7 +8,7 @@ import shutil
 import tempfile
 import zipfile
 
-MAX_ROM = 32 * 1024 * 1024
+MAX_ROM = 64 * 1024 * 1024
 ROM_EXTENSIONS = {'nes': '.nes', 'snes': '.sfc', 'megadrive': '.md', 'n64': '.z64'}
 N64_HEADERS = {b'\x80\x37\x12\x40': 1, b'\x37\x80\x40\x12': 2, b'\x40\x12\x37\x80': 4}
 N64_EXTENSIONS = {'.z64', '.n64', '.v64'}
