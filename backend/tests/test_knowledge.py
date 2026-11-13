@@ -1,4 +1,7 @@
+import base64
+import io
 import json
+from PIL import Image
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
@@ -83,3 +86,49 @@ def test_provider_contract(monkeypatch):
             return Response()
     monkeypatch.setattr(ai.urllib.request, "build_opener", lambda *a: Opener())
     assert ai.ask_provider([], "test")["answer"] == "Hello"
+
+
+@pytest.mark.parametrize(("mime", "encoded", "part_type"), [
+    ("image/png", "iVBORw0KGgo=", None),
+    ("application/pdf", "JVBERi0xLjc=", "file"),
+    ("image/jpeg", "JVBERi0xLjc=", None),
+    ("application/pdf", "invalid!", None),
+])
+def test_chat_attachment_payload(monkeypatch, mime, encoded, part_type):
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+    calls = []
+
+    def provider(messages, key):
+        calls.append(messages[-1]["content"])
+        return {"answer": "Read", "sources": [], "imageSources": []}
+
+    monkeypatch.setattr(ai, "ask_provider", provider)
+    response = client.post("/api/ai/ask", headers=HEADERS, json={
+        "question": "What is shown?",
+        "use_wiki": False,
+        "attachment": {"mime": mime, "data": encoded},
+    })
+    if part_type is None:
+        assert response.status_code == 400
+        assert not calls
+    else:
+        assert response.status_code == 200
+        text, attachment = calls[0]
+        assert json.loads(text["text"])["question"] == "What is shown?"
+        assert attachment["type"] == part_type
+        part = attachment[part_type]
+        assert part.get("url", part.get("file_data")) == f"data:{mime};base64,{encoded}"
+        assert encoded not in response.text
+
+
+
+def test_small_image_is_enlarged_without_changing_color():
+    buffer = io.BytesIO()
+    Image.new("RGB", (64, 32), (255, 0, 0)).save(buffer, format="PNG")
+    attachment = ai.Attachment(
+        mime="image/png", data=base64.b64encode(buffer.getvalue()).decode("ascii")
+    )
+    url = attachment.content_part()["image_url"]["url"]
+    with Image.open(io.BytesIO(base64.b64decode(url.split(",", 1)[1]))) as image:
+        assert image.size == (512, 256)
+        assert image.getpixel((256, 128)) == (255, 0, 0)
