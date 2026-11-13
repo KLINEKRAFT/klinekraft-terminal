@@ -45,3 +45,27 @@ def test_terminal_failure_is_visible(monkeypatch):
     monkeypatch.setattr(launcher.subprocess, 'Popen', Mock(return_value=process))
     with TestClient(app, base_url="http://127.0.0.1") as client:
         assert client.post('/api/tools/launch', headers=HEADERS, json={'tool_id': 'music'}).status_code == 503
+
+
+def test_share_launches_desktop_app_without_terminal(monkeypatch):
+    monkeypatch.setattr(launcher, 'readiness', lambda _: None)
+    monkeypatch.setattr(launcher, 'terminal', lambda: None)
+    monkeypatch.setattr(launcher, 'processes', {})
+    process = Mock()
+    process.wait.return_value = 0
+    popen = Mock(return_value=process)
+    monkeypatch.setattr(launcher.subprocess, 'Popen', popen)
+    with TestClient(app, base_url="http://127.0.0.1") as client:
+        result = client.post('/api/tools/launch', headers=HEADERS, json={'tool_id': 'share'})
+        assert result.status_code == 200
+        assert popen.call_args.args[0] == ['/usr/bin/localsend_app']
+        assert not popen.call_args.kwargs.get('shell', False)
+
+
+def test_share_readiness_does_not_require_terminal(monkeypatch):
+    monkeypatch.setenv('KLINEKRAFT_TOOLS', '1')
+    monkeypatch.setenv('DISPLAY', ':0')
+    monkeypatch.setattr(launcher, 'terminal', lambda: None)
+    monkeypatch.setattr(launcher.os, 'access', lambda path, mode: path == '/usr/bin/localsend_app')
+    assert launcher.readiness('share') is None
+    assert launcher.readiness('files') is not None
