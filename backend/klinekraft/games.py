@@ -7,11 +7,11 @@ import subprocess
 import threading
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
-from .game_import import library_root
+from .game_import import ROM_EXTENSIONS, library_root
 from .local_content import local_request
 
 router = APIRouter(prefix='/api/games', dependencies=[Depends(local_request)])
-CORES = {'nes': 'nestopia_libretro.so', 'snes': 'snes9x_libretro.so', 'megadrive': 'genesis_plus_gx_libretro.so'}
+CORES = {'nes': 'nestopia_libretro.so', 'snes': 'snes9x_libretro.so', 'megadrive': 'genesis_plus_gx_libretro.so', 'n64': 'mupen64plus_next_libretro.so'}
 CORE_DIRS = [Path('/usr/lib/aarch64-linux-gnu/libretro'), Path('/usr/lib/arm-linux-gnueabihf/libretro'), Path('/usr/lib/x86_64-linux-gnu/libretro'), Path('/usr/lib/libretro')]
 process = None
 process_game = None
@@ -19,7 +19,8 @@ launch_lock = threading.Lock()
 
 
 def core_path(system):
-    for directory in CORE_DIRS:
+    directories = CORE_DIRS + [Path.home() / '.config/retroarch/cores'] if system == 'n64' else CORE_DIRS
+    for directory in directories:
         candidate = directory / CORES[system]
         if candidate.is_file(): return candidate
     return None
@@ -70,7 +71,7 @@ def launch_game(body: LaunchRequest):
         if error: raise HTTPException(503, error)
         # Reconstruct every path from the validated digest and system, not catalog-provided paths.
         root = library_root().resolve()
-        extension = {'nes': '.nes', 'snes': '.sfc', 'megadrive': '.md'}[game['system']]
+        extension = ROM_EXTENSIONS[game['system']]
         rom = root / 'content' / game['id'] / ('game' + extension)
         if not rom.is_file() or not rom.resolve().is_relative_to(root / 'content'):
             raise HTTPException(404, 'Game file is missing or linked outside the library.')
@@ -83,9 +84,13 @@ def launch_game(body: LaunchRequest):
             saves.mkdir(parents=True, exist_ok=True)
             settings = saves / 'session.cfg'
             quoted = json.dumps(str(saves))
-            settings.write_text(f'savefile_directory = {quoted}\nsavestate_directory = {quoted}\nsort_savefiles_enable = "false"\nsort_savestates_enable = "false"\nconfig_save_on_exit = "false"\n')
+            session_config = f'savefile_directory = {quoted}\nsavestate_directory = {quoted}\nsort_savefiles_enable = "false"\nsort_savestates_enable = "false"\nconfig_save_on_exit = "false"\nmicrophone_enable = "false"\n'
+            if game['system'] == 'n64':
+                # RetroArch INPUT_COMBO_START_SELECT.
+                session_config += 'input_menu_toggle_gamepad_combo = "4"\n'
+            settings.write_text(session_config)
             with (root / 'last-game.log').open('wb') as log:
-                process = subprocess.Popen(['/usr/bin/retroarch', '--fullscreen', '--appendconfig', str(settings), '-L', str(core_path(game['system'])), str(rom)], stdin=subprocess.DEVNULL, stdout=log, stderr=log, cwd=root, start_new_session=True, pass_fds=(lock_file.fileno(),))
+                process = subprocess.Popen(['/usr/bin/retroarch', '--verbose', '--fullscreen', '--appendconfig', str(settings), '-L', str(core_path(game['system'])), str(rom)], stdin=subprocess.DEVNULL, stdout=log, stderr=log, cwd=root, start_new_session=True, pass_fds=(lock_file.fileno(),))
             process_game = game['id']
             try:
                 code = process.wait(timeout=0.5)
