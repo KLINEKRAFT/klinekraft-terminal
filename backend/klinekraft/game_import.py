@@ -9,7 +9,10 @@ import tempfile
 import zipfile
 
 MAX_ROM = 32 * 1024 * 1024
-EXTENSIONS = {'.nes', '.sfc', '.smc', '.md', '.gen', '.bin'}
+ROM_EXTENSIONS = {'nes': '.nes', 'snes': '.sfc', 'megadrive': '.md', 'n64': '.z64'}
+N64_HEADERS = {b'\x80\x37\x12\x40': 1, b'\x37\x80\x40\x12': 2, b'\x40\x12\x37\x80': 4}
+N64_EXTENSIONS = {'.z64', '.n64', '.v64'}
+EXTENSIONS = N64_EXTENSIONS | {'.nes', '.sfc', '.smc', '.md', '.gen', '.bin'}
 
 
 def library_root():
@@ -18,6 +21,8 @@ def library_root():
 
 def classify(name, data):
     suffix = Path(name).suffix.lower()
+    if suffix in N64_EXTENSIONS and len(data) >= 4096 and len(data) % 4 == 0 and data[:4] in N64_HEADERS:
+        return 'n64'
     if data.startswith(b'NES\x1a') and suffix == '.nes':
         return 'nes'
     if suffix in {'.md', '.gen', '.bin'} and data[0x100:0x104] == b'SEGA':
@@ -27,6 +32,16 @@ def classify(name, data):
     if suffix in {'.sfc', '.smc'} and len(data) >= 32768 and len(data) % 1024 in (0, 512):
         return 'snes'
     return None
+
+
+def canonical_n64(data):
+    width = N64_HEADERS[data[:4]]
+    if width == 1:
+        return data
+    converted = bytearray(len(data))
+    for offset in range(width):
+        converted[offset::width] = data[width - 1 - offset::width]
+    return converted
 
 
 def atomic_json(path, value):
@@ -99,12 +114,14 @@ def import_games(source, destination=None):
                     if system is None:
                         warnings.append(f'Unrecognized ROM preserved on source: {relative} / {filename}')
                         continue
+                    if system == 'n64':
+                        data = canonical_n64(data)
                     game_id = hashlib.sha256(data).hexdigest()
                     if game_id in games: duplicates += 1
                     else:
                         folder = destination / 'content' / game_id
                         folder.mkdir(parents=True, exist_ok=True)
-                        extension = {'nes': '.nes', 'snes': '.sfc', 'megadrive': '.md'}[system]
+                        extension = ROM_EXTENSIONS[system]
                         rom = folder / ('game' + extension)
                         rom.write_bytes(data)
                         games[game_id] = {'id': game_id, 'title': Path(filename).stem, 'system': system, 'rom': str(rom.relative_to(destination))}
