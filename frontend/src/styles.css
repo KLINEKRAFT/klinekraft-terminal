@@ -3334,3 +3334,121 @@ main[data-page="AI assistant"] .page-content {
 .document-reader-body { overflow: auto; max-height: 68dvh; }
 .document-reader canvas, .document-reader img { display: block; max-width: 100%; height: auto; margin: 0 auto; background: white; }
 .document-reader pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.6 var(--mono); }
+
+/* Native cyberdeck display: keep controls in reach at 100% zoom. */
+@media (min-width: 850px) and (max-height: 700px) {
+  html, body, #root { height: 100%; overflow: hidden; }
+  .app-shell { height: 100dvh; min-height: 0; grid-template-columns: 176px minmax(0, 1fr); overflow: hidden; }
+  .app-shell.sidebar-collapsed { grid-template-columns: 52px minmax(0, 1fr); }
+  .sidebar { height: 100dvh; padding: 10px 10px 8px; }
+  .sidebar .brand { min-height: 32px; padding: 0 5px; }
+  .sidebar .brand-lockup { max-width: 100%; }
+  .sidebar-heading { margin: 3px 0; }
+  .sidebar-heading .sidebar-toggle { height: 28px; }
+  .sidebar-heading .sidebar-caption { margin-left: 5px; font-size: 6px; }
+  .sidebar nav { padding-top: 4px; }
+  .sidebar nav button { height: 32px; min-height: 32px; padding-inline: 7px; font-size: 12px; }
+  .sidebar-bottom { padding-top: 4px; margin-top: auto; }
+  .sidebar-bottom > div, .sidebar-bottom > span { display: none; }
+  .sidebar-bottom > button { min-height: 30px; margin-top: 2px; padding-block: 5px; }
+  .sidebar-collapsed .sidebar { padding: 8px 5px; }
+  .sidebar-collapsed .sidebar-bottom { padding-top: 4px; }
+  main { height: 100dvh; min-height: 0; padding: 10px 16px 8px; overflow: hidden; }
+  .page-header { flex: none; align-items: center; margin-bottom: 10px; }
+  .page-header h1 { font-size: 22px; margin: 4px 0 0; letter-spacing: -.6px; }
+  .page-header .eyebrow { font-size: 8px; }
+  .header-actions { gap: 6px; }
+  .header-actions .icon-button { width: 32px; height: 32px; margin: 0; }
+  .page-content { min-height: 0; overflow: auto; scrollbar-width: thin; padding-right: 3px; }
+  .command-area { flex: none; margin-top: 6px; }
+  .command-area form { padding-block: 4px; min-height: 34px; }
+  .command-area input { height: 26px; }
+  .command-area button { width: 30px; height: 28px; }
+  .browser-panel, .settings-panel { padding-block: 10px; }
+  .browser-panel + .browser-panel, .settings-panel + .settings-panel, .settings-panel + .browser-panel { margin-top: 12px; }
+  .browser-panel h2:not(.sr-only), .settings-panel h2 { font-size: 17px; margin-block: 4px 10px; }
+  .browser-help { margin-block: 8px; font-size: 12px; }
+  .file-list li, .game-list li { min-height: 44px; padding-block: 6px; }
+  .file-list, .game-list { margin-block: 8px; }
+  .game-toolbar { gap: 8px; margin-bottom: 8px; }
+  .game-toolbar input, .game-toolbar select { min-height: 32px; padding-block: 6px; }
+  .setting-row, .system-list > div { padding-block: 8px; }
+  .research-library > ul { max-height: 260px; overflow: auto; padding-left: 20px; scrollbar-width: thin; }
+  .research-library li button { text-align: left; overflow-wrap: anywhere; }
+  .research-library li span { display: block; margin: 3px 0 8px; font-size: 11px; color: var(--muted); }
+  .research-fields { margin-block: 8px; }
+  .research-fields label { min-width: 0; flex: 1; }
+  .research-fields input, .research-fields select { width: 100%; min-width: 0; }
+  main[data-page="AI assistant"] .page-content { padding-bottom: 0; overflow: hidden; }
+  .ai-chat { height: 100%; min-height: 0; max-width: 900px; display: flex; }
+  .ai-chat-toolbar { padding-bottom: 6px; }
+  .ai-chat .ai-turn { padding-block: 8px 16px; }
+  .ai-chat .ai-user-message { padding: 8px 12px; margin-bottom: 14px; }
+  .ai-chat .ai-answer { line-height: 1.65; }
+  .ai-compose-area { padding-top: 6px; }
+  .ai-chat .ai-composer { padding: 8px 10px 5px; }
+  .ai-chat .ai-composer textarea { min-height: 36px; max-height: 80px; }
+  .ai-chat-footer { margin-top: 4px; }
+  .offline-maps { margin-top: 0; height: 100%; display: flex; flex-direction: column; }
+  .map-heading { flex: none; margin-bottom: 6px; }
+  .map-badge { padding: 4px 6px; }
+  .map-layout { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr) 200px; }
+  .offline-map-canvas { min-height: 0; height: 100%; }
+  .map-sidebar { padding: 10px; max-height: 100%; }
+  .map-sidebar h3 { margin-block: 8px; }
+  .map-sidebar button, .map-sidebar input { padding: 7px 8px; }
+  .map-sidebar form { gap: 6px; margin-block: 10px; }
+  .organizer { margin-top: 0; height: 100%; display: flex; flex-direction: column; }
+  .organizer-columns { flex: 1; min-height: 0; grid-template-columns: 205px minmax(0,1fr); }
+  .organizer-list, .organizer-editor { overflow: auto; padding: 12px; }
+  .organizer-list input { margin-block: 10px; }
+  .organizer button, .organizer input, .organizer textarea { padding: 7px 9px; font-size: 13px; }
+  .organizer-toolbar { gap: 6px; }
+  .organizer-editor form { gap: 10px; }
+  .organizer-editor textarea { min-height: 160px; line-height: 1.5; }
+  .organizer-editor > p { margin-top: 0; font-size: 11px; }
+  .organizer-empty { margin: 35px auto; }
+  main[data-page="Calendar"] .organizer { display: grid; grid-template-columns: minmax(320px, 1.1fr) minmax(310px, 1fr); gap: 12px; }
+  .calendar { margin-bottom: 0; }
+  .calendar h2 { font-size: 16px; }
+  .calendar-grid { margin-top: 10px; gap: 3px; }
+  .calendar-grid > span { font-size: 10px; padding: 6px 0; }
+  .calendar-grid button { min-height: 43px; padding: 6px; }
+  .calendar-grid small { font-size: 9px; margin-top: 3px; }
+  main[data-page="Calendar"] .organizer-columns { display: flex; flex-direction: column; overflow: auto; }
+  main[data-page="Calendar"] .organizer-list { flex: none; max-height: 155px; border-right: 0; border-bottom: 1px solid var(--line); }
+  main[data-page="Calendar"] .organizer-editor { flex: 1; min-height: 0; }
+  main[data-page="Calendar"] .organizer-editor textarea { min-height: 80px; }
+  .calculator { margin-top: 0; gap: 20px; grid-template-columns: minmax(260px,360px) minmax(180px,1fr); }
+  .calculator-machine { padding: 12px; }
+  .calculator input { font-size: 18px; padding: 8px; }
+  .calculator output { min-height: 48px; padding-block: 8px; font-size: 26px; }
+  .calculator-keys { gap: 5px; }
+  .calculator-keys button { min-height: 35px; padding: 6px 10px; font-size: 17px; }
+  .paint { height: 100%; margin-top: 0; display: flex; flex-direction: column; }
+  .paint > * { flex-shrink: 0; }
+  .paint-document-bar { gap: 8px; padding-bottom: 6px; }
+  .paint-name { flex-basis: 170px; }
+  .paint-name input { font-size: 14px; }
+  .paint-save-status { flex-basis: 150px; font-size: 10px; }
+  .paint-command-bar, .paint-options, .paint-color-bar { gap: 5px; padding: 6px; }
+  .paint button, .paint input, .paint select { font-size: 11px; padding: 5px 7px; }
+  .paint-options { gap: 8px; }
+  .paint-editor, .paint-expanded .paint-editor { flex: 1 1 0; min-height: 160px; grid-template-columns: 94px minmax(0,1fr); }
+  .paint-toolbox { padding: 4px; gap: 3px; overflow: auto; scrollbar-width: thin; }
+  .paint-toolbox button { min-width: 0; min-height: 38px; padding: 4px 1px; font-size: 8px; overflow-wrap: anywhere; }
+  .paint-toolbox button svg { width: 16px; height: 16px; }
+  .paint-surface { min-height: 0; padding: 8px; max-height: none; }
+  .paint-footer { padding-block: 5px; gap: 5px; font-size: 10px; }
+  .paint .organizer-caption { margin-block: 4px; font-size: 10px; }
+  .paint-palette { grid-template-columns: repeat(8,20px); gap: 3px; }
+  .paint-palette button { width: 20px; height: 20px; padding: 0; }
+  .paint.paint-expanded { height: 100dvh; padding: 8px; }
+  .document-reader { width: min(960px, 96vw); height: calc(100dvh - 24px); max-height: calc(100dvh - 24px); padding: 12px; }
+  .document-reader[open] { display: flex; flex-direction: column; }
+  .document-reader header, .document-reader nav { flex: none; gap: 8px; margin-bottom: 8px; }
+  .document-reader h2 { flex: 1 1 60%; font-size: 14px; }
+  .document-reader nav { padding-top: 6px; }
+  .document-reader nav button { width: auto; height: 32px; }
+  .document-reader-body { flex: 1; min-height: 0; max-height: none; }
+}
