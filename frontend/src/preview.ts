@@ -54,6 +54,7 @@ export const sections = [
   "Network",
   "System",
   "Settings",
+  "Emergency",
 ] as const;
 export type Section = (typeof sections)[number];
 export const sectionLabel = (section: Section) => section === "AI assistant" ? "Shackleton" : section;
@@ -63,6 +64,7 @@ export function resolveCommand(value: string): CommandResult {
   const routes: Record<string, Section> = {
     shackleton: "AI assistant",
     "ai assistant": "AI assistant",
+    emergency: "Emergency",
     home: "Home",
     games: "Games",
     arcade: "Games",
