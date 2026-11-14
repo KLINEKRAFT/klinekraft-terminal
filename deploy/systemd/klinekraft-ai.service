@@ -1,0 +1,12 @@
+[Unit]
+Description=Shackleton offline language model
+After=default.target
+[Service]
+ExecStart=%h/.local/share/klinekraft/ai/llama.cpp/build/bin/llama-server --model %h/.local/share/klinekraft/ai/models/Qwen3-4B-Instruct-2507-Q4_K_M.gguf --api-key-file %h/.config/klinekraft/local-ai.key --host 127.0.0.1 --port 8082 --ctx-size 6144 --threads 3 --threads-batch 3 --parallel 1 --n-predict 500
+Restart=on-failure
+RestartSec=10
+Nice=10
+NoNewPrivileges=true
+UMask=0077
+[Install]
+WantedBy=default.target
