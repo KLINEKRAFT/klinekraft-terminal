@@ -1,0 +1,16 @@
+[Unit]
+Description=Manual encrypted Klinekraft full-system recovery backup
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/klinekraft/backup-system.py --user klinekraft
+UMask=0077
+Nice=15
+IOSchedulingClass=idle
+CPUQuota=150%
+TimeoutStartSec=infinity
+TimeoutStopSec=2min
+StandardOutput=append:/var/lib/klinekraft-recovery/upload.log
+StandardError=append:/var/lib/klinekraft-recovery/upload.log
