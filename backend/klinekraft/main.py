@@ -9,18 +9,25 @@ from .games import router as games_router
 from .wiki_reader import router as wiki_reader_router
 from .assistant import router as assistant_router
 from .tools_launcher import router as tools_router
-from .conversations import router as conversations_router
+from .conversations import router as conversations_router, database
+from . import research
 from .research import router as research_router
 from .diagnostics import router as diagnostics_router
 from .notebook import router as notebook_router
 from .organizer import router as organizer_router
+from .mesh import router as mesh_router
+from .hotspot import router as hotspot_router
+from .routing import router as routing_router
 from .maps import router as maps_router
+from .emergency import router as emergency_router
 from .services import Capabilities, get_capabilities
 from .telemetry import HostSnapshot, TelemetryService
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    with database() as connection:
+        research.init(connection)
     service = TelemetryService()
     app.state.telemetry = service
     await service.start()
@@ -71,6 +78,10 @@ app.include_router(research_router)
 app.include_router(notebook_router)
 app.include_router(organizer_router)
 app.include_router(maps_router)
+app.include_router(routing_router)
+app.include_router(mesh_router)
+app.include_router(hotspot_router)
+app.include_router(emergency_router)
 app.include_router(diagnostics_router)
 app.include_router(tools_router)
 
