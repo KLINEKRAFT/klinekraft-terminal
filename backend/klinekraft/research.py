@@ -1,6 +1,7 @@
 """Local research collections with bounded text extraction."""
 import hashlib
 import os
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -39,6 +40,57 @@ def init(connection):
         extracted TEXT NOT NULL,
         UNIQUE(collection, name, digest)
     )""")
+
+    # External-content FTS keeps the original records and stable document IDs.
+    exists = connection.execute("SELECT 1 FROM sqlite_master WHERE name='research_fts'").fetchone()
+    connection.execute("CREATE VIRTUAL TABLE IF NOT EXISTS research_fts USING fts5(name, extracted, content='research_files', content_rowid='id', tokenize='porter unicode61')")
+    connection.execute("""CREATE TRIGGER IF NOT EXISTS research_fts_insert AFTER INSERT ON research_files BEGIN
+        INSERT INTO research_fts(rowid,name,extracted) VALUES(new.id,new.name,new.extracted); END""")
+    connection.execute("""CREATE TRIGGER IF NOT EXISTS research_fts_delete AFTER DELETE ON research_files BEGIN
+        INSERT INTO research_fts(research_fts,rowid,name,extracted) VALUES('delete',old.id,old.name,old.extracted); END""")
+    connection.execute("""CREATE TRIGGER IF NOT EXISTS research_fts_update AFTER UPDATE ON research_files BEGIN
+        INSERT INTO research_fts(research_fts,rowid,name,extracted) VALUES('delete',old.id,old.name,old.extracted);
+        INSERT INTO research_fts(rowid,name,extracted) VALUES(new.id,new.name,new.extracted); END""")
+    if not exists:
+        connection.execute("INSERT INTO research_fts(research_fts) VALUES('rebuild')")
+
+
+def query_terms(query):
+    stop = set("what where when which who why how does from about this that with have find explain please and the for are can you your guide guides research answer briefly using saved reference references source sources cite according tell give need information help".split())
+    return [t for t in dict.fromkeys(re.findall(r"[^\W_]{2,}", query.lower())) if t not in stop][:12]
+
+
+def ranked_rows(connection, query, collection="", limit=101):
+    terms = query_terms(query)
+    if not terms:
+        if query.strip():
+            return []
+        return connection.execute("SELECT * FROM research_files WHERE (?='' OR collection=?) ORDER BY name COLLATE NOCASE,id LIMIT ?", (collection,collection,limit)).fetchall()
+    expression = ' OR '.join('"' + term + '"' for term in terms)
+    return connection.execute("""SELECT f.* FROM research_fts JOIN research_files f ON f.id=research_fts.rowid
+        WHERE research_fts MATCH ? AND (?='' OR f.collection=?)
+        ORDER BY bm25(research_fts,4.0,1.0), f.id LIMIT ?""", (expression,collection,collection,limit)).fetchall()
+
+
+def best_excerpt(row, terms, length=450):
+    pages = row['extracted'].split('\f') if row['mime'] == 'application/pdf' else [row['extracted']]
+    candidates = []
+    for number, page in enumerate(pages,1):
+        lower = page.lower()
+        positions = [m.start() for term in terms for m in re.finditer(re.escape(term),lower)]
+        starts = {max(0,pos-100) for pos in positions} or {0}
+        for start in starts:
+            if start:
+                boundary=page.find(' ',start,min(len(page),start+60))
+                if boundary >= 0:start=boundary+1
+            end=min(len(page),start+length)
+            if end<len(page):
+                boundary=page.rfind(' ',start,end)
+                if boundary>start:end=boundary
+            snippet = ('…' if start else '')+page[start:end].strip()+('…' if end<len(page) else '')
+            candidates.append((sum(term in snippet.lower() for term in terms), -number, -start, snippet))
+    best = max(candidates) if candidates else (0,-1,0,'')
+    return {'snippet':best[3], 'page':-best[1] if row['mime']=='application/pdf' else None}
 
 
 def extracted_text(data, mime):
@@ -126,14 +178,12 @@ def search(q: str = Query(default="", max_length=200), collection: str = Query(d
         collections = [row[0] for row in connection.execute(
             "SELECT DISTINCT collection FROM research_files ORDER BY collection"
         )]
-        rows = connection.execute(
-            """SELECT id, collection, name, mime FROM research_files
-            WHERE (? = '' OR collection = ?) AND
-            (instr(lower(name), lower(?)) > 0 OR instr(lower(extracted), lower(?)) > 0)
-            ORDER BY name COLLATE NOCASE, id LIMIT 101""",
-            (collection, collection, q, q),
-        ).fetchall()
-    return {"files": [dict(row) for row in rows[:100]], "collections": collections, "limited": len(rows) > 100}
+        rows = ranked_rows(connection, q, collection)
+        total = connection.execute("SELECT count(*) FROM research_files WHERE (?='' OR collection=?)", (collection,collection)).fetchone()[0]
+    files = [{**{key:row[key] for key in ('id','collection','name','mime')},
+              **best_excerpt(row,query_terms(q)), 'searchable':bool(row['extracted'].strip())} for row in rows[:100]]
+    return {"files":files, "collections":collections, "limited":len(rows)>100, "total":total}
+
 
 
 @router.get("/{file_id}")
@@ -148,40 +198,22 @@ def read_file(file_id: int):
 
 
 def relevant_passages(question):
-    """Return a few local excerpts with their original PDF page numbers."""
-    import re
-
-    stop = set("what where when which who why how does from about this that with have find explain please".split())
-    terms = [term for term in dict.fromkeys(re.findall(r"[^\W_]{3,}", question.lower())) if term not in stop][:8]
-    if not terms:
-        return []
-    clause = " OR ".join("instr(lower(name || ' ' || extracted), ?) > 0" for _ in terms)
-    relevance = " + ".join("(instr(lower(name || ' ' || extracted), ?) > 0)" for _ in terms)
+    """Use the same ranked index as Library, preserving local document page links."""
     with database() as connection:
         init(connection)
-        rows = connection.execute(
-            f"SELECT id, collection, name, mime, extracted FROM research_files WHERE {clause} ORDER BY ({relevance}) DESC, id DESC LIMIT 100",
-            terms + terms,
-        ).fetchall()
-    matches = []
+        rows = ranked_rows(connection, question, limit=20)
+    passages, seen = [], set()
     for row in rows:
-        pdf = row["mime"] == "application/pdf"
-        pages = row["extracted"].split("\f") if pdf else [row["extracted"]]
-        for number, page in enumerate(pages, 1):
-            lower = page.lower()
-            positions = [match.start() for term in terms for match in re.finditer(re.escape(term), lower)]
-            if not positions:
-                continue
-            # Score the actual excerpt, not matches elsewhere on a long page.
-            starts = {max(0, position - 250) for position in positions}
-            start = max(sorted(starts), key=lambda offset: sum(term in lower[offset:offset + 1800] for term in terms))
-            snippet = page[start:start + 1800].strip()
-            score = sum(term in snippet.lower() for term in terms) + 2 * sum(term in row["name"].lower() for term in terms)
-            matches.append((score, {
-                "fileId": row["id"],
-                "title": row["name"],
-                "page": number if pdf else None,
-                "text": f"Collection: {row['collection']}\n" + snippet,
-            }))
-    matches.sort(key=lambda item: item[0], reverse=True)
-    return [passage for _, passage in matches[:4]]
+        # Avoid filling the context with adjacent chunks of the same manual.
+        identity = re.sub(r" \(PDF pages .*| \(part .*", "", row['name'])
+        if identity in seen or not row['extracted'].strip():
+            continue
+        excerpt = best_excerpt(row, query_terms(question),1800)
+        if not excerpt['snippet']:
+            continue
+        seen.add(identity)
+        passages.append({'fileId':row['id'], 'title':row['name'], 'page':excerpt['page'],
+                         'text':f"Collection: {row['collection']}\n"+excerpt['snippet']})
+        if len(passages)==4:
+            break
+    return passages
