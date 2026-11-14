@@ -4,7 +4,7 @@ GPS / Maps uses MapLibre GL and a local Protomaps PMTiles vector archive. The fi
 
 Tiles, styles, fonts and scripts are served by the Pi. No remote map/font server or account is needed to view the installed region. Click a map location, or enter latitude/longitude, then name and save it. Places persist in the same SQLite database as notes and are included in the existing encrypted backup. The large, replaceable map archive is not included in daily cloud backups.
 
-This release provides an offline atlas, coordinate lookup and saved places. It does not yet provide address search, route calculation, turn-by-turn navigation or a connected GPS receiver. Existing Home weather may still use the network independently of the map.
+This release provides an offline atlas, coordinate lookup and saved places. Offline route calculation, automatic route saving and GeoJSON export are now available through BRouter; see [Offline field tools](offline-field-tools.md). Address search, turn-by-turn navigation and a connected GPS receiver remain unavailable. Existing Home weather may still use the network independently of the map.
 
 ## Install or refresh
 
@@ -21,4 +21,4 @@ Data lives in `~/.local/share/klinekraft/maps` (override with `KLINEKRAFT_MAPS_D
 
 ## Design decision
 
-[MapLibre integration](https://docs.protomaps.com/pmtiles/maplibre) supports a single locally served archive and custom Klinekraft colors. [The extraction CLI](https://docs.protomaps.com/pmtiles/cli) supports selected regions and zoom limits. This avoids bulk downloading raster tiles from public OpenStreetMap servers and keeps the atlas integrated with Terminal. Organic Maps remains a possible separate desktop option for offline routing later.
+[MapLibre integration](https://docs.protomaps.com/pmtiles/maplibre) supports a single locally served archive and custom Klinekraft colors. [The extraction CLI](https://docs.protomaps.com/pmtiles/cli) supports selected regions and zoom limits. This avoids bulk downloading raster tiles from public OpenStreetMap servers and keeps the atlas integrated with Terminal. BRouter now supplies integrated offline routing.
