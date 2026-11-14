@@ -346,10 +346,13 @@ export default function OfflineMaps() {
           <button
             disabled={!ready}
             onClick={() =>
-              region && map.current?.fitBounds(region.bounds, { padding: 20 })
+              region &&
+              (region.views
+                ? map.current?.flyTo({ center: region.center, zoom: 3.5 })
+                : map.current?.fitBounds(region.bounds, { padding: 20 }))
             }
           >
-            Show downloaded region
+            {region?.views ? "Reset map view" : "Show downloaded region"}
           </button>
           <form
             onSubmit={(event) => {
