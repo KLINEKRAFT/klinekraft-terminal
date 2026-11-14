@@ -3482,3 +3482,16 @@ main[data-page="AI assistant"] .page-content {
   .emergency-dashboard .browser-help { font-size:11px; margin-block:6px; }
   .emergency-dashboard .research-library > details { display:none; }
 }
+
+/* Visual dimming only: this HDMI panel has no exposed backlight interface. */
+.field-mode::after { content: ""; position: fixed; inset: 0; pointer-events: none; background: rgba(0,0,0,.22); z-index: 100000; }
+.power-controls { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; padding:5px 12px; border-bottom:1px solid var(--border); font-size:11px; flex-shrink:0; }
+.power-controls details { position:relative; }
+.power-controls details[open] { flex-basis:100%; }
+.power-controls p[role="alert"] { flex-basis:100%; color:#ffb26b; margin:3px 0; }
+/* Contain offscreen accessible labels inside the scrolling workspace. */
+.page-content { position: relative; }
+.power-controls details[open] { max-height: 150px; overflow: auto; }
+@media (max-height: 650px) and (min-width: 761px) {
+  .paint-editor, .paint-expanded .paint-editor { min-height: 120px; }
+}
