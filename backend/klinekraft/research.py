@@ -156,11 +156,12 @@ def relevant_passages(question):
     if not terms:
         return []
     clause = " OR ".join("instr(lower(name || ' ' || extracted), ?) > 0" for _ in terms)
+    relevance = " + ".join("(instr(lower(name || ' ' || extracted), ?) > 0)" for _ in terms)
     with database() as connection:
         init(connection)
         rows = connection.execute(
-            f"SELECT id, name, mime, extracted FROM research_files WHERE {clause} ORDER BY id DESC LIMIT 100",
-            terms,
+            f"SELECT id, collection, name, mime, extracted FROM research_files WHERE {clause} ORDER BY ({relevance}) DESC, id DESC LIMIT 100",
+            terms + terms,
         ).fetchall()
     matches = []
     for row in rows:
@@ -168,15 +169,19 @@ def relevant_passages(question):
         pages = row["extracted"].split("\f") if pdf else [row["extracted"]]
         for number, page in enumerate(pages, 1):
             lower = page.lower()
-            positions = [lower.find(term) for term in terms if term in lower]
+            positions = [match.start() for term in terms for match in re.finditer(re.escape(term), lower)]
             if not positions:
                 continue
-            start = max(0, min(positions) - 250)
-            matches.append((len(positions), {
+            # Score the actual excerpt, not matches elsewhere on a long page.
+            starts = {max(0, position - 250) for position in positions}
+            start = max(sorted(starts), key=lambda offset: sum(term in lower[offset:offset + 1800] for term in terms))
+            snippet = page[start:start + 1800].strip()
+            score = sum(term in snippet.lower() for term in terms) + 2 * sum(term in row["name"].lower() for term in terms)
+            matches.append((score, {
                 "fileId": row["id"],
                 "title": row["name"],
                 "page": number if pdf else None,
-                "text": page[start:start + 1800].strip(),
+                "text": f"Collection: {row['collection']}\n" + snippet,
             }))
     matches.sort(key=lambda item: item[0], reverse=True)
     return [passage for _, passage in matches[:4]]
