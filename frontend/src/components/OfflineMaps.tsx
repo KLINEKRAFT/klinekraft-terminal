@@ -241,9 +241,7 @@ export default function OfflineMaps() {
         view.on("load", () => {
           if (active) {
             setReady(true);
-            setStatus(
-              "Offline map ready — all map data and labels are stored on this Pi.",
-            );
+            setStatus("");
           }
         });
         view.on("error", () => {
@@ -318,11 +316,10 @@ export default function OfflineMaps() {
       <div className="map-heading">
         <div>
           <span className="eyebrow">OFFLINE ATLAS</span>
-          <h2>{region?.available ? region.title : "Local maps"}</h2>
         </div>
         <span className="map-badge">GPS not connected</span>
       </div>
-      <p role="status">{status}</p>
+      {status && <p role="status">{status}</p>}
       <div className="map-layout">
         <div
           ref={container}
