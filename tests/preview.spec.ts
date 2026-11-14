@@ -73,7 +73,7 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "System", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "09 Settings" }).click();
+  await page.getByRole("button", { name: "13 Settings" }).click();
   const toggle = page.getByRole("checkbox", { name: /Automatic updates/ });
   await toggle.uncheck();
   await expect(toggle).not.toBeChecked();
@@ -93,7 +93,7 @@ test("all navigation sections render and unknown commands stay bounded", async (
   await page.goto("/");
   for (const name of [
     "Games",
-    "AI assistant",
+    "Shackleton",
     "GPS / Maps",
     "Library",
     "Files",

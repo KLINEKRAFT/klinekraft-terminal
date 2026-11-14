@@ -61,7 +61,7 @@ test('AI citation opens directly on its cited PDF page', async ({page,context}) 
     {id:1,fileId:1,title:'Guide.pdf',page:2,path:'/api/research/1'},
   ]}}));
   await page.goto('/');
-  await page.getByRole('button',{name:/^03 AI assistant/}).click();
+  await page.getByRole('button',{name:/^03 Shackleton/}).click();
   await page.getByLabel('Your question',{exact:true}).fill('Show my guide.');
   await page.getByRole('button',{name:'Send message',exact:true}).click();
   await page.getByText('1 source',{exact:true}).click();

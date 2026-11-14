@@ -56,10 +56,13 @@ export const sections = [
   "Settings",
 ] as const;
 export type Section = (typeof sections)[number];
+export const sectionLabel = (section: Section) => section === "AI assistant" ? "Shackleton" : section;
 export type CommandResult = { section?: Section; message: string };
 export function resolveCommand(value: string): CommandResult {
   const command = value.trim().toLowerCase().replace(/\s+/g, " ");
   const routes: Record<string, Section> = {
+    shackleton: "AI assistant",
+    "ai assistant": "AI assistant",
     home: "Home",
     games: "Games",
     arcade: "Games",
@@ -79,7 +82,7 @@ export function resolveCommand(value: string): CommandResult {
   if (Object.hasOwn(routes, command))
     return {
       section: routes[command],
-      message: `Opened ${routes[command]}.`,
+      message: `Opened ${sectionLabel(routes[command])}.`,
     };
   if (command.startsWith("play "))
     return {

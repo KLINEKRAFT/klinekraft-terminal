@@ -58,6 +58,7 @@ import { BrowserLibrary, BrowserSettings } from "./components/BrowserLibrary";
 import { KlinekraftBrandLockup, installBrandIcon } from "./components/Brand";
 import {
   resolveCommand,
+  sectionLabel,
   sections,
   type Reading,
   type Section,
@@ -516,10 +517,10 @@ export default function App() {
                 key={item}
                 aria-label={
                   collapsed
-                    ? item
-                    : `${String(index + 1).padStart(2, "0")} ${item}`
+                    ? sectionLabel(item)
+                    : `${String(index + 1).padStart(2, "0")} ${sectionLabel(item)}`
                 }
-                title={item}
+                title={sectionLabel(item)}
                 aria-current={section === item ? "page" : undefined}
                 onClick={() => navigate(item)}
               >
@@ -527,7 +528,7 @@ export default function App() {
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <Icon size={16} strokeWidth={1.6} />
-                <span className="nav-label">{item}</span>
+                <span className="nav-label">{sectionLabel(item)}</span>
                 {section === item && <i />}
               </button>
             );
@@ -559,7 +560,7 @@ export default function App() {
               </span>
             </div>
             <h1 className={section === "Home" ? "sr-only" : undefined}>
-              {section}
+              {sectionLabel(section)}
             </h1>
           </div>
           <div className="header-actions">

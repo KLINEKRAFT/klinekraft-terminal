@@ -154,6 +154,22 @@ export function Paint() {
     [fillStyle, setFillStyle] = useState("outline"),
     [zoom, setZoom] = useState(0);
   const [dimensions, setDimensions] = useState({ w: 960, h: 600 });
+  const [fitWidth, setFitWidth] = useState<number | null>(null);
+  useEffect(() => {
+    const surface = workspace.current;
+    if (!surface) return;
+    const measure = () => {
+      const style = getComputedStyle(surface);
+      const width = surface.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const height = surface.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+      setFitWidth(Math.max(1, Math.min(dimensions.w, width, height * dimensions.w / dimensions.h)));
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(surface);
+    measure();
+    return () => observer.disconnect();
+  }, [dimensions.w, dimensions.h, expanded]);
+
   const [text, setText] = useState(""),
     [fontSize, setFontSize] = useState(28);
   const [status, setStatus] = useState("Ready"),
@@ -965,7 +981,7 @@ export function Paint() {
           <div
             className="paint-canvas-wrap"
             style={{
-              width: zoom ? dimensions.w * zoom : "100%",
+              width: zoom ? dimensions.w * zoom : (fitWidth ?? "100%"),
               maxWidth: zoom ? "none" : dimensions.w,
             }}
           >
