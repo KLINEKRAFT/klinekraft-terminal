@@ -228,7 +228,7 @@ export default function OfflineMaps() {
           zoom: metadata.views ? 3.5 : 11,
           minZoom: 2,
           maxZoom: 18,
-          maxBounds: metadata.bounds,
+          renderWorldCopies: false,
           transformRequest: (url) => ({
             url,
             headers: { "X-Klinekraft-Client": "local-ui" },
@@ -262,6 +262,7 @@ export default function OfflineMaps() {
         });
       })
       .catch((error: Error) => {
+        console.error("Offline map initialization failed", error);
         if (active) setStatus(error.message);
       });
     return () => {
