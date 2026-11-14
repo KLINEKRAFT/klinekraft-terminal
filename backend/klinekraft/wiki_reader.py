@@ -61,6 +61,16 @@ def books():
 
 def search(query, book=None, limit=12):
     available = books()
+    if book is None and len(available) > 1:
+        # Query each local archive separately; older Kiwix versions do not accept a comma list.
+        groups = []
+        for archive in available[:4]:
+            try: groups.append(search(query, archive['name'], limit))
+            except HTTPException: continue
+        combined = [result for group in groups for result in group]
+        terms = re.findall(r'[^\W_]{3,}', query.lower())
+        combined.sort(key=lambda result: -sum(term in result['title'].lower() for term in terms))
+        return combined[:limit]
     selected = next((b for b in available if b['name'] == book), None) if book else next(iter(available), None)
     if not selected: return []
     raw, _, _ = fetch_local('/search?' + urlencode({'books.name': selected['name'], 'pattern': query, 'format': 'xml', 'pageLength': min(limit, 12)}))
