@@ -22,3 +22,17 @@ Citations are restricted to retrieved sources, but an AI claim can still be wron
 Local endpoints require the terminal's custom request header. Kiwix access is fixed to 127.0.0.1:8081 and archive content paths, with bounded reads and redirects. The AI has no shell or file-modification tools.
 
 Validation uses Kiwix catalog/search/article fixtures and mocked OpenAI responses; it does not exercise your Pi archive or a paid account. After installation, search a known topic, open the article, choose Ask AI, and check the source links.
+
+### Opening local documents
+
+Research Library files and research citations in AI chats and notebook entries
+open directly in an in-app reader. PDF citations start on the cited page; use
+Previous page / Next page to browse the section. Text and images display in the
+same reader. Close or Escape returns focus to the link that opened it.
+
+The reader uses Mozilla PDF.js, loaded only when a PDF is opened. Vite copies
+its fonts, character maps, decoder resources and license from `pdfjs-dist` into
+`frontend/public/pdfjs` (generated, ignored by Git) and the production build.
+These assets and the PDF worker are served locally; no CDN or browser PDF plugin
+is required. Requests retain the local-service client header. Failed reads show
+an error in the reader instead of silently leaving a link below the page.
