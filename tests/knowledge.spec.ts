@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("klinekraft.ai.provider", "cloud"));
   await page.route("**/api/conversations**", (r) => {
     if (r.request().method() === "PUT")
       return r.fulfill({
