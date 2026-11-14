@@ -31,3 +31,7 @@ Package SHA-256 verified against the official GitHub release asset digest:
 Validation: launcher unit tests and frontend build. LocalSend's local HTTPS
 info endpoint confirms its configured alias and receive capability. The first
 phone-to-Pi transfer still needs to be completed on the user's phone.
+
+## Offline phone library
+
+Network → Field connections provides an opt-in WPA2 hotspot and read-only Emergency library at http://10.42.0.1:8090. Starting it disconnects normal Wi-Fi. Personal notes, files, controls and chat are not exposed. See [Offline field tools](offline-field-tools.md).
