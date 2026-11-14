@@ -1,4 +1,6 @@
-"""Loopback-only telemetry service. Read-only files and an allowlisted game launcher."""
+"""Loopback-only Terminal service with guarded local controls."""
+import asyncio
+from contextlib import suppress
 from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, Response, Depends
@@ -18,6 +20,7 @@ from .organizer import router as organizer_router
 from .mesh import router as mesh_router
 from .hotspot import router as hotspot_router
 from .casting import router as casting_router
+from . import power
 from .routing import router as routing_router
 from .maps import router as maps_router
 from .emergency import router as emergency_router
@@ -32,9 +35,13 @@ async def lifespan(app: FastAPI):
     service = TelemetryService()
     app.state.telemetry = service
     await service.start()
+    power_task = asyncio.create_task(power.monitor())
     try:
         yield
     finally:
+        power_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await power_task
         await service.stop()
 
 
@@ -83,6 +90,7 @@ app.include_router(routing_router)
 app.include_router(mesh_router)
 app.include_router(hotspot_router)
 app.include_router(casting_router)
+app.include_router(power.router)
 app.include_router(emergency_router)
 app.include_router(diagnostics_router)
 app.include_router(tools_router)

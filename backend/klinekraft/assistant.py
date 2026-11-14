@@ -1,4 +1,5 @@
 """One bounded local or cloud request with optional excerpts from the user's local Wikipedia."""
+from . import power
 import base64
 import binascii
 import io
@@ -115,7 +116,7 @@ def status():
         pass
     cloud = bool(os.environ.get('OPENAI_API_KEY', '').strip())
     return {'configured': cloud or local_ready, 'provider': 'OpenAI', 'model': MODEL,
-            'local': {'configured':local_ready, 'model':LOCAL_MODEL}, 'cloud': {'configured':cloud, 'model':MODEL}}
+            'local': {'configured':local_ready or (power.settings()['field'] and power.available()), 'model':LOCAL_MODEL}, 'cloud': {'configured':cloud, 'model':MODEL}}
 
 
 
@@ -146,6 +147,14 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def ask_provider(messages, key, local=False):
+    waking = local and power.settings()["field"] and power.available()
+    if waking: power.wake_ai()
+    try: return _ask_provider(messages, key, local)
+    finally:
+        if waking: power.release_ai()
+
+
+def _ask_provider(messages, key, local=False):
     schema = {'type': 'object', 'additionalProperties': False, 'properties': {
         'answer': {'type': 'string'}, 'sources': {'type': 'array', 'items': {'type': 'integer'}},
         'imageSources': {'type': 'array', 'items': {'type': 'integer'}}}, 'required': ['answer', 'sources', 'imageSources']}

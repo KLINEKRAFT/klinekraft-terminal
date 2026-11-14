@@ -28,6 +28,7 @@ def stage(home, target):
         shutil.rmtree(target)
     target.mkdir(parents=True, mode=0o700)
     data = home / '.local/share/klinekraft'
+    copy_tree(home / '.local/state/klinekraft/power/settings.json', target / 'power/settings.json')
     copy_tree(data / 'research-files', target / 'terminal/research-files')
     database = data / 'conversations.sqlite3'
     if not database.is_file() or database.is_symlink():
@@ -48,6 +49,7 @@ def stage(home, target):
         'Stop klinekraft.service before restoring terminal/ to ~/.local/share/klinekraft/.\n'
         'Restore games/saves to ~/Games/Klinekraft/saves, retroarch to ~/.config/retroarch,\n'
         'and received to ~/Downloads/Received. Review existing files before replacing them.\n'
+        'Restore power/settings.json to ~/.local/state/klinekraft/power/settings.json.\n'
         'Catalog requires separately restored ROMs. ROMs, OS, browser-only preferences,\n'
         'API keys, OAuth credentials and the backup recovery password are not included.\n')
 
