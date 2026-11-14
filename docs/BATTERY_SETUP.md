@@ -26,3 +26,7 @@ KLINEKRAFT_BATTERY=x1202 .venv/bin/python -c 'from klinekraft.battery import rea
 ```
 
 Do not run the web service as root. Diagnose wiring/board revision and gauge availability if bus access is correct but the gauge is unavailable. The adapter has unit coverage with mocked bus data; physical readings must be verified on the user's Pi.
+
+## Plugged-in check — 2026-11-13
+
+Read-only X1202 observations on this Pi: 51.9% / 4.011 V at 19:20 Central, 55.4% / 4.019 V at 19:24, and 63.3% / 4.055 V at 19:34. GPIO6 read high (external supply present); `vcgencmd get_throttled` returned `0x0`. The rising estimate and voltage support that the pack is charging under the current workload. This does not measure charging current, usable capacity or runtime. No charging-control GPIO, power-off setting or firmware was changed.
