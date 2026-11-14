@@ -46,6 +46,7 @@ import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
 import { ResearchLibrary } from "./components/ResearchLibrary";
+import { ScreenCast } from "./components/ScreenCast";
 import { FieldConnections } from "./components/FieldConnections";
 import { EmergencyDashboard } from "./components/EmergencyDashboard";
 import { Paint } from "./components/Paint";
@@ -693,7 +694,7 @@ export default function App() {
               </details>
             </>
           ) : section === "Network" ? (
-            <><FieldConnections /><NetworkPanel reading={reading} label={label} /></>
+            <><ScreenCast /><FieldConnections /><NetworkPanel reading={reading} label={label} /></>
           ) : (
             <Feature section={section} />
           )}
