@@ -5,3 +5,5 @@ Runtime UI: React/ReactDOM (MIT), Lucide (ISC), Fontsource-packaged Inter/IBM Pl
 Research does not constitute code reuse. RetroArch and Kiwix are planned separate executable/service integrations; RomM and Cockpit are comparison references only. No GPL/AGPL application code or unlicensed Geekworm code has been copied. The user's brand mark is not relicensed as third-party open-source content. A project-wide distribution license remains the owner's decision.
 
 Archivo Expanded Regular is bundled from the user-supplied Archivo archive. Its SIL OFL license is retained at `frontend/public/licenses/archivo.txt`; the original static font is served locally without modification.
+
+Offline maps use MapLibre GL JS (BSD-3-Clause) and the PMTiles JavaScript reader (BSD-3-Clause). Map data comes from Protomaps / OpenStreetMap, with attribution displayed in the map. Noto Sans map glyphs use SIL OFL; the license is retained at `assets/maps/Noto-Sans-OFL.txt` and installed beside the glyphs. See `offline-maps.md` for data sources and extraction details.
