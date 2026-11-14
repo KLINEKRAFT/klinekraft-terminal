@@ -42,3 +42,7 @@ revision. A browser reload warns while changes remain unsaved.
 
 Validation: `npm run build` and `node --test unit-tests/paintPixels.test.ts`.
 Browser checks cover drawing, text, fill, crop/undo, zoom, and saved-image reopening.
+
+## Brushes and fullscreen
+
+The Brush selector offers round, square, calligraphy, soft airbrush and spray tips. Size and color apply to each; pencil and eraser retain their own solid behavior. Fullscreen Paint keeps the tool sidebar beside the canvas, including on the Pi display. Use Exit fullscreen or Escape to return. If native fullscreen is unavailable, the editor expands within the window. Existing autosave and document recovery continue to apply.

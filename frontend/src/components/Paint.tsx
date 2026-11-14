@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { localJSON } from "./WikiReader";
 import { isHostedDemo } from "../runtime";
+import { drawBrush, type BrushKind } from "./paintBrushes";
 import { floodFill } from "./paintPixels";
 
 type Drawing = {
@@ -101,6 +102,45 @@ const hints: Record<Tool, string> = {
 };
 
 export function Paint() {
+  const root = useRef<HTMLElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [brush, setBrush] = useState<BrushKind>("round");
+  useEffect(() => {
+    const changed = () => {
+      if (!window.document.fullscreenElement) setExpanded(false);
+    };
+    window.document.addEventListener("fullscreenchange", changed);
+    return () =>
+      window.document.removeEventListener("fullscreenchange", changed);
+  }, []);
+  useEffect(() => {
+    if (!expanded) return;
+    const previous = window.document.body.style.overflow;
+    window.document.body.style.overflow = "hidden";
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !window.document.fullscreenElement)
+        setExpanded(false);
+    };
+    window.addEventListener("keydown", escape);
+    return () => {
+      window.document.body.style.overflow = previous;
+      window.removeEventListener("keydown", escape);
+    };
+  }, [expanded]);
+  async function toggleFullscreen() {
+    if (expanded) {
+      if (window.document.fullscreenElement === root.current)
+        await window.document.exitFullscreen();
+      setExpanded(false);
+    } else {
+      setExpanded(true);
+      try {
+        await root.current?.requestFullscreen();
+      } catch {
+        /* Keep the full-window workspace if browser fullscreen is unavailable. */
+      }
+    }
+  }
   const canvas = useRef<HTMLCanvasElement>(null),
     workspace = useRef<HTMLDivElement>(null),
     fileInput = useRef<HTMLInputElement>(null);
@@ -449,22 +489,14 @@ export function Paint() {
     }
   }
   function drawSegment(from: Point, to: Point, color: string) {
-    const context = ctx(),
-      width = tool === "pencil" ? 1 : size;
-    context.strokeStyle = context.fillStyle =
-      tool === "eraser" ? background : color;
-    context.lineWidth = width;
-    context.lineCap = "round";
-    context.lineJoin = "round";
-    context.beginPath();
-    context.moveTo(from.x, from.y);
-    context.lineTo(to.x, to.y);
-    context.stroke();
-    if (from.x === to.x && from.y === to.y) {
-      context.beginPath();
-      context.arc(to.x, to.y, width / 2, 0, Math.PI * 2);
-      context.fill();
-    }
+    drawBrush(
+      ctx(),
+      from,
+      to,
+      tool === "pencil" ? 1 : size,
+      tool === "eraser" ? background : color,
+      tool === "brush" ? brush : "round",
+    );
   }
   function move(event: React.PointerEvent<HTMLCanvasElement>) {
     const p = point(event);
@@ -698,8 +730,19 @@ export function Paint() {
   if (isHostedDemo) return <p>Open the local Pi app to paint.</p>;
   const busy = saving || dirty || !ready;
   return (
-    <section className="paint" aria-label="Paint workspace" onKeyDown={keyDown}>
+    <section
+      ref={root}
+      className={`paint${expanded ? " paint-expanded" : ""}`}
+      aria-label="Paint workspace"
+      onKeyDown={keyDown}
+    >
       <div className="paint-document-bar">
+        <button
+          onClick={() => void toggleFullscreen()}
+          aria-label={expanded ? "Exit fullscreen Paint" : "Fullscreen Paint"}
+        >
+          {expanded ? "Exit fullscreen" : "Fullscreen"}
+        </button>
         <label className="paint-name">
           DRAWING{" "}
           <input
@@ -801,6 +844,22 @@ export function Paint() {
         </button>
       </div>
       <div className="paint-options">
+        <label>
+          Brush{" "}
+          <select
+            value={brush}
+            onChange={(event) => {
+              setBrush(event.target.value as BrushKind);
+              setTool("brush");
+            }}
+          >
+            <option value="round">Round</option>
+            <option value="square">Square</option>
+            <option value="chisel">Calligraphy</option>
+            <option value="soft">Soft airbrush</option>
+            <option value="spray">Spray</option>
+          </select>
+        </label>
         <strong>{tools.find((value) => value.id === tool)?.label}</strong>
         <label>
           Width{" "}

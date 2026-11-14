@@ -1,7 +1,16 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import {
   Paintbrush,
-  StickyNote, CalendarDays, Calculator as CalculatorIcon,
+  StickyNote,
+  CalendarDays,
+  Calculator as CalculatorIcon,
   ArrowDownLeft,
   ArrowRight,
   ArrowUpRight,
@@ -61,6 +70,7 @@ import {
   NetworkPanel,
 } from "./components/TelemetryPanels";
 
+const OfflineMaps = lazy(() => import("./components/OfflineMaps"));
 const icons: Record<Section, LucideIcon> = {
   Home: Cpu,
   Paint: Paintbrush,
@@ -419,7 +429,9 @@ export default function App() {
   }, [collapsed, dark]);
   const browser = useBrowserPreferences();
   const note = useQuickNote();
-  const [researchAttachment, setResearchAttachment] = useState<File | null>(null);
+  const [researchAttachment, setResearchAttachment] = useState<File | null>(
+    null,
+  );
   function askAboutFile(file: File) {
     setResearchAttachment(file);
     navigate("AI assistant");
@@ -598,6 +610,10 @@ export default function App() {
               onConsumeAttachment={() => setResearchAttachment(null)}
               onClearContext={() => setWikiContext(null)}
             />
+          ) : section === "GPS / Maps" ? (
+            <Suspense fallback={<p>Loading offline maps…</p>}>
+              <OfflineMaps />
+            </Suspense>
           ) : section === "Paint" ? (
             <Paint />
           ) : section === "Notes" ? (
