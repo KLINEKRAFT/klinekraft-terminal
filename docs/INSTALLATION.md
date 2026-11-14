@@ -12,19 +12,49 @@ Import the provided logo using `npm run brand:import -- "/absolute/path/to/kline
 
 Use Python 3.11+, ideally 3.12. Create `.venv` with `python3 -m venv .venv`, activate it, and run `python -m pip install -e './backend[dev]'`. Start `python -m uvicorn klinekraft.main:app --host 127.0.0.1 --port 8000`. The development Vite server proxies `/api` to that address. The simulated preview does not depend on it. Local builds default to Live computer using `/api/system`. Settings saves your data-mode choice in this browser; choose Preview for UI work without a service. The hosted demo always stays simulated. Production static hosting is available after `npm run build`; start/restart the backend after building because mount detection happens on startup.
 
-## Raspberry Pi — proposed preview deployment
+## Raspberry Pi desktop application
 
-These are untested Pi deployment instructions for the preview, not completion of hardware integration. Start with Raspberry Pi OS 64-bit Desktop and its Chromium browser. Place the repository at `~/klinekraft-terminal`, build/install dependencies as above. Never run the application as root. The Python service provides psutil host metrics. Optional X1202 battery setup is now available; GPS remains unavailable. See [battery setup](BATTERY_SETUP.md) and [Files and Wikipedia](FILES_AND_WIKI.md).
+The installed Pi runs the built UI and FastAPI service at `http://127.0.0.1:8000`.
+The user service `klinekraft.service` starts locally; no public website is involved.
+After installing dependencies and building with `npm run build`, install or refresh
+the application-menu entry and desktop-login launcher:
 
-Copy `deploy/klinekraft.service.example` to `~/.config/systemd/user/klinekraft.service` after reviewing paths. Run `systemctl --user daemon-reload`, then `systemctl --user enable --now klinekraft`. Visit http://127.0.0.1:8000 and check `journalctl --user -u klinekraft`. To stop/remove autostart, `systemctl --user disable --now klinekraft`.
+```sh
+bash scripts/install-desktop-app.sh
+```
 
-After confirming the server is ready, the desktop entry example can be copied to `~/.config/autostart/klinekraft.desktop`. It uses Chromium fullscreen, not a locked-down kiosk. F11/Escape can leave fullscreen, and Alt+F4 closes Chromium to reveal the desktop. Touch users have the in-app exit guidance, but closing an OS-launched window from JavaScript is not reliable; an actual touch-only native exit control is a production-phase requirement. Do not claim that the current button closes Chromium.
+The launcher starts the existing user service, checks readiness for a bounded time,
+and opens a dedicated Chromium app window with no browser tabs or address bar.
+It retains the existing Chromium profile so browser-only preferences and bookmarks
+remain available. The Klinekraft icon appears in the desktop application menu.
+Alt+F4 or the window close button returns to the desktop; the backend keeps running.
+F11 toggles browser fullscreen. This is a desktop-integrated web application, not a
+native-widget rewrite or a separately packaged Electron executable.
 
-Graphical startup can race service readiness. Before unattended deployment, add a bounded readiness check and retry UI, and test the compositor/session configuration used by the installed OS. Remove the desktop entry to disable browser autostart. These examples are not installed by any repository command.
+The installer preserves the previous launcher as `~/.local/bin/start-klinekraft.pre-app`
+and previous autostart entry with `.pre-app` appended. Removing
+`~/.config/autostart/klinekraft-dashboard.desktop` disables login launch without
+removing the application-menu entry or deleting saves. The helper does not replace
+the existing user-service configuration or its AI/battery/game integration settings.
 
 ## Offline behavior
 
-Install npm/Python dependencies beforehand. At runtime the built UI and fonts are served locally; no CDN, analytics, maps or AI request is made. Keep the local server running. This is not an installed PWA, and a stopped local server cannot be replaced by a browser cache. Future Kiwix/maps require separately downloaded, licensed content and a free-space budget.
+Runtime assets, UI fonts and the backend live on this Pi. Localhost is an internal
+address and works without Wi-Fi. Notes, Paint, calendar, calculator, local files,
+installed games, local Wikipedia, downloaded maps and saved AI conversations are
+available offline. Launching games requires installed cores and ROMs; map navigation
+currently has no routing, address search or live GPS integration.
+
+New cloud AI answers, web browsing, live weather, downloads and Google Drive backups
+need internet. LocalSend needs the phone and Pi on a reachable shared network (for
+example a hotspot), but does not need internet. With neither Wi-Fi nor another local
+network, LocalSend cannot transfer files. A Bluetooth file-sharing service is not set up.
+
+The November 13, 2026 offline validation ran a second backend and Kiwix server in a
+separate Linux network namespace with only loopback enabled. External connectivity
+failed as intended; UI/scripts/styles/worker/fonts, map ranges/glyphs, saved places,
+notes/drawings, game lists/favorites, local file listing, and Wikipedia search/article
+reading passed. This did not disconnect the host Wi-Fi or test every game under load.
 
 ## Live Mac development
 

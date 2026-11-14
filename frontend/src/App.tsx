@@ -742,11 +742,12 @@ export default function App() {
             <span className="eyebrow">YOUR DESKTOP IS ALWAYS THERE</span>
             <h2 id="exit-title">Return to your desktop</h2>
             <p>
-              Press Esc to leave browser fullscreen, then close this tab or
-              window. On Raspberry Pi, Alt + F4 closes Chromium and returns to
-              the desktop.
+              In the installed Klinekraft app, press Alt + F4 or use the window
+              close button to return to the desktop. If fullscreen is active,
+              press F11 first to reveal the window controls.
             </p>
-            <p>This preview cannot close a browser window it did not open.</p>
+            <p>Your saved work stays on this Pi. The local service keeps running
+              when you close the window.</p>
             <button
               autoFocus
               onClick={() => {
