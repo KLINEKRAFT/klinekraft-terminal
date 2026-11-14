@@ -3324,3 +3324,13 @@ main[data-page="AI assistant"] .page-content {
 .map-place { margin-bottom: 6px; text-align: left; overflow-wrap: anywhere; }
 .offline-maps .maplibregl-ctrl-attrib { color: #242424; }
 @media(max-width:800px) { .map-layout { grid-template-columns: 1fr; } .offline-map-canvas { min-height: 430px; } .map-sidebar { border-left: 0; border-top: 1px solid var(--line); max-height: none; } }
+
+.document-reader { width: min(960px, 94vw); max-height: 92dvh; padding: 20px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+.document-reader::backdrop { background: #000a; }
+.document-reader header, .document-reader nav { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.document-reader h2 { flex: 1 1 100%; font-size: 16px; overflow-wrap: anywhere; margin: 0; }
+.document-reader button { background: var(--panel); color: var(--ink); border: 1px solid var(--line); padding: 9px 12px; cursor: pointer; }
+.document-reader button:disabled { opacity: .45; cursor: default; }
+.document-reader-body { overflow: auto; max-height: 68dvh; }
+.document-reader canvas, .document-reader img { display: block; max-width: 100%; height: auto; margin: 0 auto; background: white; }
+.document-reader pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.6 var(--mono); }

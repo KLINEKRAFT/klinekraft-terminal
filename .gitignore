@@ -17,3 +17,6 @@ test-results/
 backend/build/
 *.sqlite3
 *.sqlite3-journal
+
+# Generated from pdfjs-dist by Vite configuration
+frontend/public/pdfjs/

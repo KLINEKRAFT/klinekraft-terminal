@@ -1,3 +1,4 @@
+import { DocumentReader, type DocumentSource } from "./DocumentReader";
 import { useEffect, useState, type FormEvent } from "react";
 import { isHostedDemo } from "../runtime";
 import { ArticleDialog, localJSON } from "./WikiReader";
@@ -97,7 +98,7 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
   const [project, setProject] = useState("");
   const [error, setError] = useState("");
   const [wiki, setWiki] = useState<Source | null>(null);
-  const [file, setFile] = useState<{ url: string; source: Source } | null>(null);
+  const [file, setFile] = useState<DocumentSource | null>(null);
 
   useEffect(() => {
     if (isHostedDemo) return;
@@ -120,25 +121,12 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
     return () => request.abort();
   }, [query, cursor, trash]);
 
-  useEffect(() => () => {
-    if (file) URL.revokeObjectURL(file.url);
-  }, [file]);
-
   async function open(source: Source) {
     if (!source.fileId) {
       setWiki(source);
       return;
     }
-    try {
-      const response = await fetch(`/api/research/${source.fileId}`, {
-        headers: { "X-Klinekraft-Client": "local-ui" },
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Could not open the cited file.");
-      setFile({ url: URL.createObjectURL(await response.blob()), source });
-    } catch (failure) {
-      setError((failure as Error).message);
-    }
+    setFile({ url: `/api/research/${source.fileId}`, title: source.title, page: source.page });
   }
 
   if (isHostedDemo) return null;
@@ -189,9 +177,7 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
     {hasMore && !!entries.length && <button disabled={loading} onClick={() => setCursor(entries[entries.length - 1].id)}>
       {loading ? "Loading…" : "Load older entries"}
     </button>}
-    {file && <p><a href={file.url + (file.source.page ? `#page=${file.source.page}` : "")}
-      target="_blank" rel="noopener noreferrer">Open {file.source.title}</a>
-      {" "}<button onClick={() => setFile(null)}>Close citation</button></p>}
+    {file && <DocumentReader key={file.url + ":" + file.page} source={file} onClose={() => setFile(null)} />}
     {wiki && <ArticleDialog reference={wiki} onClose={() => setWiki(null)} />}
   </section>;
 }

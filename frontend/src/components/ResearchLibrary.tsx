@@ -1,3 +1,4 @@
+import { DocumentReader, type DocumentSource } from "./DocumentReader";
 import { useEffect, useState, type FormEvent } from "react";
 import { isHostedDemo } from "../runtime";
 import { localJSON } from "./WikiReader";
@@ -16,8 +17,7 @@ export function ResearchLibrary({ onAsk }: { onAsk: (file: File) => void }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [preview, setPreview] = useState<File | null>(null);
-  const [previewURL, setPreviewURL] = useState("");
+  const [preview, setPreview] = useState<DocumentSource | null>(null);
 
   useEffect(() => {
     if (isHostedDemo) return;
@@ -35,16 +35,6 @@ export function ResearchLibrary({ onAsk }: { onAsk: (file: File) => void }) {
       request.abort();
     };
   }, [query, filter, revision]);
-
-  useEffect(() => {
-    if (!preview) {
-      setPreviewURL("");
-      return;
-    }
-    const url = URL.createObjectURL(preview);
-    setPreviewURL(url);
-    return () => URL.revokeObjectURL(url);
-  }, [preview]);
 
   async function importFolder(event: FormEvent) {
     event.preventDefault();
@@ -68,21 +58,8 @@ export function ResearchLibrary({ onAsk }: { onAsk: (file: File) => void }) {
     }
   }
 
-  async function open(item: ResearchFile) {
-    setBusy(true);
-    setError("");
-    try {
-      const response = await fetch(`/api/research/${item.id}`, {
-        headers: { "X-Klinekraft-Client": "local-ui" },
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Could not open this file.");
-      setPreview(new File([await response.blob()], item.name.split("/").at(-1)!, { type: item.mime }));
-    } catch (failure) {
-      setError((failure as Error).message);
-    } finally {
-      setBusy(false);
-    }
+  function open(item: ResearchFile) {
+    setPreview({ url: `/api/research/${item.id}`, title: item.name, mime: item.mime });
   }
 
   if (isHostedDemo) return null;
@@ -122,14 +99,9 @@ export function ResearchLibrary({ onAsk }: { onAsk: (file: File) => void }) {
         </li>)}
       </ul>}
       {results?.limited && <p>Showing the first 100 results. Narrow your search to see more.</p>}
-      {preview && previewURL && <section className="research-preview" aria-label="File preview">
-        <h3>{preview.name}</h3>
-        <button onClick={() => setPreview(null)}>Close preview</button>
-        <button onClick={() => onAsk(preview)}>Ask about this</button>
-        {preview.type.startsWith("image/")
-          ? <img src={previewURL} alt={preview.name} />
-          : <p><a href={previewURL} target="_blank" rel="noopener noreferrer">Open local preview</a></p>}
-      </section>}
+      {preview && <DocumentReader key={preview.url} source={preview} onClose={() => setPreview(null)}
+        onAsk={(file) => { setPreview(null); onAsk(file); }} />}
+
     </section>
   );
 }
