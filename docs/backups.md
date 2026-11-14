@@ -55,3 +55,7 @@ passed `restic check --read-data` and a cloud restore matched all 46 files
 byte-for-byte. The daily timer is enabled. Local rclone requests are limited to
 one per second to reduce bursts; Google shared-client quota delays were observed
 during setup. The dedicated OAuth client recommendation above still applies.
+
+For the separately requested encrypted OS/configuration/maps/games backup, see
+[full-system recovery](recovery.md). Its manual `full-system` snapshot has a broader
+scope than this daily app-data job and includes private configuration under encryption.
