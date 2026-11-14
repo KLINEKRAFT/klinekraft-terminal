@@ -31,3 +31,15 @@ def read_battery() -> dict:
     except (OSError, ValueError):
         result['battery_status'] = 'X1202 gauge unavailable on I2C bus 1'
     return result
+
+
+def read_external_power():
+    """X1202 GPIO6: read input only; never touch charging-control GPIO16."""
+    import subprocess
+    try:
+        result = subprocess.run(['/usr/bin/gpioget', '--numeric', '-c', 'gpiochip0', '6'],
+                                capture_output=True, text=True, timeout=2, check=True)
+        value = result.stdout.strip()
+        return value == '1' if value in ('0', '1') else None
+    except (OSError, subprocess.SubprocessError):
+        return None
