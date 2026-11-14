@@ -46,6 +46,7 @@ import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
 import { ResearchLibrary } from "./components/ResearchLibrary";
+import { PowerControls } from "./components/PowerControls";
 import { ScreenCast } from "./components/ScreenCast";
 import { FieldConnections } from "./components/FieldConnections";
 import { EmergencyDashboard } from "./components/EmergencyDashboard";
@@ -556,6 +557,7 @@ export default function App() {
         </div>
       </aside>
       <main inert={exitHelp} data-page={section}>
+        <PowerControls />
         <header className="page-header">
           <div>
             <div className="eyebrow">
