@@ -27,10 +27,10 @@ function style(url: string, region: Region): StyleSpecification {
     sources: {
       local: {
         type: "vector",
-        url: "pmtiles://" + url,
+        tiles: ["pmtiles://" + url + "/{z}/{x}/{y}"],
         attribution:
           '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> · <a href="https://protomaps.com">Protomaps</a>',
-        bounds: region.bounds,
+        minzoom: 0,
         maxzoom: region.maxzoom,
       },
     },
@@ -228,7 +228,7 @@ export default function OfflineMaps() {
           zoom: metadata.views ? 3.5 : 11,
           minZoom: 2,
           maxZoom: 18,
-          maxBounds: metadata.bounds,
+          renderWorldCopies: false,
           transformRequest: (url) => ({
             url,
             headers: { "X-Klinekraft-Client": "local-ui" },
@@ -262,6 +262,7 @@ export default function OfflineMaps() {
         });
       })
       .catch((error: Error) => {
+        console.error("Offline map initialization failed", error);
         if (active) setStatus(error.message);
       });
     return () => {
@@ -345,10 +346,13 @@ export default function OfflineMaps() {
           <button
             disabled={!ready}
             onClick={() =>
-              region && map.current?.fitBounds(region.bounds, { padding: 20 })
+              region &&
+              (region.views
+                ? map.current?.flyTo({ center: region.center, zoom: 3.5 })
+                : map.current?.fitBounds(region.bounds, { padding: 20 }))
             }
           >
-            Show downloaded region
+            {region?.views ? "Reset map view" : "Show downloaded region"}
           </button>
           <form
             onSubmit={(event) => {
