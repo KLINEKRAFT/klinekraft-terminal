@@ -1,3 +1,4 @@
+import { DocumentReader, type DocumentSource } from "./DocumentReader";
 import { NotebookSave } from "./Notebook";
 import { useConversations, downloadJSON } from "./useConversations";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -72,10 +73,7 @@ export function AssistantPanel({
   }, [attachment]);
   const [useDiagnostics, setUseDiagnostics] = useState(false);
   const [useResearch, setUseResearch] = useState(false);
-  const [researchSource, setResearchSource] = useState<{ title: string; url: string; page?: number | null } | null>(null);
-  useEffect(() => () => {
-    if (researchSource) URL.revokeObjectURL(researchSource.url);
-  }, [researchSource]);
+  const [researchSource, setResearchSource] = useState<DocumentSource | null>(null);
   const [useWiki, setUseWiki] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -165,19 +163,8 @@ export function AssistantPanel({
       }
     }
   }
-  async function openResearchSource(source: Turn["sources"][number]) {
-    setError("");
-    try {
-      const response = await fetch(`/api/research/${source.fileId}`, {
-        headers: { "X-Klinekraft-Client": "local-ui" },
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Could not open this research source.");
-      const url = URL.createObjectURL(await response.blob());
-      setResearchSource({ title: source.title, url, page: source.page });
-    } catch (failure) {
-      setError((failure as Error).message);
-    }
+  function openResearchSource(source: Turn["sources"][number]) {
+    setResearchSource({ title: source.title, url: `/api/research/${source.fileId}`, page: source.page });
   }
 
   return (
@@ -598,17 +585,8 @@ export function AssistantPanel({
           · Enter to send. AI can make mistakes.
         </p>
       </div>
-      {researchSource && (
-        <section className="ai-context" aria-label="Research citation">
-          <a href={researchSource.url + (researchSource.page ? `#page=${researchSource.page}` : "")}
-            target="_blank" rel="noopener noreferrer">
-            Open {researchSource.title}{researchSource.page ? ` · page ${researchSource.page}` : ""}
-          </a>
-          <button type="button" onClick={() => setResearchSource(null)} aria-label="Close research citation">
-            <X size={14} />
-          </button>
-        </section>
-      )}
+      {researchSource && <DocumentReader key={researchSource.url + ":" + researchSource.page}
+        source={researchSource} onClose={() => setResearchSource(null)} />}
       {selected && (
         <ArticleDialog reference={selected} onClose={() => setSelected(null)} />
       )}
