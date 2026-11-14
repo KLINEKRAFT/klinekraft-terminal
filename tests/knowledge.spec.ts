@@ -134,7 +134,7 @@ test("minimal chat keyboard flow, settings and new chat work on a small screen",
     });
   });
   await page.goto("/");
-  await page.getByRole("button", { name: /03 AI assistant/ }).click();
+  await page.getByRole("button", { name: /03 Shackleton/ }).click();
   const input = page.getByLabel("Your question");
   await input.fill("First line");
   await input.press("Shift+Enter");
