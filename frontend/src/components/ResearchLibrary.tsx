@@ -3,11 +3,11 @@ import { useEffect, useState, type FormEvent } from "react";
 import { isHostedDemo } from "../runtime";
 import { localJSON } from "./WikiReader";
 
-type ResearchFile = { id: number; collection: string; name: string; mime: string };
-type Results = { files: ResearchFile[]; collections: string[]; limited: boolean };
+type ResearchFile = { id: number; collection: string; name: string; mime: string; snippet?: string; page?: number | null; searchable?: boolean };
+type Results = { files: ResearchFile[]; collections: string[]; limited: boolean; total?: number };
 
-export function ResearchLibrary({ onAsk }: { onAsk: (file: File) => void }) {
-  const [query, setQuery] = useState("");
+export function ResearchLibrary({ onAsk, initialQuery = "" }: { onAsk: (file: File) => void; initialQuery?: string }) {
+  const [query, setQuery] = useState(initialQuery);
   const [filter, setFilter] = useState("");
   const [collection, setCollection] = useState("");
   const [root, setRoot] = useState("documents");
@@ -25,7 +25,7 @@ export function ResearchLibrary({ onAsk }: { onAsk: (file: File) => void }) {
     const params = new URLSearchParams({ q: query, collection: filter });
     const timer = window.setTimeout(() => {
       void localJSON(`/api/research?${params}`, { signal: request.signal })
-        .then((data: Results) => setResults(data))
+        .then((data: Results) => { setResults(data); setError(""); })
         .catch((failure: Error) => {
           if (!request.signal.aborted) setError(failure.message);
         });
@@ -59,7 +59,7 @@ export function ResearchLibrary({ onAsk }: { onAsk: (file: File) => void }) {
   }
 
   function open(item: ResearchFile) {
-    setPreview({ url: `/api/research/${item.id}`, title: item.name, mime: item.mime });
+    setPreview({ url: `/api/research/${item.id}`, title: item.name, mime: item.mime, page: item.page ?? undefined });
   }
 
   if (isHostedDemo) return null;
@@ -95,7 +95,8 @@ export function ResearchLibrary({ onAsk }: { onAsk: (file: File) => void }) {
       {!!results?.files.length && <ul>
         {results.files.map((file) => <li key={file.id}>
           <button disabled={busy} onClick={() => void open(file)}>{file.name}</button>
-          <span>{file.collection}</span>
+          <span>{file.collection}{file.page ? ` · PDF page ${file.page}` : ""}{file.searchable === false ? " · image only; OCR needed" : ""}</span>
+          {query && file.snippet && <p className="research-snippet">{file.snippet}</p>}
         </li>)}
       </ul>}
       {results?.limited && <p>Showing the first 100 results. Narrow your search to see more.</p>}

@@ -8,6 +8,7 @@ import {
 } from "react";
 import {
   Paintbrush,
+  Shield,
   StickyNote,
   CalendarDays,
   Calculator as CalculatorIcon,
@@ -45,6 +46,8 @@ import { AwayPanel } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
 import { ResearchLibrary } from "./components/ResearchLibrary";
+import { FieldConnections } from "./components/FieldConnections";
+import { EmergencyDashboard } from "./components/EmergencyDashboard";
 import { Paint } from "./components/Paint";
 import { Organizer } from "./components/Organizer";
 import { Calculator } from "./components/Calculator";
@@ -74,6 +77,7 @@ import {
 const OfflineMaps = lazy(() => import("./components/OfflineMaps"));
 const icons: Record<Section, LucideIcon> = {
   Home: Cpu,
+  Emergency: Shield,
   Paint: Paintbrush,
   Notes: StickyNote,
   Calendar: CalendarDays,
@@ -604,6 +608,8 @@ export default function App() {
               browser={browser}
               note={note}
             />
+          ) : section === "Emergency" ? (
+            <EmergencyDashboard navigate={navigate} onAsk={askAboutFile} />
           ) : section === "AI assistant" ? (
             <AssistantPanel
               context={wikiContext}
@@ -627,8 +633,8 @@ export default function App() {
             <GamesPanel />
           ) : section === "Library" ? (
             <>
-              <Notebook onAsk={askAboutFile} />
               <ResearchLibrary onAsk={askAboutFile} />
+              <Notebook onAsk={askAboutFile} />
               <WikiBrowser
                 onAsk={(article) => {
                   setWikiContext(article);
@@ -687,7 +693,7 @@ export default function App() {
               </details>
             </>
           ) : section === "Network" ? (
-            <NetworkPanel reading={reading} label={label} />
+            <><FieldConnections /><NetworkPanel reading={reading} label={label} /></>
           ) : (
             <Feature section={section} />
           )}

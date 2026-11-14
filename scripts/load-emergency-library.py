@@ -47,7 +47,7 @@ def download(source, root, date):
                 content_type, final_url = 'application/pdf', source['url']
             else:
                 dns_args = ['--doh-url','https://dns.google/dns-query'] if source.get('https_dns') else []
-                report = subprocess.run(['curl',*dns_args,'--http1.1','-fL','--retry','1','--connect-timeout','20','--max-time','180','--max-filesize','100000000','-sS','-o',str(raw),'-w','%{content_type}\n%{url_effective}',source['url']],check=True,capture_output=True,text=True)
+                report = subprocess.run(['curl',*dns_args,'--user-agent','Mozilla/5.0 Klinekraft-Offline-Library','--http1.1','-fL','--retry','1','--connect-timeout','20','--max-time','180','--max-filesize','100000000','-sS','-o',str(raw),'-w','%{content_type}\n%{url_effective}',source['url']],check=True,capture_output=True,text=True)
                 content_type, final_url = report.stdout.split('\n',1)
             body = raw.read_bytes()
             record.update(final_url=final_url, sha256=hashlib.sha256(body).hexdigest(),bytes=len(body))
@@ -75,6 +75,15 @@ def download(source, root, date):
                         if not text.strip(): record.setdefault('image_only_ranges', []).append([first,last])
                         paths.append(target.name)
                 for first in range(1,count+1,4):section(first,min(first+3,count))
+            elif content_type.startswith('text/plain'):
+                original = originals/(name+'.txt')
+                original.write_bytes(body)
+                text = body.decode('utf-8',errors='replace')
+                if len(text)<100: raise ValueError('Missing reference text')
+                for part,chunk in enumerate(pieces(text),1):
+                    target=sections/f'{name} (part {part:02d}).txt'
+                    target.write_text(f'{title}\nSource: {source["url"]}\nRetrieved: {date}\n\n'+chunk)
+                    paths.append(target.name)
             else:
                 if 'html' not in content_type: raise ValueError('Unexpected document type')
                 original = originals/(name+'.html')
@@ -150,7 +159,7 @@ def main():
     lines = ['# Klinekraft Emergency Library', '',
              f"{len(complete)} downloaded references; {sum(len(r.get('sections', [])) for r in complete)} searchable/viewable sections.", '',
              'Open Terminal → Library → Research and choose an Emergency collection. Search by a topic such as fallout, water, shelter, burns, or canning. In AI, enable research-library references.', '',
-             'Documents and local text search work without internet. The current AI model still needs internet; these downloads do not install or train an offline model.', '',
+             'Documents and local text search work without internet. Shackleton supports a separately installed local model; select Offline in its settings. Cloud mode needs internet. These references are searched at question time, not used to train model weights.', '',
              'Open original PDFs for complete tables, diagrams, surrounding instructions, and edition dates. Section filenames identify ORIGINAL PDF page ranges; citation page numbers refer to pages WITHIN that section. Printed page numbers may differ.', '',
              'Field medicine manuals are references for trained responders and clinicians. They include procedures requiring training and equipment. Older editions are retained as dated references; a download date does not mean the guidance was updated that day. Check original sources and current local emergency instructions.', '',
              'HTML text snapshots do not include external images, linked pages, videos, or live alerts. Image-only PDF pages are viewable but not text-searchable. The manifest lists these gaps. Original files are unchanged; searchable PDF sections are regenerated copies.', '',

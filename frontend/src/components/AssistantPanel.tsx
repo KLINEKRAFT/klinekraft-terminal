@@ -57,7 +57,13 @@ export function AssistantPanel({
   const [status, setStatus] = useState<{
     configured: boolean;
     model: string;
+    local?: { configured: boolean; model: string };
+    cloud?: { configured: boolean; model: string };
   } | null>(null);
+  const [provider, setProvider] = useState<"local" | "cloud">(() => localStorage.getItem("klinekraft.ai.provider") === "cloud" ? "cloud" : "local");
+  const [referenceOnly, setReferenceOnly] = useState(true);
+  const ready = provider === "local" && referenceOnly ? true : status?.[provider]?.configured ?? (status?.local ? false : status?.configured);
+  const recipient = provider === "local" ? (referenceOnly ? "the local reference reader (no AI request)" : "the local model on this Pi") : "OpenAI";
   const [question, setQuestion] = useState("");
   const [attachment, setAttachment] = useState<File | null>(initialAttachment ?? null);
   const [preview, setPreview] = useState("");
@@ -72,7 +78,7 @@ export function AssistantPanel({
     return () => URL.revokeObjectURL(url);
   }, [attachment]);
   const [useDiagnostics, setUseDiagnostics] = useState(false);
-  const [useResearch, setUseResearch] = useState(false);
+  const [useResearch, setUseResearch] = useState(true);
   const [researchSource, setResearchSource] = useState<DocumentSource | null>(null);
   const [useWiki, setUseWiki] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -109,7 +115,7 @@ export function AssistantPanel({
     if (
       !question.trim() ||
       composerDisabled ||
-      !status?.configured
+      !ready
     )
       return;
     const sent = question;
@@ -127,8 +133,10 @@ export function AssistantPanel({
       const data = await localJSON("/api/ai/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.any([request.signal, AbortSignal.timeout(120000)]),
+        signal: AbortSignal.any([request.signal, AbortSignal.timeout(provider === "local" ? 260000 : 120000)]),
         body: JSON.stringify({
+          provider,
+          reference_only: provider === "local" && referenceOnly,
           question: sent,
           attachment: upload,
           history: turns
@@ -139,7 +147,7 @@ export function AssistantPanel({
             .slice(-6),
           use_wiki: useWiki,
           use_research: useResearch,
-          use_diagnostics: useDiagnostics,
+          use_diagnostics: useDiagnostics && !(provider === "local" && referenceOnly),
           article_path: useWiki ? articleContext?.path : null,
         }),
       });
@@ -203,10 +211,11 @@ export function AssistantPanel({
         >
           History
         </button>
+        {provider === "local" && <button type="button" className="ai-quiet-button" disabled={busy} aria-pressed={referenceOnly} onClick={() => setReferenceOnly(value => !value)}>{referenceOnly ? "Mode: reference excerpts" : "Mode: AI explanation"}</button>}
         <details className="ai-options">
           <summary aria-label="Chat settings">
             <SlidersHorizontal size={16} />
-            <span>Settings</span>
+            <span>Settings · {provider === "local" ? "Offline" : "Cloud"}</span>
           </summary>
           <div className="ai-options-content">
             <label>
@@ -218,11 +227,14 @@ export function AssistantPanel({
               />{" "}
               Use local Wikipedia
             </label>
-            <p>OpenAI · {status?.model || "gpt-4.1-mini"}</p>
-            <p>
-              Questions, recent messages and relevant wiki excerpts go to
-              OpenAI. Internet and API billing required.
-            </p>
+            <label>Answer engine <select value={provider} disabled={busy} onChange={e => {
+              const next = e.target.value as "local" | "cloud";
+              setProvider(next); localStorage.setItem("klinekraft.ai.provider", next);
+            }}><option value="local">Offline · this Pi</option><option value="cloud">Cloud · OpenAI</option></select></label>
+            {provider === "local" && <label><input type="checkbox" checked={referenceOnly} disabled={busy} onChange={e => setReferenceOnly(e.target.checked)} /> Quote guides directly (no AI rewriting)</label>}
+            {provider === "local" && <p>{referenceOnly ? "Reference mode shows source excerpts immediately. Uncheck for AI explanations of general questions." : "AI explanation mode can misread safety guidance. Use direct-reference mode for emergency and medical questions."}</p>}
+            <p>{status?.[provider]?.model || (provider === "local" ? "Local model" : status?.model)}</p>
+            <p>{provider === "local" ? "Works without internet after installation. Smaller model; answers may take longer. No automatic cloud fallback." : "Questions, recent messages and selected references go to OpenAI. Internet and API billing required."}</p>
             <p>
               Chats are saved on this Pi. Only recent messages are sent with
               each question. Wikipedia stays available offline.
@@ -338,13 +350,13 @@ export function AssistantPanel({
       <div className="ai-chat-scroll" tabIndex={0} aria-label="Conversation">
         {isHostedDemo ? (
           <p className="ai-empty">Open the local Pi app to chat.</p>
-        ) : status && !status.configured ? (
+        ) : status && !ready ? (
           <div className="ai-setup">
-            <p>Connect your assistant.</p>
+            <p>{provider === "local" ? "Offline Shackleton is not ready." : "Connect your cloud assistant."}</p>
             <p className="ai-footnote">
-              Run this on the Pi to enter your OpenAI API key privately.
+              {provider === "local" ? "Check the local model service, then retry." : "Run AI setup on the Pi to enter your OpenAI API key privately."}
             </p>
-            <pre>python3 ~/klinekraft-terminal/scripts/setup-ai.py</pre>
+            <pre>{provider === "local" ? "systemctl --user status klinekraft-ai" : "python3 ~/klinekraft-terminal/scripts/setup-ai.py"}</pre>
             <button
               className="ai-quiet-button"
               onClick={() => {
@@ -468,8 +480,8 @@ export function AssistantPanel({
               </button>
               <p id="ai-upload-note" className="ai-notice">
                 {attachment.type === "text/plain"
-                  ? "Sending shares the first 32,000 bytes of this note with OpenAI. Chat history"
-                  : "Sending uploads this file to OpenAI for this answer. Chat history"}
+                  ? `Sending shares this note with ${recipient}. Chat history`
+                  : `Sending shares this file with ${recipient} for this answer. Chat history`}
                 {" "}saves the filename and answer on the Pi.
               </p>
             </div>
@@ -524,11 +536,11 @@ export function AssistantPanel({
             }
             aria-describedby={attachment ? "ai-keyboard-hint ai-upload-note" : "ai-keyboard-hint"}
           />
-          {useDiagnostics && <p className="ai-notice">Sending shares current CPU, memory, storage, temperature, battery and Klinekraft service status with OpenAI.</p>}
-          {useResearch && <p className="ai-notice">Sending shares matching library excerpts with OpenAI.</p>}
+          {useDiagnostics && !(provider === "local" && referenceOnly) && <p className="ai-notice">Sending shares current CPU, memory, storage, temperature, battery and Klinekraft service status with {recipient}.</p>}
+          {useResearch && <p className="ai-notice">Sending shares matching library excerpts with {recipient}.</p>}
           <div className="ai-compose-controls">
             <button className="ai-wiki-toggle" type="button" aria-pressed={useDiagnostics}
-              disabled={composerDisabled} onClick={() => setUseDiagnostics((value) => !value)}>
+              disabled={composerDisabled || (provider === "local" && referenceOnly)} onClick={() => setUseDiagnostics((value) => !value)}>
               Pi diagnostics {useDiagnostics ? "on" : "off"}
             </button>
             <button className="ai-wiki-toggle" type="button" aria-pressed={useResearch}
@@ -540,7 +552,7 @@ export function AssistantPanel({
               type="button"
               aria-label="Attach image or PDF"
               title="Attach image or PDF"
-              disabled={composerDisabled || !status?.configured}
+              disabled={composerDisabled || !ready}
               onClick={() => fileInput.current?.click()}
             >
               <Paperclip size={17} />
@@ -564,7 +576,7 @@ export function AssistantPanel({
                 store.saving ||
                 store.dirty ||
                 turns.length >= 200 ||
-                !status?.configured ||
+                !ready ||
                 !question.trim() ||
                 isHostedDemo
               }

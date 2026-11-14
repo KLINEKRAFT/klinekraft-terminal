@@ -3452,3 +3452,33 @@ main[data-page="AI assistant"] .page-content {
   .document-reader nav button { width: auto; height: 32px; }
   .document-reader-body { flex: 1; min-height: 0; max-height: none; }
 }
+
+.emergency-readiness { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+.emergency-readiness > div { border: 1px solid var(--line); padding: 12px; display: grid; gap: 6px; }
+.emergency-readiness strong { font-size: 20px; color: #397cff; }
+.emergency-readiness span { font-size: 11px; color: var(--muted); }
+.emergency-topics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.emergency-topics button, .emergency-actions button { padding: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+.emergency-topics button[aria-pressed=true] { border-color: #397cff; color: #397cff; }
+.emergency-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 12px; }
+.research-snippet { font-size: 12px; line-height: 1.5; white-space: pre-wrap; color: var(--muted); margin: 5px 0 12px; }
+@media (min-width:850px) and (max-height:700px) { .sidebar nav button { height:30px; min-height:30px; } }
+@media (max-width:650px) { .emergency-readiness { grid-template-columns:repeat(2,minmax(0,1fr)); } .emergency-topics { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+.field-connections details { margin: 12px 0; padding: 12px; border: 1px solid var(--line); }
+.field-connections label { display: grid; gap: 6px; margin-block: 10px; }
+.field-connections button, .field-connections select, .field-connections textarea { color: var(--ink); background: var(--panel); border: 1px solid var(--line); padding: 9px; font: inherit; max-width:100%; }
+.field-connections textarea { min-height: 75px; }
+.field-connections p { font-size: 13px; line-height:1.5; }
+.route-planner select { max-width:100%; color:var(--ink); background:var(--panel); padding:7px; }
+@media (min-width:850px) and (max-height:700px) {
+  .emergency-readiness > div { padding:8px; gap:4px; }
+  .emergency-readiness strong { font-size:18px; }
+  .emergency-readiness span { font-size:10px; }
+  .emergency-topics { gap:6px; }
+  .emergency-topics button { padding:8px; font-size:12px; }
+  .emergency-actions { gap:5px; margin-block:8px; }
+  .emergency-actions button { padding:6px; font-size:11px; }
+  .emergency-dashboard .browser-help { font-size:11px; margin-block:6px; }
+  .emergency-dashboard .research-library > details { display:none; }
+}

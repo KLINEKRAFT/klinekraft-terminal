@@ -1,0 +1,14 @@
+[Unit]
+Description=Klinekraft offline route planner
+After=network.target
+
+[Service]
+WorkingDirectory=%h/.local/share/klinekraft/routing
+ExecStart=/usr/bin/java -Xmx512M -Xms32M -DmaxRunningTime=45 -cp %h/.local/share/klinekraft/routing/brouter-1.7.10/brouter-1.7.10-all.jar btools.server.RouteServer %h/.local/share/klinekraft/routing/segments4 %h/.local/share/klinekraft/routing/brouter-1.7.10/profiles2 %h/.local/share/klinekraft/routing/customprofiles 17777 1 127.0.0.1
+Restart=on-failure
+RestartSec=5
+Nice=10
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

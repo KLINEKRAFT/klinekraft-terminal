@@ -7,7 +7,7 @@ for (const height of [600, 560]) {
     await page.route('**/api/**', route => route.request().method() === 'GET'
       ? route.continue() : route.abort());
     await page.goto('/');
-    const labels = ['Home', 'Games', 'Shackleton', 'GPS / Maps', 'Library', 'Notes', 'Paint', 'Calendar', 'Calculator', 'Files', 'Network', 'System', 'Settings'];
+    const labels = ['Home', 'Games', 'Shackleton', 'GPS / Maps', 'Library', 'Notes', 'Paint', 'Calendar', 'Calculator', 'Files', 'Network', 'System', 'Settings', 'Emergency'];
     for (const [i, label] of labels.entries()) {
       const button = page.getByRole('button', { name: `${String(i + 1).padStart(2, '0')} ${label}`, exact: true });
       await expect(button).toBeInViewport();
