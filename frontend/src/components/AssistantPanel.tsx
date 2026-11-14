@@ -170,7 +170,7 @@ export function AssistantPanel({
   return (
     <section
       className="assistant-panel ai-chat"
-      aria-label="Cloud AI assistant"
+      aria-label="Shackleton AI assistant"
     >
       <div className="ai-chat-toolbar">
         <button
@@ -358,7 +358,6 @@ export function AssistantPanel({
         ) : !turns.length && !busy ? (
           <div className="ai-empty">
             <p>What would you like to explore?</p>
-            <span>Ask anything. Bring your Wikipedia along.</span>
           </div>
         ) : null}
         <div className="ai-conversation">
@@ -514,7 +513,7 @@ export function AssistantPanel({
             }}
             maxLength={3000}
             rows={2}
-            placeholder="Message Klinekraft…"
+            placeholder="Message Shackleton…"
             disabled={
               busy ||
               isHostedDemo ||
