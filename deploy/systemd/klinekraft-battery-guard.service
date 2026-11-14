@@ -1,0 +1,13 @@
+[Unit]
+Description=Klinekraft sustained low-battery shutdown guard
+After=multi-user.target
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/lib/klinekraft-power/battery-guard.py
+Restart=on-failure
+RestartSec=15
+UMask=0022
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/run
+[Install]
+WantedBy=multi-user.target
