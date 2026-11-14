@@ -27,10 +27,10 @@ function style(url: string, region: Region): StyleSpecification {
     sources: {
       local: {
         type: "vector",
-        url: "pmtiles://" + url,
+        tiles: ["pmtiles://" + url + "/{z}/{x}/{y}"],
         attribution:
           '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> · <a href="https://protomaps.com">Protomaps</a>',
-        bounds: region.bounds,
+        minzoom: 0,
         maxzoom: region.maxzoom,
       },
     },
