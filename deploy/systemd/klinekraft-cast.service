@@ -1,0 +1,14 @@
+[Unit]
+Description=Klinekraft Deck AirPlay receiver
+After=graphical-session.target
+
+[Service]
+Type=simple
+Environment=UXPLAYRC=%h/.config/klinekraft/uxplayrc
+ExecStart=/usr/bin/uxplay
+NoNewPrivileges=true
+UMask=0077
+# Keep pairing codes and client identifiers out of persistent journals.
+StandardOutput=null
+StandardError=null
+Restart=no
