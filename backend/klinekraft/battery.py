@@ -19,10 +19,12 @@ def read_battery() -> dict:
             charge_word = bus.read_word_data(0x36, 0x04)
         voltage = ((voltage_word & 255) * 256 + (voltage_word >> 8)) / 12800
         charge = ((charge_word & 255) * 256 + (charge_word >> 8)) / 256
-        if not (2.5 <= voltage <= 4.5 and 0 <= charge <= 100):
+        # This deck reports small full-charge overshoots (observed 100.03125%).
+        # Allow at most one percentage point; still reject implausible data.
+        if not (2.5 <= voltage <= 4.5 and 0 <= charge <= 101):
             result['battery_status'] = 'Gauge reading out of range'
             return result
-        result.update(battery_percent=round(charge, 1), battery_voltage=round(voltage, 3),
+        result.update(battery_percent=round(min(charge, 100), 1), battery_voltage=round(voltage, 3),
                       battery_status='Estimated charge')
     except ImportError:
         result['battery_status'] = 'Battery driver not installed'
