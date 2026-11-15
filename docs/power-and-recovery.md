@@ -18,6 +18,16 @@ The existing encrypted restic repository uses Google Drive. Previous full-system
 
 Restore verification writes into ~/.local/state/klinekraft-backup/restore-verification, never over active files. An integrity-checked restored database and restic repository check validate those specific artifacts; they do not prove a replacement SD card boots. Keep the recovery password separately available from this Pi.
 
+### Local encrypted fallback and multipart upload
+
+When the shared rclone API project is rate-limited, `sudo python3 scripts/backup-system.py --local-repository /home/klinekraft/.local/share/klinekraft-recovery-local` creates a separate encrypted repository using the existing backup password. The repository must be inside the account home directory; its contents and recovery logs are excluded from the backup. Status explicitly distinguishes local storage from Google Drive.
+
+After the backup completes, run `scripts/package-recovery.py REPOSITORY NEW_OUTPUT_DIRECTORY`. It produces 64 MiB parts, below the Drive connector's 100 MB limit, plus SHA256SUMS, MD5SUMS and parts.json. Completed parts are recorded only after their files close. Never upload an actively written part or treat a partial output directory as a complete backup. The encrypted repository, archive parts and password must remain separate from the public Git repository.
+
+For recovery, download every part and SHA256SUMS into an empty working directory. Run `sha256sum -c SHA256SUMS` before concatenating `repository.tar.part-*` in filename order into repository.tar. Extract into a separate empty directory and use restic with the separately saved password to check and restore the repository. Never restore directly over a running operating system. A cloud completion record must state the verification performed; matching cloud file sizes and a sampled download do not establish full read-back verification of every byte.
+
+The November 14 local fallback contains 214,412 files and approximately 32.5 GB of source data (24.1 GB encrypted). The restic structure check passed, and the isolated restored SQLite database passed integrity checks with 868 research records. Boot configuration files were also restored successfully. This does not establish bootability. Automated daily cloud uploads still depend on the separately rate-limited rclone transport.
+
 ## Validation on November 14, 2026
 
 93 backend tests and six browser tests passed, including all pages at 1024×600 and 1024×560. Live Field mode stopped AI and AirPlay; a local generated answer woke the model, answered in 62 seconds, then the model stopped after its idle interval. The root guard is enabled at boot and reports valid gauge readings plus external power after reconnection. No real poweroff was executed.
