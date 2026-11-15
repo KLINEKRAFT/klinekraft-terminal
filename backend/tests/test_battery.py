@@ -50,3 +50,17 @@ def test_unavailable_clears_readings(monkeypatch, error):
 def test_out_of_range_is_not_a_percentage(monkeypatch):
     install_bus(monkeypatch, charge=120)
     assert read_battery()['battery_status'] == 'Gauge reading out of range'
+
+
+@pytest.mark.parametrize('charge', [100.03125, 100.5, 101])
+def test_small_full_charge_overshoot_keeps_voltage(monkeypatch, charge):
+    install_bus(monkeypatch, voltage=4.1875, charge=charge)
+    data = read_battery()
+    assert data['battery_percent'] == 100
+    assert data['battery_voltage'] == 4.188
+
+
+@pytest.mark.parametrize('voltage,charge', [(3.8, 101.01), (4.6, 100.03), (2.4, 100.03)])
+def test_overshoot_tolerance_does_not_accept_invalid_data(monkeypatch, voltage, charge):
+    install_bus(monkeypatch, voltage=voltage, charge=charge)
+    assert read_battery()['battery_status'] == 'Gauge reading out of range'
