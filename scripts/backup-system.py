@@ -45,6 +45,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--user', default='klinekraft')
     parser.add_argument('--prepare-only', action='store_true')
+    parser.add_argument('--local-repository', type=Path, help='Create a separate encrypted local recovery repository for later upload.')
     args = parser.parse_args()
     if os.geteuid() != 0:
         parser.error('Run with sudo to include system files and preserve ownership.')
@@ -52,10 +53,19 @@ def main():
     account = pwd.getpwnam(args.user)
     home = Path(account.pw_dir)
     env = configuration(home)
+    if args.local_repository:
+        args.local_repository = args.local_repository.resolve()
+        if args.local_repository == home or not args.local_repository.is_relative_to(home):
+            parser.error('Local recovery repository must be inside the account home directory.')
+        env['RESTIC_REPOSITORY'] = str(args.local_repository)
     shared_lock = home/'.local/state/klinekraft-backup/job.lock'
     with shared_lock.open('a') as lock:
         # Share the daily application's lock; never interrupt an existing backup.
         fcntl.flock(lock, fcntl.LOCK_EX)
+        if args.local_repository:
+            args.local_repository.mkdir(parents=True, exist_ok=True, mode=0o700)
+            if not (args.local_repository/'config').exists():
+                subprocess.run(['restic', 'init'], env=env, check=True)
         root = Path('/var/lib/klinekraft-recovery')
         root.mkdir(exist_ok=True, mode=0o700)
         payload = root/'payload'
@@ -93,18 +103,18 @@ def main():
             return
         status = root/'status.json'
         started = datetime.now(timezone.utc).isoformat()
-        status.write_text(json.dumps({'state':'running','started':started}))
+        status.write_text(json.dumps({'state':'running','started':started,'destination':'local' if args.local_repository else 'google-drive'}))
         command = ['restic', '-o', 'rclone.program=/usr/local/lib/klinekraft/rclone-user.sh', 'backup','--json','--host','klinekraft-cyberdeck','--tag','full-system',
                    '--one-file-system','--exclude-caches','--retry-lock','10m']
-        for excluded in EXCLUDES:
+        for excluded in EXCLUDES + ([str(args.local_repository)] if args.local_repository else []) + ['/var/lib/klinekraft-recovery/*.log']:
             command += ['--exclude', excluded]
         command += ['/', '/boot/firmware']
         try:
             subprocess.run(command, env=env, check=True)
         except Exception:
-            status.write_text(json.dumps({'state':'failed','started':started,'finished':datetime.now(timezone.utc).isoformat()}))
+            status.write_text(json.dumps({'state':'failed','destination':'local' if args.local_repository else 'google-drive','started':started,'finished':datetime.now(timezone.utc).isoformat()}))
             raise
-        status.write_text(json.dumps({'state':'saved','started':started,'finished':datetime.now(timezone.utc).isoformat(),
+        status.write_text(json.dumps({'state':'saved','destination':'local' if args.local_repository else 'google-drive','started':started,'finished':datetime.now(timezone.utc).isoformat(),
                                     'scope':'live-system files; not a boot-tested disk image'}))
 
 
