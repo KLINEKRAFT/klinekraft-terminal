@@ -22,3 +22,14 @@ def test_diagnostics_require_opt_in(monkeypatch):
         assert response.status_code == 200
     assert calls == [None, {"sample": 42}]
     assert client.get("/api/diagnostics").status_code == 403
+
+
+def test_diagnostic_temperature_is_fahrenheit(monkeypatch):
+    from klinekraft import diagnostics
+    class Snapshot:
+        def model_dump(self, **kwargs): return {'temperature': 50, 'interfaces': []}
+    monkeypatch.setattr(diagnostics, 'collect_snapshot', lambda: Snapshot())
+    monkeypatch.setattr(diagnostics, 'SERVICES', ())
+    result=diagnostics.collect()
+    assert result['measurements']['temperature']==122
+    assert result['units']['temperature']=='Fahrenheit'

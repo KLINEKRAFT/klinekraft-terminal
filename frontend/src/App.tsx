@@ -42,7 +42,7 @@ import {
 } from "./components/ResourceGraphs";
 import type { HistoryPoint } from "./telemetry";
 import { ToolsLauncher } from "./components/ToolsLauncher";
-import { AwayPanel } from "./components/AwayPanel";
+import { AwayPanel, AwayLaunch } from "./components/AwayPanel";
 import { OutsideWeather } from "./components/OutsideWeather";
 import { GamesPanel } from "./components/GamesPanel";
 import { ResearchLibrary } from "./components/ResearchLibrary";
@@ -185,7 +185,9 @@ function Home({
   detail,
   browser,
   note,
+  openBookmarks,
 }: {
+  openBookmarks: () => void;
   history: HistoryPoint[];
   browser: ReturnType<typeof useBrowserPreferences>;
   note: ReturnType<typeof useQuickNote>;
@@ -254,7 +256,7 @@ function Home({
         <OutsideWeather />
         <div className="home-actions">
           <ToolsLauncher />
-          <AwayPanel />
+          <AwayLaunch />
         </div>
       </div>
       <section className="connections" aria-label="Device readings">
@@ -372,7 +374,7 @@ function Home({
       <HomeTools
         browser={browser}
         note={note}
-        openLibrary={() => navigate("Library")}
+        openLibrary={openBookmarks}
       />
     </>
   );
@@ -444,7 +446,9 @@ export default function App() {
     navigate("AI assistant");
   }
   const [wikiContext, setWikiContext] = useState<WikiReference | null>(null);
+  const [libraryView, setLibraryView] = useState("Documents");
   const [section, setSection] = useState<Section>("Home");
+  const [dimTarget, setDimTarget] = useState<HTMLSpanElement | null>(null);
   const [now, setNow] = useState(new Date());
   const [paused, setPaused] = useState(false);
   const telemetry = useTelemetry(paused, now.getTime());
@@ -557,7 +561,7 @@ export default function App() {
         </div>
       </aside>
       <main inert={exitHelp} data-page={section}>
-        <PowerControls />
+        <PowerControls dimTarget={dimTarget} />
         <header className="page-header">
           <div>
             <div className="eyebrow">
@@ -571,6 +575,7 @@ export default function App() {
             </h1>
           </div>
           <div className="header-actions">
+            <span className="dim-toggle-slot" ref={setDimTarget} />
             <button
               className="icon-button"
               aria-label="Dark mode"
@@ -610,6 +615,7 @@ export default function App() {
               detail={detail}
               browser={browser}
               note={note}
+              openBookmarks={() => { setLibraryView("Bookmarks"); navigate("Library"); }}
             />
           ) : section === "Emergency" ? (
             <EmergencyDashboard navigate={navigate} onAsk={askAboutFile} />
@@ -635,20 +641,15 @@ export default function App() {
           ) : section === "Games" ? (
             <GamesPanel />
           ) : section === "Library" ? (
-            <>
-              <ResearchLibrary onAsk={askAboutFile} />
-              <Notebook onAsk={askAboutFile} />
-              <WikiBrowser
-                onAsk={(article) => {
-                  setWikiContext(article);
-                  navigate("AI assistant");
-                }}
-              />
-              <BrowserLibrary
-                store={browser}
-                openSettings={() => navigate("Settings")}
-              />
-            </>
+            <div className="library-workspace">
+              <nav className="library-navigation" aria-label="Library sections">
+                {["Documents", "Wikipedia", "Notebook", "Bookmarks"].map(view => <button key={view} aria-pressed={libraryView === view} onClick={() => setLibraryView(view)}>{view}</button>)}
+              </nav>
+              <div hidden={libraryView !== "Documents"}><ResearchLibrary onAsk={askAboutFile} /></div>
+              <div hidden={libraryView !== "Notebook"}><Notebook onAsk={askAboutFile} /></div>
+              <div hidden={libraryView !== "Wikipedia"}><WikiBrowser onAsk={(article) => { setWikiContext(article); navigate("AI assistant"); }} /></div>
+              <div hidden={libraryView !== "Bookmarks"}><BrowserLibrary store={browser} openSettings={() => navigate("Settings")} /></div>
+            </div>
           ) : section === "Settings" ? (
             <>
               <section className="settings-panel" aria-label="Appearance">
@@ -740,6 +741,7 @@ export default function App() {
           </footer>
         )}
       </main>
+      <AwayPanel />
       {exitHelp && (
         <div className="modal-backdrop" onClick={() => setExitHelp(false)}>
           <section

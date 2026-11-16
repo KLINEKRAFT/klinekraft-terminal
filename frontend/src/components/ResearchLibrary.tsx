@@ -94,7 +94,7 @@ export function ResearchLibrary({ onAsk, initialQuery = "" }: { onAsk: (file: Fi
       {results && !results.files.length && <p>{query ? "No matching files." : "No files in this view."}</p>}
       {!!results?.files.length && <ul>
         {results.files.map((file) => <li key={file.id}>
-          <button disabled={busy} onClick={() => void open(file)}>{file.name}</button>
+          <button className="research-result-title" title={file.name} disabled={busy} onClick={() => void open(file)}>{file.name.replace(/\.(txt|pdf|md|html?)$/i, "")}</button>
           <span>{file.collection}{file.page ? ` · PDF page ${file.page}` : ""}{file.searchable === false ? " · image only; OCR needed" : ""}</span>
           {query && file.snippet && <p className="research-snippet">{file.snippet}</p>}
         </li>)}

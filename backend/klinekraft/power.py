@@ -20,8 +20,16 @@ last_ai = 0.0
 ai_users = 0
 
 def settings():
-    try: return json.loads((ROOT/'settings.json').read_text())
-    except (OSError, ValueError): return {'field': False}
+    try: data = json.loads((ROOT/'settings.json').read_text())
+    except (OSError, ValueError): data = {}
+    return {'field': bool(data.get('field', False)),
+            'dim': bool(data.get('dim', data.get('field', False)))}
+
+def save_settings(data):
+    ROOT.mkdir(parents=True, exist_ok=True)
+    temporary = ROOT/'settings.tmp'
+    temporary.write_text(json.dumps(data))
+    temporary.replace(ROOT/'settings.json')
 
 def service(action, name):
     try: subprocess.run(['systemctl','--user',action,'klinekraft-'+name+'.service'],check=True,capture_output=True,timeout=15)
@@ -65,8 +73,13 @@ def field(body: FieldMode):
             service('stop','ai'); service('stop','cast')
         else:
             service('start','ai')
-        ROOT.mkdir(parents=True,exist_ok=True)
-        (ROOT/'settings.json').write_text(json.dumps({'field':body.enabled}))
+        save_settings({**settings(), 'field': body.enabled})
+    return status(Response())
+
+@router.post('/dim')
+def dim(body: FieldMode):
+    with lock:
+        save_settings({**settings(), 'dim': body.enabled})
     return status(Response())
 
 @router.get('')

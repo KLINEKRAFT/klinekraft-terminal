@@ -16,9 +16,17 @@ for (const height of [600, 560]) {
       await expect(page.getByRole('button', { name: 'Return to desktop', exact: true })).toBeInViewport();
       expect(await page.evaluate(() => ({ w: document.documentElement.scrollWidth, h: document.documentElement.scrollHeight }))).toEqual({ w: 1024, h: height });
     }
+    await page.getByRole('button', { name: '05 Library', exact: true }).click();
+    const positions = await page.locator('.library-navigation button').evaluateAll(buttons => buttons.map(button => button.getBoundingClientRect().top));
+    expect(new Set(positions).size).toBe(1);
     await page.getByRole('button', { name: '07 Paint', exact: true }).click();
     await expect(page.locator('.paint-footer')).toBeInViewport({ ratio: 1 });
     await expect(page.locator('.paint-canvas-wrap')).toBeInViewport({ ratio: 1 });
+    const normalCanvasHeight = await page.locator('.paint-canvas-wrap').evaluate(el => el.getBoundingClientRect().height);
+    await page.getByRole('button', { name: 'Expand Paint workspace', exact: true }).click();
+    await expect(page.locator('.paint-canvas-wrap')).toBeInViewport({ ratio: 1 });
+    await expect(page.getByRole('button', { name: '05 Library', exact: true })).toBeInViewport();
+    expect(await page.locator('.paint-canvas-wrap').evaluate(el => el.getBoundingClientRect().height)).toBeGreaterThan(normalCanvasHeight + 40);
     await page.getByRole('button', { name: '03 Shackleton', exact: true }).click();
     await expect(page.getByPlaceholder('Message Shackleton…')).toBeInViewport();
     await expect(page.getByText('Ask anything. Bring your Wikipedia along.')).toHaveCount(0);

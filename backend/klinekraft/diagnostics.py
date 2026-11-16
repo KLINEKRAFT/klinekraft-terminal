@@ -11,6 +11,8 @@ SERVICES = ("klinekraft.service", "klinekraft-wiki.service")
 def collect():
     snapshot = collect_snapshot().model_dump(mode="json", by_alias=True)
     snapshot.pop("interfaces", None)
+    if snapshot.get("temperature") is not None:
+        snapshot["temperature"] = round(snapshot["temperature"] * 9 / 5 + 32, 1)
     services = {}
     for name in SERVICES:
         try:
@@ -31,7 +33,7 @@ def collect():
             services[name] = state
         except (OSError, subprocess.SubprocessError):
             services[name] = {"status": "unavailable"}
-    return {"measurements": snapshot, "units": {"temperature": "Celsius", "memory": "GB", "storage": "GB",
+    return {"measurements": snapshot, "units": {"temperature": "Fahrenheit", "memory": "GB", "storage": "GB",
             "batteryVoltage": "volts", "cpu": "percent"}, "services": services}
 
 

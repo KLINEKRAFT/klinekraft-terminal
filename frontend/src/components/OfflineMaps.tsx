@@ -248,7 +248,7 @@ export default function OfflineMaps() {
         });
         map.current = view;
         view.addControl(new maplibregl.NavigationControl(), "top-right");
-        view.addControl(new maplibregl.ScaleControl());
+        view.addControl(new maplibregl.ScaleControl({ unit: 'imperial' }));
         view.addControl(new maplibregl.FullscreenControl());
         view.on("load", () => {
           if (active) {
@@ -335,7 +335,7 @@ export default function OfflineMaps() {
       coordinates.forEach(p => bounds.extend([p[0], p[1]]));
       view.fitBounds(bounds, { padding: 40 });
       const props = data.features[0].properties || {};
-      setRouteSummary(`${(Number(props['track-length']) / 1000).toFixed(1)} km · saved on Pi; planned offline. Conditions and closures are unknown.`);
+      setRouteSummary(`${(Number(props['track-length']) / 1609.344).toFixed(1)} mi · saved on Pi; planned offline. Conditions and closures are unknown.`);
       setRouteData(JSON.stringify(data));
   }
   async function restoreRoute(id: string) {
