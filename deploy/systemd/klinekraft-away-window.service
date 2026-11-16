@@ -1,0 +1,12 @@
+[Unit]
+Description=Klinekraft isolated Away window
+After=klinekraft.service
+Requires=klinekraft.service
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/klinekraft-desktop-away
+KillMode=control-group
+TimeoutStopSec=5
+Restart=no
+UMask=0077

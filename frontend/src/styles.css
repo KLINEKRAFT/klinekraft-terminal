@@ -3566,3 +3566,10 @@ main:has(.paint-expanded) .page-content { padding-top: 8px; }
 @keyframes away-logo-drift { 0% { left: 0; top: 0; transform: translate(0,0); } 37% { left: 100%; top: 60%; transform: translate(-100%,-60%); } 68% { left: 35%; top: 100%; transform: translate(-35%,-100%); } 100% { left: 70%; top: 0; transform: translate(-70%,0); } }
 .is-paused .away-logo-drift img { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .away-logo-drift img { animation: none; left: 50%; top: 30%; transform: translate(-50%,-30%); } }
+
+.desktop-away-stage { position: fixed; inset: 0; width: 100vw; height: 100dvh; cursor: none; }
+.away-desktop-settings { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.away-desktop-settings button { border: 1px solid var(--line); padding: 8px 12px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.away-desktop-settings .away-hint { flex: 1; margin: 0; min-width: 180px; }
+
+.desktop-away-blank { position: fixed; inset: 0; background: #000; cursor: none; }

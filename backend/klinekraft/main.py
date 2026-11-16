@@ -20,7 +20,7 @@ from .organizer import router as organizer_router
 from .mesh import router as mesh_router
 from .hotspot import router as hotspot_router
 from .casting import router as casting_router
-from . import power
+from . import power, desktop_away
 from .routing import router as routing_router
 from .maps import router as maps_router
 from .emergency import router as emergency_router
@@ -91,6 +91,7 @@ app.include_router(mesh_router)
 app.include_router(hotspot_router)
 app.include_router(casting_router)
 app.include_router(power.router)
+app.include_router(desktop_away.router)
 app.include_router(emergency_router)
 app.include_router(diagnostics_router)
 app.include_router(tools_router)

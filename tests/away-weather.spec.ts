@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({page}) => {
+  await page.route('**/api/desktop-away', route => route.fulfill({json: {installed:false}}));
+});
+
 test("Away choices, palette, ticker, persistence and escape", async ({
   page,
 }) => {
@@ -128,4 +132,29 @@ test("blank message, logo and automatic idle preserve the current page", async (
   await page.keyboard.press('a');
   await expect(page.getByRole('dialog', {name:'Away screen'})).toHaveCount(0);
   await expect(page.getByRole('heading', {name:'Notes', exact:true})).toBeVisible();
+});
+
+
+test('desktop look is loaded, applied, and shown without the workspace', async ({page}) => {
+  let blank = false;
+  let preferences = {background:'contour', colors:['#080b10','#28303b','#10131b'], ink:'#ffffff', message:'', ticker:false, font:'sans', paused:false, logo:true, idleMinutes:2};
+  await page.route('**/api/desktop-away', async route => {
+    if (route.request().method() === 'POST') preferences = route.request().postDataJSON();
+    await route.fulfill({json: {installed:true, preferences, blank, displayBlankMinutes:preferences.idleMinutes ? Math.max(5,preferences.idleMinutes+3) : 0}});
+  });
+  await page.goto('/');
+  await page.getByRole('button', {name:'Away',exact:false}).click();
+  await expect(page.getByLabel('Background', {exact:true})).toHaveValue('contour');
+  await page.getByLabel('Automatic Away').selectOption('0');
+  await page.getByRole('button', {name:'Apply to desktop'}).click();
+  await expect(page.getByRole('dialog', {name:'Away screen'}).getByRole('status')).toContainText('timers are off');
+  expect(preferences.idleMinutes).toBe(0);
+  await page.goto('/?desktop-away=1');
+  await expect(page.locator('.desktop-away-stage')).toBeVisible();
+  await expect(page.locator('.away-logo-drift img')).toBeVisible();
+  await expect(page.locator('.sidebar')).toHaveCount(0);
+  await expect(page.locator('.away-message')).toHaveCount(0);
+  blank = true;
+  await expect(page.getByLabel('Idle black screen')).toBeVisible();
+  await expect(page.locator('.away-canvas')).toHaveCount(0);
 });
