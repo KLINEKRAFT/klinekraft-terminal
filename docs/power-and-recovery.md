@@ -31,3 +31,13 @@ The November 14 local fallback contains 214,412 files and approximately 32.5 GB 
 ## Validation on November 14, 2026
 
 93 backend tests and six browser tests passed, including all pages at 1024×600 and 1024×560. Live Field mode stopped AI and AirPlay; a local generated answer woke the model, answered in 62 seconds, then the model stopped after its idle interval. The root guard is enabled at boot and reports valid gauge readings plus external power after reconnection. No real poweroff was executed.
+
+## Restart and offline verification
+
+A subsequent controlled shutdown and manual restart produced a new boot ID. Terminal relaunched in Chromium app mode; the AI, routing, Wikipedia and battery-guard services returned. The database passed a quick integrity check with 868 research records. The previous boot's final shutdown journal was unavailable, so electrical cutoff and the real low-battery trigger remain unverified.
+
+Install bounded persistent boot logging with `bash scripts/setup-journal.sh`. The journald drop-in retains logs across boots with a 100 MB usage target, seven-day retention and 1 GB free-space reserve. The installer flushes the current journal to disk; it cannot recover previously discarded boots.
+
+On November 15, an isolated audit process with `IPAddressDeny=any` and `IPAddressAllow=localhost` verified that an external TCP connection failed while local resources remained usable. Library search, map archive ranges and label fonts, Wikipedia search/articles, a short Tulsa route, notes/calendar/drawing storage, the game catalog, Shackleton reference answers and local generated text all passed. Tests used a temporary database copy. Field mode was temporarily disabled for the separate audit process's model request and restored afterward, avoiding interference from the live backend's independent idle timer.
+
+The separate phone library served search results and a document, and returned 404 for personal notes, chats, power and hotspot API paths. The hotspot profile is WPA-protected, has autoconnect disabled and serves at http://10.42.0.1:8090 when activated. This verifies software behavior, not a physical phone association, radio-off test, emulator play session or a full browser interaction test. The Pi's internet connection remained available for the chat throughout the isolated audit.
