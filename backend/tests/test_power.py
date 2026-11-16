@@ -63,3 +63,21 @@ def test_external_power_cancels_critical_countdown():
     p=ShutdownPolicy();p.update(5,3.3,0)
     assert p.update(5,3.3,90,external_power=True) is None
     assert p.low_since is None
+
+
+def test_dim_persists_independently_without_service_changes(tmp_path, monkeypatch):
+    from klinekraft import power
+    monkeypatch.setattr(power, 'ROOT', tmp_path)
+    calls=[]
+    monkeypatch.setattr(power,'service',lambda *args:calls.append(args))
+    monkeypatch.setattr(power,'read_battery',lambda:{'battery_percent':80,'battery_voltage':4.0})
+    power.save_settings({'field': True})
+    assert power.settings()['dim'] is True
+    power.dim(power.FieldMode(enabled=False))
+    assert power.settings()=={'field': True, 'dim': False}
+    assert calls==[]
+    power.field(power.FieldMode(enabled=False))
+    power.dim(power.FieldMode(enabled=True))
+    assert power.settings()=={'field': False, 'dim': True}
+    power.field(power.FieldMode(enabled=True))
+    assert power.settings()=={'field': True, 'dim': True}

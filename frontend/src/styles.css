@@ -3495,3 +3495,74 @@ main[data-page="AI assistant"] .page-content {
 @media (max-height: 650px) and (min-width: 761px) {
   .paint-editor, .paint-expanded .paint-editor { min-height: 120px; }
 }
+
+/* Compact global display switch, independent of Field mode. */
+.dim-toggle-slot { display: inline-flex; }
+.dim-toggle { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 4px 7px; border: 1px solid var(--line); border-radius: 5px; background: transparent; color: var(--ink); font: 10px var(--mono); letter-spacing: .06em; cursor: pointer; }
+.dim-toggle-track { display: inline-flex; align-items: center; width: 25px; height: 14px; padding: 2px; border: 1px solid var(--muted); border-radius: 10px; }
+.dim-toggle-track > span { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: transform .15s; }
+.dim-toggle[aria-checked="true"] .dim-toggle-track { border-color: var(--logo-blue); background: var(--logo-blue); }
+.dim-toggle[aria-checked="true"] .dim-toggle-track > span { background: white; transform: translateX(11px); }
+.dim-toggle:focus-visible { outline: 2px solid var(--logo-blue); outline-offset: 3px; }
+.dim-toggle:disabled { opacity: .5; cursor: wait; }
+@media (prefers-reduced-motion: reduce) { .dim-toggle-track > span { transition: none; } }
+
+/* Focused library views and consistent local-document controls. */
+.library-workspace [hidden] { display: none !important; }
+.library-navigation { display: flex; flex-wrap: wrap; gap: 6px; position: sticky; top: 0; background: var(--paper); z-index: 2; padding: 0 0 12px; border-bottom: 1px solid var(--line); }
+.library-workspace button, .library-workspace input, .library-workspace select,
+.research-library button, .research-library input, .research-library select {
+  font: 12px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 4px; min-height: 34px; padding: 7px 10px; max-width: 100%;
+}
+.library-workspace button, .research-library button { cursor: pointer; }
+.library-workspace .library-navigation button { width: auto; height: 34px; flex: 0 0 auto; }
+.library-navigation button[aria-pressed="true"] { border-color: var(--logo-blue); box-shadow: inset 0 -2px var(--logo-blue); }
+.library-workspace :is(button,input,select):focus-visible, .research-library :is(button,input,select):focus-visible { outline: 2px solid var(--logo-blue); outline-offset: 2px; }
+.library-workspace button:disabled, .research-library button:disabled { opacity: .5; cursor: default; }
+.library-workspace .settings-panel { margin-top: 12px; }
+.research-fields { margin: 12px 0; }
+.research-library label { font-size: 12px; }
+.research-library input, .research-library select { width: 100%; }
+.research-library > ul { list-style: none; padding: 0; max-height: none; overflow: visible; margin: 8px 0; }
+.research-library li { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.research-library li .research-result-title { display: block; width: 100%; text-align: left; font-weight: 500; border: 0; background: transparent; padding: 4px 0; overflow-wrap: anywhere; }
+.research-library li .research-result-title:hover { color: var(--blue); text-decoration: underline; }
+.research-library li span { display: block; margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+.research-snippet { font-size: 12px; line-height: 1.5; margin: 7px 0; }
+.organizer-item[aria-pressed="true"] { border-color: var(--logo-blue); box-shadow: inset 3px 0 var(--logo-blue); }
+.organizer-item span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Canvas-first Paint layout; expanding keeps app navigation available. */
+.paint-canvas-actions { position: relative; margin-left: auto; }
+.paint-canvas-actions summary { cursor: pointer; padding: 7px; font: 11px var(--mono); border: 1px solid var(--line); border-radius: 4px; }
+.paint-canvas-actions > div { position: absolute; right: 0; top: 100%; width: 190px; display: grid; gap: 6px; padding: 8px; border: 1px solid var(--line); background: var(--paper); box-shadow: 0 4px 15px #0005; z-index: 10; }
+.paint-help { position: relative; font: 10px var(--mono); }
+.paint-help summary { cursor: pointer; padding: 3px 0; }
+.paint-help p { position: absolute; bottom: 100%; left: 0; right: 0; z-index: 10; background: var(--paper); border: 1px solid var(--line); padding: 10px; font-size: 12px; }
+.paint.paint-expanded { position: absolute; inset: 0; height: 100%; padding: 0; overflow: hidden; }
+main:has(.paint-expanded) > .page-header, main:has(.paint-expanded) > .power-controls,
+main:has(.paint-expanded) > .command-area { display: none; }
+main:has(.paint-expanded) .page-content { padding-top: 8px; }
+.paint .paint-editor { grid-template-columns: 82px minmax(0,1fr); }
+.paint-toolbox button span { display: none; }
+.paint-toolbox button { min-height: 32px; }
+@media (min-width: 761px) and (max-height: 650px) {
+  main[data-page="Paint"] > .command-area { display: none; }
+  .paint-document-bar { padding-bottom: 4px; }
+  .paint-command-bar, .paint-options, .paint-color-bar { padding: 4px; gap: 5px; }
+  .paint-options { min-height: 36px; }
+  .paint .paint-editor, .paint-expanded .paint-editor { flex: 1 1 0; min-height: 120px; grid-template-columns: 82px minmax(0,1fr); }
+  .paint-toolbox { grid-template-columns: repeat(2,minmax(0,1fr)); align-content: start; }
+  .paint-toolbox button { min-height: 30px; padding: 4px; }
+  .paint-palette { display: flex; flex-wrap: wrap; max-width: 365px; gap: 3px; }
+  .paint-color-bar label { font-size: 10px; }
+  .paint-footer { padding-block: 2px; }
+  .paint.paint-expanded { height: 100%; }
+}
+
+/* A contained, slow drift keeps the original mark fully on-screen. */
+.away-logo-drift { position: absolute; inset: 12% 10%; pointer-events: none; }
+.away-logo-drift img { position: absolute; width: clamp(130px, 28vw, 290px); max-width: 48%; filter: brightness(0) invert(1); animation: away-logo-drift 43s ease-in-out infinite alternate; }
+@keyframes away-logo-drift { 0% { left: 0; top: 0; transform: translate(0,0); } 37% { left: 100%; top: 60%; transform: translate(-100%,-60%); } 68% { left: 35%; top: 100%; transform: translate(-35%,-100%); } 100% { left: 70%; top: 0; transform: translate(-70%,0); } }
+.is-paused .away-logo-drift img { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .away-logo-drift img { animation: none; left: 50%; top: 30%; transform: translate(-50%,-30%); } }

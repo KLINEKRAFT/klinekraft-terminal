@@ -127,19 +127,8 @@ export function Paint() {
       window.removeEventListener("keydown", escape);
     };
   }, [expanded]);
-  async function toggleFullscreen() {
-    if (expanded) {
-      if (window.document.fullscreenElement === root.current)
-        await window.document.exitFullscreen();
-      setExpanded(false);
-    } else {
-      setExpanded(true);
-      try {
-        await root.current?.requestFullscreen();
-      } catch {
-        /* Keep the full-window workspace if browser fullscreen is unavailable. */
-      }
-    }
+  function toggleFullscreen() {
+    setExpanded(value => !value);
   }
   const canvas = useRef<HTMLCanvasElement>(null),
     workspace = useRef<HTMLDivElement>(null),
@@ -755,9 +744,9 @@ export function Paint() {
       <div className="paint-document-bar">
         <button
           onClick={() => void toggleFullscreen()}
-          aria-label={expanded ? "Exit fullscreen Paint" : "Fullscreen Paint"}
+          aria-label={expanded ? "Exit expanded Paint" : "Expand Paint workspace"}
         >
-          {expanded ? "Exit fullscreen" : "Fullscreen"}
+          {expanded ? "Exit expanded" : "Expand"}
         </button>
         <label className="paint-name">
           DRAWING{" "}
@@ -860,7 +849,7 @@ export function Paint() {
         </button>
       </div>
       <div className="paint-options">
-        <label>
+        {tool === "brush" && <label>
           Brush{" "}
           <select
             value={brush}
@@ -875,7 +864,7 @@ export function Paint() {
             <option value="soft">Soft airbrush</option>
             <option value="spray">Spray</option>
           </select>
-        </label>
+        </label>}
         <strong>{tools.find((value) => value.id === tool)?.label}</strong>
         <label>
           Width{" "}
@@ -890,7 +879,7 @@ export function Paint() {
             ))}
           </select>
         </label>
-        <label>
+        {["rectangle", "ellipse"].includes(tool) && <label>
           Shape{" "}
           <select
             value={fillStyle}
@@ -900,7 +889,7 @@ export function Paint() {
             <option value="solid">Solid fill</option>
             <option value="both">Outline + background</option>
           </select>
-        </label>
+        </label>}
         {tool === "text" && (
           <>
             <label>
@@ -925,6 +914,7 @@ export function Paint() {
             </label>
           </>
         )}
+        <details className="paint-canvas-actions"><summary>Canvas actions</summary><div>
         <button disabled={!selection} onClick={() => transform("crop")}>
           <Crop size={15} />
           Crop
@@ -948,6 +938,7 @@ export function Paint() {
         <button disabled={!ready} onClick={() => transform("clear")}>
           Clear
         </button>
+        </div></details>
       </div>
       <div className="paint-editor">
         <div
@@ -1078,10 +1069,10 @@ export function Paint() {
           </select>
         </label>
       </div>
-      <p className="organizer-caption">
+      <details className="paint-help"><summary>Shortcuts & help</summary><p>
         {hints[tool]} Ctrl+Z undo · Ctrl+Y redo · Ctrl+S save. Changes autosave
         on this Pi.
-      </p>
+      </p></details>
     </section>
   );
 }

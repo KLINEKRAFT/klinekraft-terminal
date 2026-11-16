@@ -84,6 +84,7 @@ test("local article flows into cloud answer with verified source and image", asy
   });
   await page.goto("/");
   await page.getByRole("button", { name: /^05 Library/ }).click();
+  await page.getByRole("button", { name: "Wikipedia", exact: true }).click();
   await page.getByLabel("Search Wikipedia", { exact: true }).fill("Moon");
   await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.locator(".wiki-results button").click();

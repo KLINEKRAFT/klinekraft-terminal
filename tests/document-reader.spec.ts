@@ -26,8 +26,8 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/api/conversations**', r => r.fulfill({ json: r.request().method() === 'PUT'
     ? { id: r.request().url().split('/').at(-1), revision: 1, updated: new Date().toISOString() } : { chats: [] } }));
   await page.route('**/api/research?*', r => r.fulfill({json: {collections: ['Test'],limited:false,files:[
-    {id:1,name:'Guide.pdf',mime:'application/pdf',collection:'Test'},
-    {id:2,name:'Water.txt',mime:'text/plain',collection:'Test'},
+    {id:1,name:'Guide',mime:'application/pdf',collection:'Test'},
+    {id:2,name:'Water',mime:'text/plain',collection:'Test'},
   ]}}));
   await page.route('**/api/research/1', r => {
     expect(r.request().headers()['x-klinekraft-client']).toBe('local-ui');
@@ -39,7 +39,7 @@ test.beforeEach(async ({ page }) => {
 test('Library opens PDF and text immediately without a popup', async ({page,context}) => {
   await page.goto('/');
   await page.getByRole('button',{name:/^05 Library/}).click();
-  await page.getByRole('button',{name:'Guide.pdf',exact:true}).click();
+  await page.getByRole('button',{name:'Guide',exact:true}).click();
   const reader=page.getByRole('dialog');
   await expect(reader).toBeVisible();
   await expect(reader.getByText('Page 1 of 2')).toBeVisible();
@@ -49,8 +49,8 @@ test('Library opens PDF and text immediately without a popup', async ({page,cont
   await expect(reader.getByRole('status')).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(reader).toHaveCount(0);
-  await expect(page.getByRole('button',{name:'Guide.pdf',exact:true})).toBeFocused();
-  await page.getByRole('button',{name:'Water.txt',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Guide',exact:true})).toBeFocused();
+  await page.getByRole('button',{name:'Water',exact:true}).click();
   await expect(reader.locator('pre')).toContainText('<script>not executable</script>');
   expect(context.pages()).toHaveLength(1);
 });

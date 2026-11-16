@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { localJSON } from "./WikiReader";
 import { isHostedDemo } from "../runtime";
 
@@ -17,6 +17,8 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
   const [trash, setTrash] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
+  const saving = useRef(false);
+  const [saveError, setSaveError] = useState(false);
   const [status, setStatus] = useState("");
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [day, setDay] = useState(() => dayString(new Date()));
@@ -43,16 +45,23 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
     return () => request.abort();
   }, [kind, draftKey]);
 
-  function edit(next: Item | null) {
+  function edit(next: Item | null, changed = true) {
+    setSaveError(false);
+    setStatus("");
     setDraft(next);
-    setDirty(!!next);
+    setDirty(!!next && changed);
     try {
-      if (next) localStorage.setItem(draftKey, JSON.stringify(next));
+      if (next && changed) localStorage.setItem(draftKey, JSON.stringify(next));
       else localStorage.removeItem(draftKey);
     } catch { setStatus("Draft recovery is unavailable. Save your changes on the Pi."); }
   }
-  async function save() {
-    if (!draft) return;
+  async function save(): Promise<boolean> {
+    if (!draft || saving.current) return false;
+    if (!draft.title.trim() || (kind === "event" && !draft.day)) {
+      setSaveError(true); setStatus("Add a title" + (kind === "event" ? " and date" : "") + " before switching."); return false;
+    }
+    saving.current = true;
+    setSaveError(false);
     setBusy(true);
     setStatus("");
     try {
@@ -62,16 +71,24 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
       setItems((previous) => [saved, ...previous.filter((item) => item.id !== saved.id)]);
       setDraft(saved);
       setDirty(false);
-      localStorage.removeItem(draftKey);
+      try { localStorage.removeItem(draftKey); } catch { /* The Pi copy is saved. */ }
       setStatus("Saved on Pi.");
-    } catch (error) { setDirty(false); setStatus((error as Error).message); }
-    finally { setBusy(false); }
+      return true;
+    } catch (error) { setSaveError(true); setStatus("Not saved — " + (error as Error).message); return false; }
+    finally { saving.current = false; setBusy(false); }
+  }
+  async function open(next: Item | null) {
+    if (saving.current || next?.id === draft?.id) return;
+    if (dirty && draft && !(draft.revision === 0 && !draft.title.trim() && !draft.body.trim())) {
+      if (!await save()) return;
+    }
+    edit(next, false);
   }
   useEffect(() => {
-    if (!dirty || busy || !draft?.title.trim() || (kind === "event" && !draft.day)) return;
+    if (saveError || !dirty || busy || !draft?.title.trim() || (kind === "event" && !draft.day)) return;
     const timer = window.setTimeout(() => { void save(); }, 900);
     return () => clearTimeout(timer);
-  }, [draft, dirty, busy]);
+  }, [draft, dirty, busy, saveError]);
   const visible = items.filter((item) => item.archived === trash &&
     (item.title + " " + item.body).toLowerCase().includes(query.toLowerCase()) &&
     (kind === "note" || !!query || item.day === day))
@@ -104,7 +121,7 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
     <div className="organizer-columns">
       <aside className="organizer-list">
         <div className="organizer-toolbar">
-          <button disabled={!!draft || busy} onClick={() => edit({
+          <button disabled={busy} onClick={() => void open({
             id: crypto.randomUUID(), kind, title: "", body: "", day: kind === "event" ? day : null,
             time: "", revision: 0, archived: false,
           })}>New {kind === "note" ? "note" : "event"}</button>
@@ -113,13 +130,13 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
         <label className="sr-only" htmlFor="organizer-search">Search {kind === "note" ? "notes" : "events"}</label>
         <input id="organizer-search" type="search" placeholder="Search…" value={query} onChange={(event) => setQuery(event.target.value)} />
         {!visible.length && <p>{kind === "event" && !query ? `No events for ${day}.` : "No items in this view."}</p>}
-        {visible.map((item) => <button className="organizer-item" key={item.id} disabled={!!draft || busy} onClick={() => edit(item)}>
+        {visible.map((item) => <button className="organizer-item" key={item.id} disabled={busy} aria-pressed={draft?.id === item.id} onClick={() => void open(item)}>
           <strong>{item.title}</strong>
           <span>{kind === "event" ? `${item.day} · ${item.time || "All day"}` : item.body.slice(0, 100) || "Empty note"}</span>
         </button>)}
       </aside>
       <div className="organizer-editor">
-        {<p role="status">{busy ? "Saving…" : dirty ? "Unsaved changes · saving shortly" : status || "Changes save automatically on the Pi."}</p>}
+        {<p role="status">{busy ? "Saving…" : saveError ? status : dirty ? "Unsaved changes · saving shortly" : status || "Changes save automatically on the Pi."}</p>}
         {draft ? <form onSubmit={(event) => { event.preventDefault(); void save(); }}>
           <label>Title<input required maxLength={200} value={draft.title} disabled={busy}
             onChange={(event) => edit({ ...draft, title: event.target.value })} /></label>
@@ -133,7 +150,7 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
             onChange={(event) => edit({ ...draft, body: event.target.value })} /></label>
           <div className="organizer-toolbar">
             <button type="submit" disabled={busy || !draft.title.trim()}>{busy ? "Saving…" : "Save on Pi"}</button>
-            <button type="button" disabled={busy} onClick={() => edit(null)}>Close editor</button>
+            <button type="button" disabled={busy} onClick={() => void open(null)}>Close editor</button>
             {draft.revision > 0 && <label><input type="checkbox" checked={draft.archived} disabled={busy}
               onChange={(event) => edit({ ...draft, archived: event.target.checked })} /> In trash</label>}
           </div>

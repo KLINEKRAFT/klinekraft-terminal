@@ -78,9 +78,10 @@ test("offline weather is labeled last known; corrupt preferences recover", async
   );
   await page.getByRole("button", { name: "Away", exact: false }).click();
   await expect(page.getByLabel("Message", { exact: true })).toHaveValue(
-    "Be right back.",
+    "",
   );
   await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.getByLabel("Message", { exact: true }).fill("Back soon");
   await page.getByLabel("Ticker message").check();
   await expect(page.locator(".away-ticker-track")).toHaveCSS(
     "animation-name",
@@ -106,4 +107,25 @@ test("Away enters and exits browser fullscreen", async ({ page }) => {
     .toBeFalsy();
   await page.getByRole("button", { name: "Close Away" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+
+test("blank message, logo and automatic idle preserve the current page", async ({page}) => {
+  await page.clock.install();
+  await page.goto('/');
+  await page.getByRole('button', {name:'Away', exact:false}).click();
+  await page.getByLabel('Message', {exact:true}).fill('');
+  await page.getByLabel('Floating white logo').check();
+  await page.getByLabel('Automatic Away').selectOption('1');
+  await page.getByRole('button', {name:'Start Away'}).click();
+  await expect(page.locator('.away-message')).toHaveCount(0);
+  await expect(page.locator('.away-logo-drift img')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', {name:'06 Notes', exact:true}).click();
+  await page.clock.runFor(61000);
+  await expect(page.getByRole('dialog', {name:'Away screen'})).toBeVisible();
+  await expect(page.locator('.away-settings')).toHaveCount(0);
+  await page.keyboard.press('a');
+  await expect(page.getByRole('dialog', {name:'Away screen'})).toHaveCount(0);
+  await expect(page.getByRole('heading', {name:'Notes', exact:true})).toBeVisible();
 });

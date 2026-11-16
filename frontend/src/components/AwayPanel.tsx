@@ -11,15 +11,19 @@ type Preferences = {
   ticker: boolean;
   font: "sans" | "mono";
   paused: boolean;
+  logo: boolean;
+  idleMinutes: number;
 };
 const defaults: Preferences = {
   background: "gradient",
-  colors: ["#4f625f", "#c2ad8b", "#20272c"],
+  colors: ["#080b10", "#28303b", "#10131b"],
   ink: "#f2f0ea",
-  message: "Be right back.",
+  message: "",
   ticker: false,
   font: "sans",
   paused: false,
+  logo: true,
+  idleMinutes: 2,
 };
 const storageKey = "klinekraft.away.v1";
 const hex = (v: unknown): v is string =>
@@ -44,29 +48,54 @@ function readPreferences(): Preferences {
       ticker: p.ticker === true,
       font: p.font === "mono" ? "mono" : "sans",
       paused: p.paused === true,
+      logo: p.logo !== false,
+      idleMinutes: [0, 1, 2, 5, 10].includes(p.idleMinutes) ? p.idleMinutes : 2,
     };
   } catch {
     return defaults;
   }
 }
-export function AwayPanel() {
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <button className="away-launch" onClick={() => setOpen(true)}>
-        <Moon size={15} /> Away <span>↗</span>
-      </button>
-      {open && <AwayDialog onClose={() => setOpen(false)} />}
-    </>
-  );
+export function AwayLaunch() {
+  return <button className="away-launch" onClick={() => window.dispatchEvent(new Event("klinekraft-open-away"))}>
+    <Moon size={15} /> Away <span>↗</span>
+  </button>;
 }
-function AwayDialog({ onClose }: { onClose: () => void }) {
+export function AwayPanel() {
+  const [mode, setMode] = useState<"settings" | "idle" | null>(null);
+  useEffect(() => {
+    const open = () => setMode("settings");
+    window.addEventListener("klinekraft-open-away", open);
+    return () => window.removeEventListener("klinekraft-open-away", open);
+  }, []);
+  useEffect(() => {
+    if (mode) return;
+    let lastActivity = Date.now();
+    const active = () => { lastActivity = Date.now(); };
+    const events = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart", "focus"];
+    events.forEach(event => window.addEventListener(event, active, { passive: true }));
+    document.addEventListener("visibilitychange", active);
+    const timer = window.setInterval(() => {
+      const minutes = readPreferences().idleMinutes;
+      if (document.hidden || !document.hasFocus() || document.querySelector("dialog[open]")) {
+        lastActivity = Date.now(); return;
+      }
+      if (minutes && Date.now() - lastActivity >= minutes * 60000) setMode("idle");
+    }, 1000);
+    return () => {
+      clearInterval(timer);
+      events.forEach(event => window.removeEventListener(event, active));
+      document.removeEventListener("visibilitychange", active);
+    };
+  }, [mode]);
+  return mode && <AwayDialog automatic={mode === "idle"} onClose={() => setMode(null)} />;
+}
+function AwayDialog({ onClose, automatic }: { onClose: () => void; automatic: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const surface = useRef<HTMLDivElement>(null);
   const startButton = useRef<HTMLButtonElement>(null);
   const [preferences, setPreferences] = useState(readPreferences);
-  const [presenting, setPresenting] = useState(false);
-  const [controls, setControls] = useState(true);
+  const [presenting, setPresenting] = useState(automatic);
+  const [controls, setControls] = useState(!automatic);
   const [storageError, setStorageError] = useState(false);
   const [fullscreenError, setFullscreenError] = useState("");
   const [fullscreen, setFullscreen] = useState(false);
@@ -114,7 +143,7 @@ function AwayDialog({ onClose }: { onClose: () => void }) {
       );
     }
   }
-  const message = preferences.message.trim() || "Be right back.";
+  const message = preferences.message.trim();
   const style = {
     "--away-ink": preferences.ink,
     "--away-font": preferences.font === "mono" ? "var(--mono)" : "var(--sans)",
@@ -138,16 +167,18 @@ function AwayDialog({ onClose }: { onClose: () => void }) {
         <div
           className={`away-stage ${preferences.paused ? "is-paused" : ""} ${controls ? "" : "controls-hidden"}`}
           style={style}
-          onPointerMove={() => setControls(true)}
-          onPointerDown={() => setControls(true)}
-          onKeyDown={() => setControls(true)}
+          onWheel={() => automatic ? onClose() : setControls(true)}
+          onPointerMove={() => automatic ? onClose() : setControls(true)}
+          onPointerDown={(event) => { if (automatic) { event.preventDefault(); onClose(); } else setControls(true); }}
+          onKeyDown={(event) => { if (automatic) { event.preventDefault(); event.stopPropagation(); onClose(); } else setControls(true); }}
         >
           <AwayCanvas
             background={preferences.background}
             colors={preferences.colors}
             paused={preferences.paused}
           />
-          <div
+          {preferences.logo && <div className="away-logo-drift"><img src="/brand/lockup-640.png" alt="Klinekraft Terminal" /></div>}
+          {message && <div
             className={
               preferences.ticker ? "away-message away-ticker" : "away-message"
             }
@@ -161,7 +192,7 @@ function AwayDialog({ onClose }: { onClose: () => void }) {
             ) : (
               <p>{message}</p>
             )}
-          </div>
+          </div>}
           <div className="away-stage-controls">
             {presenting && (
               <button
@@ -216,10 +247,15 @@ function AwayDialog({ onClose }: { onClose: () => void }) {
                 maxLength={160}
                 value={preferences.message}
                 onChange={(event) => update("message", event.target.value)}
-                placeholder="Be right back."
+                placeholder="Leave blank for no text"
               />
             </label>
             <div className="away-options">
+              <label className="away-field">Automatic Away
+                <select aria-label="Automatic Away" value={preferences.idleMinutes} onChange={event => update("idleMinutes", Number(event.target.value))}>
+                  <option value={0}>Off</option>{[1, 2, 5, 10].map(minutes => <option key={minutes} value={minutes}>After {minutes} min idle</option>)}
+                </select>
+              </label>
               <label className="away-field">
                 Background
                 <select
@@ -278,6 +314,8 @@ function AwayDialog({ onClose }: { onClose: () => void }) {
               </fieldset>
             </div>
             <footer>
+              <label><input type="checkbox" checked={preferences.logo} onChange={event => update("logo", event.target.checked)} /> Floating white logo</label>
+              <button onClick={() => setPreferences(p => ({...p, colors: defaults.colors, background: "gradient", message: "", logo: true}))}>Dark logo preset</button>
               <label>
                 <input
                   type="checkbox"
@@ -297,7 +335,7 @@ function AwayDialog({ onClose }: { onClose: () => void }) {
               <button onClick={() => setPreferences(defaults)}>Reset</button>
             </footer>
             <p className="away-hint">
-              Escape to return. Your screen sleep setting still applies.
+              Blank message hides text. Automatic Away runs while Terminal is active; input returns to your work. Display sleep still applies.
             </p>
             {storageError && (
               <p role="status">
