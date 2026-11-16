@@ -11,3 +11,16 @@ The three procedural shaders are adapted from [away-message-dual](https://github
 Tulsa coordinates and the Open-Meteo approach come from [WEATHER](https://github.com/KLINEKRAFT/WEATHER), revision `63ed98c43e1dcca34efb8368e8007f49166632f4`. Home requests only current outdoor temperature in Fahrenheit, directly from Open-Meteo, every 15 minutes while visible. No location permission or API key is needed. The timestamp uses Tulsa's Central time. Last known data is labeled after a fetch failure or when over 45 minutes old; readings over 24 hours old are hidden. Internet is required for new weather readings. A successful cached reading remains available offline. Attribution links to Open-Meteo.
 
 Validation: production TypeScript/build, browser tests for settings persistence, allowed backgrounds, ticker, offline weather and corrupt storage; Chromium visual checks for shaders, fullscreen and small layouts. Weather browser tests use a controlled response. Live Open-Meteo access is unavailable from the restricted build environment and must be verified on the Pi.
+
+
+## Desktop-wide Away (optional Pi installation)
+
+Run `bash scripts/setup-desktop-away.sh` in the repository after building and installing the backend. Requires the existing Wayland desktop, Chromium and swayidle. It installs two user services and a desktop-login autostart entry. It refuses to compete with an existing unmanaged swayidle process.
+
+Home → Away → **Apply to desktop** saves the selected background, palette, optional message/logo and idle timer on this Pi. Defaults: show Away at two idle minutes; switch to a black screen at five. For longer Away delays the black-screen timeout is three minutes later, never earlier than five. Off disables both timers. App-local idle activation yields to the installed desktop manager. The isolated browser profile cannot close or overwrite the regular Terminal browser profile. Activity stops only its dedicated service, returning to the previous application. The black screen unmounts the animated canvas to stop rendering.
+
+**Hardware display power-off is disabled.** During the November 16 Pi test, `wlopm --off HDMI-A-1` succeeded but `--on` left the monitor off, including after stopping the idle daemon. Switching VT 7 → 1 → 7 restored it without restarting the desktop or closing applications. This resembles reported [labwc/Pi wake failures](https://github.com/labwc/labwc/issues/3352), but the root cause on this deck is not proven. Software blanking leaves the backlight powered; it is not suspend and is not a security lock.
+
+Stop the feature with `systemctl --user stop klinekraft-idle.service`. Disable login startup by removing `~/.config/autostart/klinekraft-idle.desktop`. The installer does not alter monitor modes, existing labwc configuration, or other desktop applications. Turning Off in Away and applying is the simplest temporary disable option.
+
+Validation: validated API input, restart rollback, bounded service commands, UI persistence/standalone rendering and black-screen canvas teardown are covered by tests. The dedicated browser service started and stopped correctly on the Pi. Physical idle/resume behavior still needs the user's confirmation; hardware DPMS recovery failed and was excluded from the installed commands.

@@ -1,0 +1,11 @@
+[Unit]
+Description=Klinekraft desktop Away and display idle control
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/klinekraft-desktop-idle
+ExecStopPost=-%h/.local/bin/klinekraft-away-control resume
+Restart=on-failure
+RestartSec=5
+UMask=0077
