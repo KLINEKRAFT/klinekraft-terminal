@@ -10,8 +10,9 @@ const topics = [
   ["Shelter & weather", "shelter weather"],
   ["Radiation emergency", "radiation fallout"],
   ["Food & preservation", "food preservation"],
+  ["Cold War archive", "HISTORICAL"],
 ];
-type Readiness = { library: { documents: number; searchable: number }; maps: boolean; localAI: boolean; model: string };
+type Readiness = { checkedAt: string; library: { documents: number; searchable: number; historical: number }; checks: {name:string; state:string; checkedAt:string|null; detail:string}[] };
 
 export function EmergencyDashboard({ navigate, onAsk }: { navigate: (section: Section) => void; onAsk: (file: File) => void }) {
   const [readiness, setReadiness] = useState<Readiness | null>(null);
@@ -26,13 +27,14 @@ export function EmergencyDashboard({ navigate, onAsk }: { navigate: (section: Se
   }, []);
   return <section className="emergency-dashboard" aria-label="Emergency dashboard">
     <div className="emergency-readiness">
-      <div><strong>{readiness ? readiness.library.documents : "—"}</strong><span>Stored references</span></div>
-      <div><strong>{readiness ? readiness.library.searchable : "—"}</strong><span>Searchable references</span></div>
-      <div><strong>{readiness ? (readiness.maps ? "Ready" : "Not installed") : "Checking"}</strong><span>Offline maps</span></div>
-      <div><strong>{readiness ? (readiness.localAI ? "Ready" : "Unavailable") : "Checking"}</strong><span>Offline Shackleton</span></div>
+      {readiness ? readiness.checks.map(check => <div key={check.name} className="readiness-card" data-state={check.state}>
+        <span>{check.name}</span><strong>{check.state}</strong>
+        <small>{check.checkedAt ? `Test / save: ${new Date(check.checkedAt).toLocaleString('en-US', {month:'short', day:'numeric',hour:'numeric',minute:'2-digit'})}` : 'No verification recorded'}</small>
+        <p>{check.detail}</p>
+      </div>) : <p>Checking local readiness…</p>}
     </div>
     {error && <p role="alert">Readiness check: {error}</p>}
-    <p className="browser-help">Open saved guidance directly. AI is optional. This page does not receive live emergency alerts.</p>
+    <p className="browser-help">Open saved guidance directly. AI is optional. Ready reflects the recorded test, not a guarantee. This page does not receive live emergency alerts.</p>
     <div className="emergency-topics">{topics.map(([label, query]) => <button key={query} aria-pressed={topic === query} onClick={() => setTopic(query)}>{label}</button>)}</div>
     <div className="emergency-actions">
       <button onClick={() => navigate('GPS / Maps')}>Maps & saved places</button>
@@ -41,6 +43,7 @@ export function EmergencyDashboard({ navigate, onAsk }: { navigate: (section: Se
       <button onClick={() => navigate('AI assistant')}>Ask Shackleton</button>
       <button onClick={() => navigate('Network')}>Connections</button>
     </div>
+    {topic === "HISTORICAL" && <p className="browser-help">Cold War documents are historical records, not current emergency guidance. Shackleton searches them when you explicitly ask about history, vintage guides, or their year.</p>}
     <ResearchLibrary key={topic} initialQuery={topic} onAsk={onAsk} />
   </section>;
 }

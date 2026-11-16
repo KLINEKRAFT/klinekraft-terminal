@@ -60,16 +60,16 @@ def query_terms(query):
     return [t for t in dict.fromkeys(re.findall(r"[^\W_]{2,}", query.lower())) if t not in stop][:12]
 
 
-def ranked_rows(connection, query, collection="", limit=101):
+def ranked_rows(connection, query, collection="", limit=101, exclude_historical=False):
     terms = query_terms(query)
     if not terms:
         if query.strip():
             return []
-        return connection.execute("SELECT * FROM research_files WHERE (?='' OR collection=?) ORDER BY name COLLATE NOCASE,id LIMIT ?", (collection,collection,limit)).fetchall()
+        return connection.execute("SELECT * FROM research_files WHERE (?='' OR collection=?) AND (?=0 OR collection NOT LIKE 'Historical%') ORDER BY name COLLATE NOCASE,id LIMIT ?", (collection,collection,exclude_historical,limit)).fetchall()
     expression = ' OR '.join('"' + term + '"' for term in terms)
     return connection.execute("""SELECT f.* FROM research_fts JOIN research_files f ON f.id=research_fts.rowid
-        WHERE research_fts MATCH ? AND (?='' OR f.collection=?)
-        ORDER BY bm25(research_fts,4.0,1.0), f.id LIMIT ?""", (expression,collection,collection,limit)).fetchall()
+        WHERE research_fts MATCH ? AND (?='' OR f.collection=?) AND (?=0 OR f.collection NOT LIKE 'Historical%')
+        ORDER BY bm25(research_fts,4.0,1.0), f.id LIMIT ?""", (expression,collection,collection,exclude_historical,limit)).fetchall()
 
 
 def best_excerpt(row, terms, length=450):
@@ -201,7 +201,8 @@ def relevant_passages(question):
     """Use the same ranked index as Library, preserving local document page links."""
     with database() as connection:
         init(connection)
-        rows = ranked_rows(connection, question, limit=20)
+        historical = bool(re.search(r'\b(historic(?:al)?|history|vintage|cold[ -]war|19[45678]\d)\b', question, re.I))
+        rows = ranked_rows(connection, question, limit=20, exclude_historical=not historical)
     passages, seen = [], set()
     for row in rows:
         # Avoid filling the context with adjacent chunks of the same manual.

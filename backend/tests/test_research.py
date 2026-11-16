@@ -50,3 +50,14 @@ def test_ranked_search_words_pages_and_updates(tmp_path, monkeypatch):
 def test_search_syntax_is_plain_text(tmp_path, monkeypatch):
     monkeypatch.setenv('KLINEKRAFT_DATA_DIR', str(tmp_path))
     assert research.search('" OR (NOT *)','')['files'] == []
+
+
+def test_historical_guides_are_opt_in_for_ai_but_visible_in_library(tmp_path, monkeypatch):
+    monkeypatch.setenv('KLINEKRAFT_DATA_DIR', str(tmp_path))
+    with database() as c:
+        research.init(c)
+        insert(c,'Current water guide','Water storage guidance')
+        c.execute("INSERT INTO research_files(collection,name,mime,digest,extracted) VALUES(?,?,?,?,?)", ('Historical - Cold War civil defense','HISTORICAL 1961 water','text/plain','old','Water storage dated claims'))
+    assert all('HISTORICAL' not in row['title'] for row in research.relevant_passages('water storage'))
+    assert any('HISTORICAL' in row['title'] for row in research.relevant_passages('historical 1961 water'))
+    assert any('HISTORICAL' in row['name'] for row in research.search('water','')['files'])
