@@ -1,3 +1,4 @@
+import { emergencyGuides } from "../emergencyGuides";
 import { useEffect, useState } from "react";
 import { localJSON } from "./WikiReader";
 import { ResearchLibrary } from "./ResearchLibrary";
@@ -25,7 +26,17 @@ export function EmergencyDashboard({ navigate, onAsk }: { navigate: (section: Se
     });
     return () => request.abort();
   }, []);
+  const guide = emergencyGuides[topic];
   return <section className="emergency-dashboard" aria-label="Emergency dashboard">
+    <h2>Quick reference</h2>
+    <p className="browser-help">Saved on this deck · no AI or internet needed · reviewed Nov 16, 2026. Follow local emergency instructions; call 911 for immediate danger.</p>
+    <div className="emergency-topics">{topics.map(([label, query]) => <button key={query} aria-pressed={topic === query} onClick={() => setTopic(query)}>{label}</button>)}</div>
+    {guide && <article className="emergency-quick" aria-label={guide.title}>
+      <h3>{guide.title}</h3>
+      <ol>{guide.steps.map(step => <li key={step}>{step}</li>)}</ol>
+      <small>Source: <a href={guide.url} target="_blank" rel="noreferrer">{guide.source}</a> · original website requires internet</small>
+    </article>}
+    <details className="emergency-checks"><summary>Deck readiness &amp; backup checks</summary>
     <div className="emergency-readiness">
       {readiness ? readiness.checks.map(check => <div key={check.name} className="readiness-card" data-state={check.state}>
         <span>{check.name}</span><strong>{check.state}</strong>
@@ -33,9 +44,9 @@ export function EmergencyDashboard({ navigate, onAsk }: { navigate: (section: Se
         <p>{check.detail}</p>
       </div>) : <p>Checking local readiness…</p>}
     </div>
+    </details>
     {error && <p role="alert">Readiness check: {error}</p>}
     <p className="browser-help">Open saved guidance directly. AI is optional. Ready reflects the recorded test, not a guarantee. This page does not receive live emergency alerts.</p>
-    <div className="emergency-topics">{topics.map(([label, query]) => <button key={query} aria-pressed={topic === query} onClick={() => setTopic(query)}>{label}</button>)}</div>
     <div className="emergency-actions">
       <button onClick={() => navigate('GPS / Maps')}>Maps & saved places</button>
       <button onClick={() => navigate('Notes')}>Contacts & planning notes</button>

@@ -61,3 +61,13 @@ def test_historical_guides_are_opt_in_for_ai_but_visible_in_library(tmp_path, mo
     assert all('HISTORICAL' not in row['title'] for row in research.relevant_passages('water storage'))
     assert any('HISTORICAL' in row['title'] for row in research.relevant_passages('historical 1961 water'))
     assert any('HISTORICAL' in row['name'] for row in research.search('water','')['files'])
+
+
+def test_conversational_words_do_not_outweigh_drinking_water(tmp_path, monkeypatch):
+    monkeypatch.setenv('KLINEKRAFT_DATA_DIR', str(tmp_path))
+    with database() as c:
+        research.init(c)
+        insert(c, 'Dental manual', 'What should I do? My current teeth are safe during an emergency. Say what to do.')
+        insert(c, 'Drinking water safety', 'Making drinking water safe: boil clear water for one minute.')
+    question='What do my current saved references say about making drinking water safe during an emergency?'
+    assert research.relevant_passages(question)[0]['title']=='Drinking water safety'
