@@ -56,7 +56,7 @@ def init(connection):
 
 
 def query_terms(query):
-    stop = set("what where when which who why how does from about this that with have find explain please and the for are can you your guide guides research answer briefly using saved reference references source sources cite according tell give need information help".split())
+    stop = set("what where when which who why how does from about this that with have find explain please and the for are can you your guide guides research answer briefly using saved reference references source sources cite according tell give need information help do did my our us me of in on at to is it as be by or an a say says current during should would could will get use".split())
     return [t for t in dict.fromkeys(re.findall(r"[^\W_]{2,}", query.lower())) if t not in stop][:12]
 
 

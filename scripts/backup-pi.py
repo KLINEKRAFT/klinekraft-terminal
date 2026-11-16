@@ -30,6 +30,7 @@ def stage(home, target):
     data = home / '.local/share/klinekraft'
     copy_tree(home / '.local/state/klinekraft/power/settings.json', target / 'power/settings.json')
     copy_tree(data / 'research-files', target / 'terminal/research-files')
+    copy_tree(home / 'Documents/Cold War Civil Defense', target / 'archives/Cold War Civil Defense')
     database = data / 'conversations.sqlite3'
     if not database.is_file() or database.is_symlink():
         raise RuntimeError('Terminal database is missing or linked. Backup stopped.')
@@ -49,6 +50,7 @@ def stage(home, target):
         'Stop klinekraft.service before restoring terminal/ to ~/.local/share/klinekraft/.\n'
         'Restore games/saves to ~/Games/Klinekraft/saves, retroarch to ~/.config/retroarch,\n'
         'and received to ~/Downloads/Received. Review existing files before replacing them.\n'
+        'Restore archives/Cold War Civil Defense to ~/Documents/Cold War Civil Defense.\n'
         'Restore power/settings.json to ~/.local/state/klinekraft/power/settings.json.\n'
         'Catalog requires separately restored ROMs. ROMs, OS, browser-only preferences,\n'
         'API keys, OAuth credentials and the backup recovery password are not included.\n')

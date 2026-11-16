@@ -3580,3 +3580,11 @@ main:has(.paint-expanded) .page-content { padding-top: 8px; }
 .readiness-card[data-state="Ready"] strong { color: var(--ink); }
 .readiness-card[data-state="Ready"] strong::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; background: var(--logo-blue); vertical-align: middle; }
 .readiness-card[data-state="Needs attention"] strong { color: var(--orange); }
+
+.emergency-quick { border: 1px solid var(--line); padding: 12px 16px; margin: 10px 0; }
+.emergency-quick h3 { margin: 0 0 8px; }
+.emergency-quick ol { padding-left: 22px; margin: 0 0 10px; }
+.emergency-quick li { margin: 8px 0; line-height: 1.45; }
+.emergency-quick a { color: inherit; text-decoration: underline; }
+.emergency-checks { margin: 12px 0; }
+.emergency-checks summary { cursor: pointer; padding: 8px 0; }

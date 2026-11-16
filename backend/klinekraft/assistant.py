@@ -253,8 +253,8 @@ def ask(body: Question = Depends(bounded_question)):
                   'If the relevant attachment content cannot be read, say so. Never invent sources or image URLs.')
         if body.provider == 'local':
             # Bound context and CPU time on the 8 GB Pi. Always retain the question and citations.
-            excerpts = [{**e, 'text':e['text'][:1000]} for e in excerpts[:1]]
-            research_excerpts = [{**e, 'text':e['text'][:1200]} for e in research_excerpts[:3]]
+            excerpts = [{**e, 'text':e['text'][:800]} for e in excerpts[:1]]
+            research_excerpts = [{**e, 'text':e['text'][:900]} for e in research_excerpts[:2]]
             notice += ' Offline model; processing stays on this Pi.'
             system = ("You are Shackleton, an offline AI field companion. Answer in plain text, at most 100 words. Prefer Fahrenheit, miles and feet; preserve exact source units and medical dosages. "
                       "Historical/Cold War sources are dated history, not current safety guidance; label them as such. Use the supplied references to answer directly. For health or emergency questions, use only those references; "
