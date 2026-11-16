@@ -3573,3 +3573,10 @@ main:has(.paint-expanded) .page-content { padding-top: 8px; }
 .away-desktop-settings .away-hint { flex: 1; margin: 0; min-width: 180px; }
 
 .desktop-away-blank { position: fixed; inset: 0; background: #000; cursor: none; }
+
+.emergency-readiness .readiness-card { align-items: flex-start; text-align: left; gap: 5px; }
+.readiness-card small { font: 10px var(--mono); color: var(--muted); }
+.readiness-card p { font-size: 11px; line-height: 1.45; margin: 3px 0 0; color: var(--muted); }
+.readiness-card[data-state="Ready"] strong { color: var(--ink); }
+.readiness-card[data-state="Ready"] strong::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; background: var(--logo-blue); vertical-align: middle; }
+.readiness-card[data-state="Needs attention"] strong { color: var(--orange); }

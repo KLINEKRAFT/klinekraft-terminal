@@ -1,0 +1,30 @@
+[
+  {
+    "title": "HISTORICAL 1951 - Survival Under Atomic Attack",
+    "url": "https://www.govinfo.gov/content/pkg/GOVPUB-PREX-PURL-gpo147210/pdf/GOVPUB-PREX-PURL-gpo147210.pdf",
+    "year": 1951,
+    "publisher": "US National Security Resources Board",
+    "catalog": "https://www.govinfo.gov/app/details/GOVPUB-PREX-PURL-gpo147210",
+    "sha256": "6465044507145adfa6bf0cd9596bd2c0f1ce8f654fe52173229158088c3b1d72",
+    "pages": 17
+  },
+  {
+    "title": "HISTORICAL 1961 - Fallout Protection - What to Know and Do About Nuclear Attack",
+    "url": "https://dahp.wa.gov/sites/default/files/Fallout%20Protection%20What%20to%20Know%20and%20Do.pdf",
+    "year": 1961,
+    "publisher": "US Department of Defense Office of Civil Defense",
+    "catalog": "https://digital.library.cornell.edu/catalog/ss%3A24354782",
+    "sha256": "a7db720edbc73ea64ddd22a5632cfc19a3f109ac435c7266b08e15cce0e381d4",
+    "pages": 48
+  },
+  {
+    "title": "HISTORICAL 1968 - In Time of Emergency",
+    "url": "https://cms2.revize.com/revize/gogebiccountymi/document_center/Misc/Emergency-1968.pdf",
+    "year": 1968,
+    "publisher": "US Office of Civil Defense",
+    "catalog": "https://www.gutenberg.org/ebooks/15158",
+    "sha256": "209f7b507f0d4e5736fa387b3a4ce2f64d4241a68df3af978c10d3dcaa3a9a51",
+    "pages": 100,
+    "ocr_note": "Searchable sections derived using OCR; occasional transcription errors. Original scan retained unchanged."
+  }
+]
