@@ -58,6 +58,10 @@ export const sections = [
   "Emergency",
 ] as const;
 export type Section = (typeof sections)[number];
+export const homeSections: readonly Section[] = ["Files", "Network", "System"];
+export const navigationSections = sections.filter(
+  (section) => !homeSections.includes(section),
+);
 export const sectionLabel = (section: Section) =>
   section === "AI assistant" ? "Shackleton" : section;
 export type CommandResult = { section?: Section; message: string };
