@@ -43,6 +43,12 @@ export function ResearchLibrary({
   const [preview, setPreview] = useState<DocumentSource | null>(null);
 
   useEffect(() => {
+    const refresh = () => setRevision((value) => value + 1);
+    window.addEventListener("klinekraft:library-changed", refresh);
+    return () =>
+      window.removeEventListener("klinekraft:library-changed", refresh);
+  }, []);
+  useEffect(() => {
     if (isHostedDemo) return;
     const request = new AbortController();
     const params = new URLSearchParams({ q: query, collection: filter, mime });

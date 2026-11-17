@@ -1,3 +1,5 @@
+import { SourceLink } from "./Briefing";
+import { AnswerMarkdown } from "./AnswerMarkdown";
 import { Info } from "./Info";
 import { DocumentReader, type DocumentSource } from "./DocumentReader";
 import { NotebookSave } from "./Notebook";
@@ -18,6 +20,7 @@ export type Turn = {
   notice: string;
   sources: (WikiReference & {
     id: number;
+    url?: string | null;
     fileId?: number | null;
     page?: number | null;
   })[];
@@ -106,6 +109,8 @@ export function AssistantPanel({
   }, [attachment]);
   const [useDiagnostics, setUseDiagnostics] = useState(false);
   const [useResearch, setUseResearch] = useState(true);
+  const [useEvents, setUseEvents] = useState(true);
+  const [onlineResearch, setOnlineResearch] = useState(false);
   const [researchSource, setResearchSource] = useState<DocumentSource | null>(
     null,
   );
@@ -178,6 +183,8 @@ export function AssistantPanel({
             .slice(-6),
           use_wiki: useWiki,
           use_research: useResearch,
+          use_events: useEvents,
+          online_research: provider === "cloud" && onlineResearch,
           use_diagnostics:
             useDiagnostics && !(provider === "local" && referenceOnly),
           article_path: useWiki ? articleContext?.path : null,
@@ -278,6 +285,24 @@ export function AssistantPanel({
               />{" "}
               Use local Wikipedia
             </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={useEvents}
+                onChange={(e) => setUseEvents(e.target.checked)}
+              />
+              Use saved event reports
+            </label>
+            {provider === "cloud" && (
+              <label>
+                <input
+                  type="checkbox"
+                  checked={onlineResearch}
+                  onChange={(e) => setOnlineResearch(e.target.checked)}
+                />
+                Search papers online (sends search to OpenAlex / Europe PMC)
+              </label>
+            )}
             <label>
               Answer engine{" "}
               <select
@@ -506,7 +531,7 @@ export function AssistantPanel({
           <div className="ai-empty">
             <img
               className="shackleton-mark"
-              src="/brand/shackleton-blue.png"
+              src="/brand/shackleton-hologram-head.png"
               alt="Shackleton"
             />
             <p>What would you like to explore?</p>
@@ -519,7 +544,9 @@ export function AssistantPanel({
               {turn.attachmentName && (
                 <p className="ai-notice">Attachment: {turn.attachmentName}</p>
               )}
-              <div className="ai-answer">{turn.answer}</div>
+              <div className="ai-answer">
+                <AnswerMarkdown text={turn.answer} />
+              </div>
               <NotebookSave turn={turn} />
               {turn.notice && <p className="ai-notice">{turn.notice}</p>}
               {!!turn.images.length && (
@@ -549,17 +576,25 @@ export function AssistantPanel({
                       : turn.sources.length + " sources"}
                   </summary>
                   <div className="ai-sources">
-                    {turn.sources.map((s) => (
-                      <button
-                        key={s.id}
-                        onClick={() =>
-                          s.fileId ? void openResearchSource(s) : setSelected(s)
-                        }
-                      >
-                        [{s.id}] {s.title}
-                        {s.page ? ` · page ${s.page}` : ""}
-                      </button>
-                    ))}
+                    {turn.sources.map((s) =>
+                      s.url ? (
+                        <SourceLink key={s.id} url={s.url}>
+                          [{s.id}] {s.title}
+                        </SourceLink>
+                      ) : (
+                        <button
+                          key={s.id}
+                          onClick={() =>
+                            s.fileId
+                              ? void openResearchSource(s)
+                              : setSelected(s)
+                          }
+                        >
+                          [{s.id}] {s.title}
+                          {s.page ? ` · page ${s.page}` : ""}
+                        </button>
+                      ),
+                    )}
                   </div>
                 </details>
               )}
