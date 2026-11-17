@@ -1,6 +1,6 @@
 import { LocalImage } from "./LocalImage";
 import { useEffect, useState } from "react";
-import { Play, Star } from "lucide-react";
+import { Play, Star, Shuffle } from "lucide-react";
 import { isHostedDemo } from "../runtime";
 
 type Game = { id: string; title: string; system: string };
@@ -185,6 +185,23 @@ export function GamesPanel() {
       game.title.toLowerCase().includes(search.toLowerCase()),
   );
   const [limit, setLimit] = useState(60);
+  const [randomIds, setRandomIds] = useState<string[] | null>(null);
+  const byId = new Map(filtered.map((game) => [game.id, game]));
+  const shown =
+    randomIds === null
+      ? filtered
+      : randomIds.flatMap((id) => {
+          const game = byId.get(id);
+          return game ? [game] : [];
+        });
+  function randomize() {
+    const pool = [...filtered];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    setRandomIds(pool.slice(0, 12).map((game) => game.id));
+  }
   return (
     <section className="browser-panel" aria-labelledby="games-title">
       <h2 id="games-title" className="sr-only">
@@ -209,6 +226,7 @@ export function GamesPanel() {
               onChange={(e) => {
                 setSearch(e.target.value);
                 setLimit(60);
+                setRandomIds(null);
               }}
             />
             <select
@@ -217,6 +235,7 @@ export function GamesPanel() {
               onChange={(e) => {
                 setSystem(e.target.value);
                 setLimit(60);
+                setRandomIds(null);
               }}
             >
               <option value="all">All systems</option>
@@ -232,10 +251,28 @@ export function GamesPanel() {
               onClick={() => {
                 setOnlyFavorites(!onlyFavorites);
                 setLimit(60);
+                setRandomIds(null);
               }}
             >
               Favorites
             </button>
+            <button
+              className="browser-button"
+              onClick={randomize}
+              disabled={!filtered.length}
+              aria-pressed={randomIds !== null}
+              title="Show up to 12 random games from these filters"
+            >
+              <Shuffle size={14} /> Random
+            </button>
+            {randomIds !== null && (
+              <button
+                className="browser-button"
+                onClick={() => setRandomIds(null)}
+              >
+                Show all
+              </button>
+            )}
             <button
               className="browser-button"
               onClick={() => setRevision((value) => value + 1)}
@@ -287,6 +324,9 @@ export function GamesPanel() {
               ) : (
                 <>
                   <p className="browser-help">
+                    {randomIds !== null
+                      ? `${shown.length} random picks · `
+                      : ""}
                     {filtered.length} {filtered.length === 1 ? "game" : "games"}
                     {onlyFavorites ? " in favorites" : ""}
                   </p>
@@ -296,7 +336,7 @@ export function GamesPanel() {
                     </p>
                   )}
                   <ul className="game-list">
-                    {filtered.slice(0, limit).map((game) => (
+                    {shown.slice(0, limit).map((game) => (
                       <li key={game.id}>
                         <div className="game-cover">
                           <LocalImage
@@ -349,7 +389,7 @@ export function GamesPanel() {
                       </li>
                     ))}
                   </ul>
-                  {filtered.length > limit && (
+                  {randomIds === null && filtered.length > limit && (
                     <button
                       className="browser-button"
                       onClick={() => setLimit((value) => value + 60)}
