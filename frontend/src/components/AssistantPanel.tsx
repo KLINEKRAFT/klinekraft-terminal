@@ -529,11 +529,6 @@ export function AssistantPanel({
           </div>
         ) : !turns.length && !busy ? (
           <div className="ai-empty">
-            <img
-              className="shackleton-mark"
-              src="/brand/shackleton-hologram-head.png"
-              alt="Shackleton"
-            />
             <p>What would you like to explore?</p>
           </div>
         ) : null}

@@ -184,3 +184,48 @@ test("severe reports take priority and a lost service hides the live ticker", as
   await page.clock.fastForward(30000);
   await expect(page.locator(".event-ticker")).toHaveCount(0);
 });
+
+test("Field Briefing exposes weather on a dedicated compact page", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1024, height: 600 });
+  await page.route("**/api/briefing", (r) =>
+    r.fulfill({
+      json: {
+        settings,
+        events: [],
+        acknowledged: [],
+        feeds: {
+          forecast: {
+            stale: false,
+            updated: Date.now() / 1000,
+            data: {
+              daily: {
+                time: ["2026-11-17"],
+                temperature_2m_min: [40],
+                temperature_2m_max: [65],
+                precipitation_probability_max: [10],
+              },
+            },
+          },
+        },
+      },
+    }),
+  );
+  await page.goto("/");
+  await navigate(page, "Field Briefing");
+  await expect(
+    page.getByRole("heading", { name: "Field Briefing", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".briefing-page")).toContainText("40–65°F");
+  await expect(
+    page
+      .locator(".briefing-page details")
+      .filter({
+        has: page.getByText("7-day weather · Open-Meteo", { exact: true }),
+      }),
+  ).toHaveAttribute("open", "");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    1024,
+  );
+});

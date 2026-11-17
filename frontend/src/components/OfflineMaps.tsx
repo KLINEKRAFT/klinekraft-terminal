@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import type * as GeoJSON from "geojson";
 import type { StyleSpecification } from "maplibre-gl";
@@ -6,6 +6,7 @@ import { Protocol, PMTiles, FetchSource } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 maplibregl.setWorkerUrl(workerUrl);
+import { MapCollections } from "./MapCollections";
 import { localJSON } from "./WikiReader";
 import { isHostedDemo } from "../runtime";
 
@@ -189,6 +190,7 @@ export default function OfflineMaps() {
   const [savedRoutes, setSavedRoutes] = useState<
     { id: string; created: string; profile: string }[]
   >([]);
+  const [satellite, setSatellite] = useState(false);
   const [quakeVisible, setQuakeVisible] = useState(false);
   const [quakeStatus, setQuakeStatus] = useState("");
   async function toggleQuakes() {
@@ -307,7 +309,9 @@ export default function OfflineMaps() {
           renderWorldCopies: false,
           transformRequest: (url) => ({
             url,
-            headers: { "X-Klinekraft-Client": "local-ui" },
+            headers: url.startsWith(window.location.origin + "/")
+              ? { "X-Klinekraft-Client": "local-ui" }
+              : {},
           }),
         });
         map.current = view;
@@ -320,10 +324,12 @@ export default function OfflineMaps() {
             setStatus("");
           }
         });
-        view.on("error", () => {
+        view.on("error", (event) => {
           if (active)
             setStatus(
-              "Some map data could not load. Check the installed region and refresh.",
+              ("sourceId" in event && event.sourceId === "satellite")
+                ? "Satellite imagery could not load. Switch to Street for offline maps."
+                : "Some map data could not load. Check the installed region and refresh.",
             );
         });
         view.on("click", (event) => {
@@ -348,19 +354,58 @@ export default function OfflineMaps() {
       maplibregl.removeProtocol("pmtiles");
     };
   }, []);
-  function go(p: [number, number]) {
-    if (!region || !map.current) return;
-    const [west, south, east, north] = region.bounds;
-    if (p[0] < west || p[0] > east || p[1] < south || p[1] > north) {
-      setStatus("Those coordinates are outside the downloaded region.");
-      return;
+  const go = useCallback(
+    (p: [number, number], label?: string) => {
+      if (!region || !map.current) return;
+      const [west, south, east, north] = region.bounds;
+      if (p[0] < west || p[0] > east || p[1] < south || p[1] > north) {
+        setStatus("Those coordinates are outside the downloaded region.");
+      } else setStatus("");
+      if (label) setName(label.slice(0, 120));
+      setSelected(p);
+      map.current.flyTo({ center: p, zoom: 14 });
+      marker.current?.remove();
+      marker.current = new maplibregl.Marker({ color: "#ff6a00" })
+        .setLngLat(p)
+        .addTo(map.current);
+    },
+    [region],
+  );
+  function toggleSatellite() {
+    const view = map.current;
+    if (!view || !ready) return;
+    if (!view.getSource("satellite")) {
+      view.addSource("satellite", {
+        type: "raster",
+        tiles: [
+          "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}",
+        ],
+        tileSize: 256,
+        maxzoom: 16,
+        attribution:
+          '<a href="https://www.usgs.gov/the-national-map-data-delivery">USGS / USDA NAIP imagery</a>',
+      });
+      const firstOverlay = view
+        .getStyle()
+        .layers.find(
+          (layer) =>
+            layer.type === "symbol" ||
+            layer.id === "catalog-points" ||
+            layer.id === "earthquake-points" ||
+            layer.id === "planned-route",
+        );
+      view.addLayer(
+        { id: "satellite", type: "raster", source: "satellite" },
+        firstOverlay?.id,
+      );
     }
-    setSelected(p);
-    map.current.flyTo({ center: p, zoom: 14 });
-    marker.current?.remove();
-    marker.current = new maplibregl.Marker({ color: "#ff6a00" })
-      .setLngLat(p)
-      .addTo(map.current);
+    view.setLayoutProperty(
+      "satellite",
+      "visibility",
+      satellite ? "none" : "visible",
+    );
+    setSatellite(!satellite);
+    setStatus("");
   }
   async function save() {
     if (!selected || !name.trim() || saving) return;
@@ -457,6 +502,43 @@ export default function OfflineMaps() {
           aria-label="Interactive offline map"
         />
         <aside className="map-sidebar">
+          <button
+            disabled={!ready}
+            aria-pressed={satellite}
+            onClick={toggleSatellite}
+          >
+            {satellite ? "Satellite · online" : "Street · offline"}
+          </button>
+          {places.length > 0 && (
+            <label>
+              Saved places
+              <select
+                aria-label="Saved places"
+                value=""
+                disabled={!ready}
+                onChange={(event) => {
+                  const p = places.find((p) => p.id === event.target.value);
+                  if (p) go([p.longitude, p.latitude], p.name);
+                }}
+              >
+                <option value="">Choose a saved place</option>
+                {places.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <MapCollections view={ready ? map.current : null} go={go} />
+          <details>
+            <summary>Imagery info</summary>
+            <p>
+              USGS / USDA aerial and satellite imagery needs internet. Images
+              are historical, not live; dates and resolution vary. Switch to
+              Street for offline use.
+            </p>
+          </details>
           <button
             disabled={!ready}
             aria-pressed={quakeVisible}
@@ -611,28 +693,15 @@ export default function OfflineMaps() {
               {saving ? "Saving…" : "Save place"}
             </button>
           </form>
-          <h3>Saved places</h3>
-          {places.length ? (
-            places.map((place) => (
-              <button
-                className="map-place"
-                key={place.id}
-                onClick={() => go([place.longitude, place.latitude])}
-              >
-                {place.name}
-              </button>
-            ))
-          ) : (
-            <p>No saved places yet.</p>
-          )}
         </aside>
       </div>
       <p className="organizer-caption">
         {region?.available
           ? `${(region.bytes / 1024 / 1024).toFixed(1)} MB of map tiles · Downloaded ${region.downloaded} · Street detail to zoom ${region.maxzoom}. `
           : ""}
-        Maps, saved places and route planning work offline. Live GPS, address
-        search and turn-by-turn guidance are not connected.
+        Street maps, collections, saved places and routes work offline.
+        Satellite imagery and new address searches need internet. GPS and
+        turn-by-turn guidance are not connected.
       </p>
     </section>
   );

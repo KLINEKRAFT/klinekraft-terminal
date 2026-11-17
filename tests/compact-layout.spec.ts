@@ -11,6 +11,7 @@ for (const height of [600, 560])
       "Home",
       "Shackleton",
       "GPS / Maps",
+      "Field Briefing",
       "Library",
       "Notes",
       "Paint",

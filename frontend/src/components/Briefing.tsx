@@ -61,7 +61,7 @@ function FeedAge({ feed }: { feed?: { stale: boolean; updated?: number } }) {
     </p>
   );
 }
-export function Briefing() {
+export function Briefing({ page = false }: { page?: boolean }) {
   const [data, setData] = useState<Snapshot | null>(null),
     [error, setError] = useState(""),
     [open, setOpen] = useState(false),
@@ -147,19 +147,22 @@ export function Briefing() {
       setSaving(false);
     }
   }
+  const Container = page ? "section" : "dialog";
   return (
     <>
-      <button
-        className="icon-button alert-bell"
-        aria-label={`Events and science${active.length ? `: ${active.length} unread` : ""}`}
-        title={error || "Events & science"}
-        onClick={() => setOpen(true)}
-      >
-        <Bell size={17} />
-        {active.length > 0 && <small>{active.length}</small>}
-        {error && <small>!</small>}
-      </button>
-      {item && data?.settings.ticker && (
+      {!page && (
+        <button
+          className="icon-button alert-bell"
+          aria-label={`Events and science${active.length ? `: ${active.length} unread` : ""}`}
+          title={error || "Events & science"}
+          onClick={() => setOpen(true)}
+        >
+          <Bell size={17} />
+          {active.length > 0 && <small>{active.length}</small>}
+          {error && <small>!</small>}
+        </button>
+      )}
+      {!page && item && data?.settings.ticker && (
         <div className="event-ticker" data-severity={item.severity}>
           <button onClick={() => setOpen(true)}>
             <span>{item.kind}</span> {item.title}
@@ -178,26 +181,55 @@ export function Briefing() {
           </button>
         </div>
       )}
-      <dialog
-        ref={dialog}
-        className="briefing-dialog"
+      <Container
+        ref={page ? undefined : dialog}
+        className={page ? "briefing-dialog briefing-page" : "briefing-dialog"}
         onCancel={() => setOpen(false)}
         onClose={() => setOpen(false)}
       >
-        <header>
-          <h2>Events & science</h2>
-          <button aria-label="Close events" onClick={() => setOpen(false)}>
-            <X size={18} />
-          </button>
-        </header>
-        <p className="briefing-caption">
-          {data?.settings.location} · Last saved readings remain available
-          offline. Internet is required for new alerts; this is not an emergency
-          notification service.
-        </p>
+        {!page && (
+          <header>
+            <h2>Events & science</h2>
+            {!page && (
+              <button aria-label="Close events" onClick={() => setOpen(false)}>
+                <X size={18} />
+              </button>
+            )}
+          </header>
+        )}
+        <details>
+          <summary>About these feeds</summary>
+          <p className="briefing-caption">
+            {data?.settings.location} · Last saved readings remain available
+            offline. Internet is required for new alerts; this is not an
+            emergency notification service.
+          </p>
+        </details>
         {error && <p role="status">{error}</p>}
         {data && (
           <>
+            <details open={page || undefined}>
+              <summary>7-day weather · Open-Meteo</summary>
+              <FeedAge feed={data.feeds.forecast} />
+              {data.feeds.forecast?.data?.daily?.time?.map(
+                (day: string, i: number) => (
+                  <p key={day}>
+                    {day} ·{" "}
+                    {data.feeds.forecast.data.daily.temperature_2m_min[i]}–
+                    {data.feeds.forecast.data.daily.temperature_2m_max[i]}°F ·
+                    Rain{" "}
+                    {
+                      data.feeds.forecast.data.daily
+                        .precipitation_probability_max[i]
+                    }
+                    %
+                  </p>
+                ),
+              )}
+              <SourceLink url="https://open-meteo.com/">
+                Open-Meteo · CC BY 4.0
+              </SourceLink>
+            </details>
             <details>
               <summary onClick={() => setDraft((v) => v || data.settings)}>
                 Alert settings
@@ -320,28 +352,6 @@ export function Briefing() {
               ))}
             </section>
             <details>
-              <summary>7-day weather · Open-Meteo</summary>
-              <FeedAge feed={data.feeds.forecast} />
-              {data.feeds.forecast?.data?.daily?.time?.map(
-                (day: string, i: number) => (
-                  <p key={day}>
-                    {day} ·{" "}
-                    {data.feeds.forecast.data.daily.temperature_2m_min[i]}–
-                    {data.feeds.forecast.data.daily.temperature_2m_max[i]}°F ·
-                    Rain{" "}
-                    {
-                      data.feeds.forecast.data.daily
-                        .precipitation_probability_max[i]
-                    }
-                    %
-                  </p>
-                ),
-              )}
-              <SourceLink url="https://open-meteo.com/">
-                Open-Meteo · CC BY 4.0
-              </SourceLink>
-            </details>
-            <details>
               <summary>NASA · Earth events</summary>
               <FeedAge feed={data.feeds.earthEvents} />
               {data.feeds.earthEvents?.data?.map((v: any) => (
@@ -389,7 +399,7 @@ export function Briefing() {
             </details>
           </>
         )}
-      </dialog>
+      </Container>
     </>
   );
 }
