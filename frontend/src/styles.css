@@ -3783,3 +3783,8 @@ main[data-page="GPS / Maps"] .page-content,main[data-page="Field Briefing"] .pag
 .radar-zoom {position:absolute;right:10px;top:10px;display:grid;border:1px solid var(--line);border-radius:4px;overflow:hidden;}
 .radar-zoom button {display:grid;place-items:center;width:32px;height:32px;padding:0!important;border:0!important;background:var(--paper)!important;}
 .radar-zoom button+button{border-top:1px solid var(--line)!important;}
+
+/* Device utilities live on Home; the application drawer stays short. */
+.home-device-links {display:flex;align-items:center;gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:8px 0;}
+.home-device-links button {flex:1;display:flex;align-items:center;gap:9px;min-height:38px;padding:8px 12px;background:none;border:0;border-right:1px solid var(--line);color:var(--ink);font:12px var(--sans);cursor:pointer;}
+.home-device-links button:last-child{border-right:0;}.home-device-links button span{flex:1;text-align:left;}.home-device-links button>svg:first-child{color:var(--logo-blue,#123aff);}.home-device-links button:hover{background:color-mix(in srgb,#123aff 5%,transparent);}.home-device-links button:focus-visible{outline:2px solid #123aff;outline-offset:-3px;}

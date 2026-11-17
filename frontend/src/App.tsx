@@ -67,6 +67,8 @@ import {
   resolveCommand,
   sectionLabel,
   sections,
+  navigationSections,
+  homeSections,
   type Reading,
   type Section,
 } from "./preview";
@@ -262,6 +264,18 @@ function Home({
           <AwayLaunch />
         </div>
       </div>
+      <nav className="home-device-links" aria-label="Device tools">
+        {homeSections.map((item) => {
+          const Icon = icons[item];
+          return (
+            <button key={item} onClick={() => navigate(item)}>
+              <Icon size={16} />
+              <span>{item}</span>
+              <ArrowUpRight size={14} />
+            </button>
+          );
+        })}
+      </nav>
       <section className="connections" aria-label="Device readings">
         <div>
           <Cpu size={17} />
@@ -484,7 +498,7 @@ export default function App() {
           </button>
         </div>
         <nav id="main-navigation" aria-label="Main navigation">
-          {sections.map((item, index) => {
+          {navigationSections.map((item, index) => {
             const Icon = icons[item];
             return (
               <button
