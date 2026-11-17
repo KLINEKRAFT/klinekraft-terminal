@@ -69,7 +69,8 @@ def cached(name, url, ttl, transform=lambda v:v):
     now = time.time()
     retry_delay = min(ttl,3600) if old.get('error') else min(ttl,120)
     if now-old.get('attempt',0)<retry_delay: return old
-    if now-old.get('updated',0)<ttl and not old.get('error'): return old
+    needs_upgrade = name.startswith('forecast-') and bool(old.get('data')) and 'weather_code' not in (old['data'].get('current') or {})
+    if now-old.get('updated',0)<ttl and not old.get('error') and not needs_upgrade: return old
     result = {**old, 'attempt':now}
     try: result = {'data': transform(fetch(url)), 'updated':now, 'attempt':now, 'error':None}
     except Exception as error: result['error'] = f'{type(error).__name__}: source unavailable'
@@ -110,7 +111,7 @@ def refresh():
     s=settings()
     if not s.enabled or not lock.acquire(False): return
     try:
-        coord=urllib.parse.urlencode({'latitude':s.latitude,'longitude':s.longitude,'current':'temperature_2m,relative_humidity_2m,wind_speed_10m','daily':'temperature_2m_max,temperature_2m_min,precipitation_probability_max','hourly':'temperature_2m,precipitation_probability,wind_speed_10m','temperature_unit':'fahrenheit','wind_speed_unit':'mph','precipitation_unit':'inch','timezone':'auto','forecast_days':7})
+        coord=urllib.parse.urlencode({'latitude':s.latitude,'longitude':s.longitude,'current':'temperature_2m,apparent_temperature,weather_code,is_day,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m','daily':'temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code,sunrise,sunset,precipitation_sum,wind_speed_10m_max','hourly':'temperature_2m,precipitation_probability,wind_speed_10m,weather_code','temperature_unit':'fahrenheit','wind_speed_unit':'mph','precipitation_unit':'inch','timezone':'auto','forecast_days':7})
         key=loc_key(s)
         jobs=[('nws-'+key,f'https://api.weather.gov/alerts/active?point={s.latitude},{s.longitude}',120,nws),('earthquakes','https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson',120,quakes),('space','https://services.swpc.noaa.gov/products/alerts.json',300,space),('forecast-'+key,'https://api.open-meteo.com/v1/forecast?'+coord,1800,lambda v:v),('earth-events','https://eonet.gsfc.nasa.gov/api/v3/events?status=open&days=7&limit=20',3600,lambda v:v.get('events',[])),('astronomy','https://api.nasa.gov/planetary/apod?api_key='+urllib.parse.quote(os.environ.get('NASA_API_KEY','DEMO_KEY')),21600,lambda v:v)]
         today=datetime.now(timezone.utc).date().isoformat()
@@ -255,3 +256,24 @@ def assistant_context(question):
             text+=f"{v['name']}: {approach.get('close_approach_date')}, miss distance {approach.get('miss_distance',{}).get('miles','unavailable')} miles.\n"
         rows.append(('NASA asteroid approaches','https://cneos.jpl.nasa.gov/',text))
     return rows[:4]
+
+
+def radar_manifest(value):
+    if value.get('host') != 'https://tilecache.rainviewer.com':
+        raise ValueError('Unexpected radar host')
+    frames = value.get('radar', {}).get('past', [])
+    valid = [f for f in frames if isinstance(f, dict) and isinstance(f.get('time'), (int, float))
+             and not isinstance(f['time'], bool) and math.isfinite(f['time']) and 0 < f['time'] <= time.time()+300
+             and re.fullmatch(r'/v2/radar/[A-Za-z0-9_-]{1,64}', str(f.get('path', '')))]
+    if not valid: raise ValueError('No radar frames')
+    return {'host':value['host'], 'frames': sorted(valid, key=lambda f:f['time'])[-13:]}
+
+radar_lock = threading.Lock()
+@router.get('/radar')
+def radar():
+    # On-demand only. No background tile downloading or future-radar claims.
+    with radar_lock:
+        result = cached('radar', 'https://api.rainviewer.com/public/weather-maps.json', 300, radar_manifest) if settings().enabled else read('radar.json', {})
+    data = result.get('data') or {}
+    latest = max((f['time'] for f in data.get('frames', [])), default=0)
+    return {**result, 'stale': bool(result.get('error')) or time.time()-latest > 1800}

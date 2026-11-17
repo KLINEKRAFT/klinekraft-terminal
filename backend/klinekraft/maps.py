@@ -120,3 +120,32 @@ def catalog():
         return json.loads(path.read_text())
     except (OSError, ValueError):
         raise HTTPException(503, 'Map collections are not installed.') from None
+
+@router.get('/gps')
+def gps_fix():
+    """Read a fresh fix from the local gpsd service without changing receiver settings."""
+    import socket
+    import time
+    from datetime import datetime, timezone
+    try:
+        with socket.create_connection(('127.0.0.1', 2947), timeout=0.7) as sock:
+            sock.settimeout(0.7)
+            sock.sendall(b'?WATCH={"enable":true,"json":true};\n')
+            buffer = b''
+            deadline = time.monotonic() + 1.5
+            while time.monotonic() < deadline and len(buffer) < 32768:
+                chunk = sock.recv(8192)
+                if not chunk: break
+                buffer += chunk
+                while b'\n' in buffer:
+                    line, buffer = buffer.split(b'\n', 1)
+                    try: value = json.loads(line)
+                    except ValueError: continue
+                    if value.get('class') != 'TPV' or value.get('mode', 0) < 2: continue
+                    at = datetime.fromisoformat(str(value.get('time', '')).replace('Z', '+00:00'))
+                    if at.tzinfo is None or not -5 <= (datetime.now(timezone.utc)-at).total_seconds() <= 30: continue
+                    fix = Place(id=UUID(int=0), name='GPS position', latitude=value['lat'], longitude=value['lon'])
+                    return {'available': True, 'latitude': fix.latitude, 'longitude': fix.longitude, 'message': 'GPS fix · ' + ('3D' if value['mode']>=3 else '2D')}
+    except (OSError, ValueError, TypeError, KeyError):
+        pass
+    return {'available': False, 'message': 'No fresh GPS fix · check receiver and gpsd'}

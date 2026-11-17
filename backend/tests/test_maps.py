@@ -66,3 +66,25 @@ def test_offline_catalog_complete_and_public_only():
         assert p['group'] in groups and p['url'].startswith('https://')
         assert -180 <= p['longitude'] <= 180 and -85 <= p['latitude'] <= 85
         assert p['name'] != 'Home'
+
+def test_gps_requires_fresh_real_fix(monkeypatch):
+    import socket
+    from datetime import datetime, timezone, timedelta
+    from klinekraft.maps import gps_fix
+    class GPS:
+        def __init__(self,when):self.when=when
+        def __enter__(self):return self
+        def __exit__(self,*args):pass
+        def settimeout(self,*args):pass
+        def sendall(self,data):assert b'WATCH' in data
+        def recv(self,n):
+            if self.when is None:return b''
+            value={'class':'TPV','mode':3,'lat':36.15,'lon':-96,'time':self.when.isoformat()};self.when=None
+            return (json.dumps(value)+'\n').encode()
+    monkeypatch.setattr(socket,'create_connection',lambda *args,**kwargs:GPS(datetime.now(timezone.utc)))
+    result=gps_fix();assert result['available'] and result['latitude']==36.15
+    monkeypatch.setattr(socket,'create_connection',lambda *args,**kwargs:GPS(datetime.now(timezone.utc)-timedelta(minutes=2)))
+    assert not gps_fix()['available']
+    def absent(*args,**kwargs):raise OSError('No receiver')
+    monkeypatch.setattr(socket,'create_connection',absent)
+    assert not gps_fix()['available']

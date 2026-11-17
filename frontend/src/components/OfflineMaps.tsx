@@ -1,187 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import type * as GeoJSON from "geojson";
-import type { StyleSpecification } from "maplibre-gl";
-import { Protocol, PMTiles, FetchSource } from "pmtiles";
-import "maplibre-gl/dist/maplibre-gl.css";
-import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
-maplibregl.setWorkerUrl(workerUrl);
-import { MapCollections } from "./MapCollections";
+import { createLocalMap, type Region } from "./mapBase";
+import { Search, MapPin, Route, Layers, X, LocateFixed } from "lucide-react";
+import { MapCollections, type MapLocation } from "./MapCollections";
 import { localJSON } from "./WikiReader";
 import { isHostedDemo } from "../runtime";
 
-type Region = {
-  available: boolean;
-  title: string;
-  bounds: [number, number, number, number];
-  center: [number, number];
-  maxzoom: number;
-  bytes: number;
-  downloaded: string;
-  views?: { name: string; center: [number, number]; zoom: number }[];
-};
 type Place = { id: string; name: string; longitude: number; latitude: number };
-const font = ["Noto Sans Regular"];
-function style(url: string, region: Region): StyleSpecification {
-  return {
-    version: 8,
-    glyphs: window.location.origin + "/api/maps/fonts/{fontstack}/{range}.pbf",
-    sources: {
-      local: {
-        type: "vector",
-        tiles: ["pmtiles://" + url + "/{z}/{x}/{y}"],
-        attribution:
-          '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> · <a href="https://protomaps.com">Protomaps</a>',
-        minzoom: 0,
-        maxzoom: region.maxzoom,
-      },
-    },
-    layers: [
-      {
-        id: "background",
-        type: "background",
-        paint: { "background-color": "#eeeae0" },
-      },
-      {
-        id: "earth",
-        type: "fill",
-        source: "local",
-        "source-layer": "earth",
-        paint: { "fill-color": "#f2f0ea" },
-      },
-      {
-        id: "nature",
-        type: "fill",
-        source: "local",
-        "source-layer": "landcover",
-        paint: { "fill-color": "#d6dfce", "fill-opacity": 0.55 },
-      },
-      {
-        id: "parks",
-        type: "fill",
-        source: "local",
-        "source-layer": "landuse",
-        paint: { "fill-color": "#cddac5", "fill-opacity": 0.55 },
-      },
-      {
-        id: "water",
-        type: "fill",
-        source: "local",
-        "source-layer": "water",
-        paint: { "fill-color": "#acc5eb" },
-      },
-      {
-        id: "buildings",
-        type: "fill",
-        source: "local",
-        "source-layer": "buildings",
-        minzoom: 13,
-        filter: ["==", ["geometry-type"], "Polygon"],
-        paint: { "fill-color": "#c7bfb1", "fill-outline-color": "#b3a998" },
-      },
-      {
-        id: "roads-case",
-        type: "line",
-        source: "local",
-        "source-layer": "roads",
-        paint: {
-          "line-color": "#ffffff",
-          "line-width": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            8,
-            1,
-            14,
-            5,
-            17,
-            10,
-          ],
-        },
-      },
-      {
-        id: "roads",
-        type: "line",
-        source: "local",
-        "source-layer": "roads",
-        paint: {
-          "line-color": [
-            "match",
-            ["get", "kind"],
-            "highway",
-            "#0227ff",
-            "major_road",
-            "#5578cf",
-            "#9198a8",
-          ],
-          "line-width": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            8,
-            0.5,
-            14,
-            2,
-            17,
-            5,
-          ],
-        },
-      },
-      {
-        id: "road-labels",
-        type: "symbol",
-        source: "local",
-        "source-layer": "roads",
-        minzoom: 12,
-        layout: {
-          "symbol-placement": "line",
-          "text-field": ["coalesce", ["get", "name:en"], ["get", "name"], ""],
-          "text-font": font,
-          "text-size": 11,
-        },
-        paint: {
-          "text-color": "#303b50",
-          "text-halo-color": "#f2f0ea",
-          "text-halo-width": 2,
-        },
-      },
-      {
-        id: "places",
-        type: "symbol",
-        source: "local",
-        "source-layer": "places",
-        layout: {
-          "text-field": ["coalesce", ["get", "name:en"], ["get", "name"], ""],
-          "text-font": font,
-          "text-size": 14,
-        },
-        paint: {
-          "text-color": "#242424",
-          "text-halo-color": "#f2f0ea",
-          "text-halo-width": 2,
-        },
-      },
-      {
-        id: "pois",
-        type: "symbol",
-        source: "local",
-        "source-layer": "pois",
-        minzoom: 14,
-        layout: {
-          "text-field": ["coalesce", ["get", "name:en"], ["get", "name"], ""],
-          "text-font": font,
-          "text-size": 11,
-        },
-        paint: {
-          "text-color": "#6c5137",
-          "text-halo-color": "#f2f0ea",
-          "text-halo-width": 2,
-        },
-      },
-    ],
-  };
-}
 export default function OfflineMaps() {
+  const [tool, setTool] = useState<
+    "find" | "places" | "route" | "layers" | null
+  >("find");
+  useEffect(() => {
+    const escape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTool(null);
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, []);
+  const [pinInfo, setPinInfo] = useState<MapLocation | null>(null);
+  const [routeEnd, setRouteEnd] = useState<[number, number] | null>(null);
+  const [startName, setStartName] = useState(""),
+    [endName, setEndName] = useState("");
+  const [gpsStatus, setGpsStatus] = useState("GPS setup pending");
+  const [locating, setLocating] = useState(false);
   const [routeStart, setRouteStart] = useState<[number, number] | null>(null);
   const [routeProfile, setRouteProfile] = useState("car-fast");
   const [routing, setRouting] = useState(false);
@@ -276,6 +119,7 @@ export default function OfflineMaps() {
     }
     const controller = new AbortController();
     let active = true;
+    let disposeMap: (() => void) | undefined;
     void Promise.all([
       localJSON("/api/maps", { signal: controller.signal }),
       localJSON("/api/maps/places", { signal: controller.signal }),
@@ -288,36 +132,57 @@ export default function OfflineMaps() {
           setStatus("No offline map region is installed.");
           return;
         }
-        const url = window.location.origin + "/api/maps/region.pmtiles";
-        const protocol = new Protocol();
-        protocol.add(
-          new PMTiles(
-            new FetchSource(
-              url,
-              new Headers({ "X-Klinekraft-Client": "local-ui" }),
-            ),
-          ),
+        let center: [number, number] = [-95.993, 36.154],
+          zoom = 10;
+        try {
+          const saved = JSON.parse(
+            localStorage.getItem("klinekraft.map-view.v1") || "null",
+          );
+          if (
+            saved &&
+            Array.isArray(saved.center) &&
+            saved.center.length === 2 &&
+            saved.center.every(
+              (v: unknown) => typeof v === "number" && Number.isFinite(v),
+            ) &&
+            Math.abs(saved.center[0]) <= 180 &&
+            Math.abs(saved.center[1]) <= 85 &&
+            saved.zoom >= 2 &&
+            saved.zoom <= 18
+          ) {
+            center = saved.center;
+            zoom = saved.zoom;
+          }
+        } catch {}
+        const local = createLocalMap(
+          container.current!,
+          metadata,
+          center,
+          zoom,
         );
-        maplibregl.addProtocol("pmtiles", protocol.tile);
-        const view = new maplibregl.Map({
-          container: container.current!,
-          style: style(url, metadata),
-          center: metadata.center,
-          zoom: metadata.views ? 3.5 : 11,
-          minZoom: 2,
-          maxZoom: 18,
-          renderWorldCopies: false,
-          transformRequest: (url) => ({
-            url,
-            headers: url.startsWith(window.location.origin + "/")
-              ? { "X-Klinekraft-Client": "local-ui" }
-              : {},
-          }),
+        local.view.on("moveend", () => {
+          try {
+            localStorage.setItem(
+              "klinekraft.map-view.v1",
+              JSON.stringify({
+                center: local.view.getCenter().toArray(),
+                zoom: local.view.getZoom(),
+              }),
+            );
+          } catch {}
         });
+        disposeMap = local.dispose;
+        const view = local.view;
         map.current = view;
         view.addControl(new maplibregl.NavigationControl(), "top-right");
         view.addControl(new maplibregl.ScaleControl({ unit: "imperial" }));
-        view.addControl(new maplibregl.FullscreenControl());
+        view.addControl(
+          new maplibregl.FullscreenControl({
+            container: container.current!.closest(
+              ".atlas-workspace",
+            ) as HTMLElement,
+          }),
+        );
         view.on("load", () => {
           if (active) {
             setReady(true);
@@ -327,12 +192,23 @@ export default function OfflineMaps() {
         view.on("error", (event) => {
           if (active)
             setStatus(
-              ("sourceId" in event && event.sourceId === "satellite")
+              "sourceId" in event && event.sourceId === "satellite"
                 ? "Satellite imagery could not load. Switch to Street for offline maps."
                 : "Some map data could not load. Check the installed region and refresh.",
             );
         });
         view.on("click", (event) => {
+          const interactive = ["catalog-points", "earthquake-points"].filter(
+            (id) => view.getLayer(id),
+          );
+          if (
+            interactive.length &&
+            view.queryRenderedFeatures(event.point, { layers: interactive })
+              .length
+          )
+            return;
+          setName("");
+          setPinInfo(null);
           const p: [number, number] = [event.lngLat.lng, event.lngLat.lat];
           setSelected(p);
           marker.current?.remove();
@@ -349,19 +225,20 @@ export default function OfflineMaps() {
       active = false;
       controller.abort();
       marker.current?.remove();
-      map.current?.remove();
+      disposeMap?.();
       map.current = null;
-      maplibregl.removeProtocol("pmtiles");
     };
   }, []);
   const go = useCallback(
-    (p: [number, number], label?: string) => {
+    (p: [number, number], label?: string, info?: MapLocation) => {
       if (!region || !map.current) return;
       const [west, south, east, north] = region.bounds;
       if (p[0] < west || p[0] > east || p[1] < south || p[1] > north) {
         setStatus("Those coordinates are outside the downloaded region.");
       } else setStatus("");
-      if (label) setName(label.slice(0, 120));
+      setName(label?.slice(0, 120) || "");
+      setPinInfo(info || null);
+      setTool(null);
       setSelected(p);
       map.current.flyTo({ center: p, zoom: 14 });
       marker.current?.remove();
@@ -465,7 +342,7 @@ export default function OfflineMaps() {
     }
   }
   async function calculateRoute() {
-    if (!routeStart || !selected || routing || !map.current) return;
+    if (!routeStart || !routeEnd || routing || !map.current) return;
     setRouting(true);
     setRouteSummary("");
     try {
@@ -474,7 +351,7 @@ export default function OfflineMaps() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           start: { longitude: routeStart[0], latitude: routeStart[1] },
-          end: { longitude: selected[0], latitude: selected[1] },
+          end: { longitude: routeEnd[0], latitude: routeEnd[1] },
           profile: routeProfile,
         }),
       });
@@ -486,102 +363,164 @@ export default function OfflineMaps() {
       setRouting(false);
     }
   }
+  async function locate() {
+    if (locating) return;
+    setLocating(true);
+    try {
+      const fix = await localJSON("/api/maps/gps", {
+        signal: AbortSignal.timeout(5000),
+      });
+      setGpsStatus(fix.message);
+      if (fix.available) go([fix.longitude, fix.latitude], "GPS position");
+    } catch {
+      setGpsStatus("GPS unavailable");
+    } finally {
+      setLocating(false);
+    }
+  }
+  const pinLabel =
+    name.trim() ||
+    (selected
+      ? `${selected[1].toFixed(4)}, ${selected[0].toFixed(4)}`
+      : "Selected point");
+  function endpoint(which: "start" | "end") {
+    if (!selected) return;
+    if (which === "start") {
+      setRouteStart(selected);
+      setStartName(pinLabel);
+    } else {
+      setRouteEnd(selected);
+      setEndName(pinLabel);
+    }
+    setRouteSummary("");
+    setTool("route");
+  }
   return (
-    <section className="offline-maps" aria-label="Offline maps">
-      <div className="map-heading">
-        <div>
-          <span className="eyebrow">OFFLINE ATLAS</span>
-        </div>
-        <span className="map-badge">GPS not connected</span>
+    <section className="offline-maps atlas-workspace" aria-label="Offline maps">
+      <div className="atlas-toolbar" aria-label="Map tools">
+        {(
+          [
+            ["find", Search, "Find"],
+            ["places", MapPin, "Places"],
+            ["route", Route, "Route"],
+            ["layers", Layers, "Layers"],
+          ] as const
+        ).map(([id, Icon, title]) => (
+          <button
+            key={id}
+            aria-pressed={tool === id}
+            aria-controls="atlas-panel"
+            onClick={() => setTool(tool === id ? null : id)}
+          >
+            <Icon size={16} />
+            {title}
+          </button>
+        ))}
+        <div className="atlas-toolbar-spacer" />
+        <button
+          onClick={() => go([-95.993, 36.154], "Tulsa, Oklahoma")}
+          disabled={!ready}
+        >
+          Tulsa
+        </button>
+        <button
+          onClick={() => void locate()}
+          disabled={!ready || locating}
+          title={gpsStatus}
+        >
+          <LocateFixed size={16} />
+          {locating ? "Checking…" : "GPS"}
+        </button>
       </div>
-      {status && <p role="status">{status}</p>}
-      <div className="map-layout">
+      <div className="map-layout atlas-stage">
         <div
           ref={container}
           className="offline-map-canvas"
           aria-label="Interactive offline map"
         />
-        <aside className="map-sidebar">
-          <button
-            disabled={!ready}
-            aria-pressed={satellite}
-            onClick={toggleSatellite}
-          >
-            {satellite ? "Satellite · online" : "Street · offline"}
-          </button>
-          {places.length > 0 && (
-            <label>
-              Saved places
-              <select
-                aria-label="Saved places"
-                value=""
-                disabled={!ready}
-                onChange={(event) => {
-                  const p = places.find((p) => p.id === event.target.value);
-                  if (p) go([p.longitude, p.latitude], p.name);
-                }}
-              >
-                <option value="">Choose a saved place</option>
-                {places.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+        <aside
+          id="atlas-panel"
+          className="map-sidebar atlas-panel"
+          hidden={!tool}
+          aria-label="Map tools panel"
+        >
+          <header>
+            <strong>
+              {tool === "find"
+                ? "Find a place"
+                : tool === "places"
+                  ? "Places on this deck"
+                  : tool === "route"
+                    ? "Plan a route"
+                    : "Map layers"}
+            </strong>
+            <button aria-label="Close map panel" onClick={() => setTool(null)}>
+              <X size={17} />
+            </button>
+          </header>
+          {tool === "places" && places.length > 0 && (
+            <section className="atlas-saved">
+              <span className="atlas-subtitle">Saved places</span>
+              {places.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => go([p.longitude, p.latitude], p.name)}
+                >
+                  <MapPin size={14} />
+                  {p.name}
+                  <span>↗</span>
+                </button>
+              ))}
+            </section>
           )}
-          <MapCollections view={ready ? map.current : null} go={go} />
-          <details>
-            <summary>Imagery info</summary>
-            <p>
-              USGS / USDA aerial and satellite imagery needs internet. Images
-              are historical, not live; dates and resolution vary. Switch to
-              Street for offline use.
-            </p>
-          </details>
-          <button
-            disabled={!ready}
-            aria-pressed={quakeVisible}
-            onClick={() => void toggleQuakes()}
-          >
-            Earthquakes {quakeVisible ? "on" : "off"}
-          </button>
-          {quakeStatus && <p>{quakeStatus}</p>}
-          <details className="route-planner">
-            <summary>Offline route planner</summary>
-            <p>
-              Click the map or select a saved place for each endpoint.
-              Successful routes save automatically on this Pi.
-            </p>
-            <label>
-              Saved routes
-              <select
-                defaultValue=""
-                disabled={!ready || routing}
-                onChange={(e) => void restoreRoute(e.target.value)}
+          <MapCollections
+            view={ready ? map.current : null}
+            go={go}
+            saved={places}
+            mode={tool === "find" || tool === "places" ? tool : null}
+          />
+          <div hidden={tool !== "route"} className="atlas-route">
+            <div className="route-endpoint">
+              <span>A</span>
+              <div>
+                <small>Start</small>
+                <strong>{startName || "Select a point on the map"}</strong>
+              </div>
+              <button
+                aria-label="Set selected point as start"
+                disabled={!selected}
+                onClick={() => endpoint("start")}
               >
-                <option value="">Choose a saved route</option>
-                {savedRoutes.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {new Date(r.created).toLocaleString()} · {r.profile}
-                  </option>
-                ))}
-              </select>
-            </label>
+                Set
+              </button>
+            </div>
             <button
-              disabled={!selected || routing}
+              className="route-swap"
+              disabled={!routeStart || !routeEnd}
               onClick={() => {
-                setRouteStart(selected);
+                setRouteStart(routeEnd);
+                setRouteEnd(routeStart);
+                setStartName(endName);
+                setEndName(startName);
                 setRouteSummary("");
               }}
             >
-              Use selected point as start
+              ⇅ Swap endpoints
             </button>
-            <p>
-              {routeStart
-                ? `Start: ${routeStart[1].toFixed(4)}, ${routeStart[0].toFixed(4)}`
-                : "Choose a start point."}
-            </p>
+            <div className="route-endpoint">
+              <span>B</span>
+              <div>
+                <small>Destination</small>
+                <strong>{endName || "Select a point on the map"}</strong>
+              </div>
+              <button
+                aria-label="Set selected point as destination"
+                disabled={!selected}
+                onClick={() => endpoint("end")}
+              >
+                Set
+              </button>
+            </div>
             <label>
               Travel mode
               <select
@@ -595,10 +534,11 @@ export default function OfflineMaps() {
               </select>
             </label>
             <button
-              disabled={!ready || !routeStart || !selected || routing}
+              className="atlas-primary"
+              disabled={!ready || !routeStart || !routeEnd || routing}
               onClick={() => void calculateRoute()}
             >
-              {routing ? "Calculating…" : "Route to selected point"}
+              {routing ? "Planning…" : "Plan offline route"}
             </button>
             {routeSummary && <p role="status">{routeSummary}</p>}
             {routeData && (
@@ -617,92 +557,193 @@ export default function OfflineMaps() {
                 Export route
               </button>
             )}
-          </details>
-          <h3>Explore</h3>
-          {region?.views?.map((view) => (
+            <details>
+              <summary>Saved routes</summary>
+              <select
+                aria-label="Saved routes"
+                defaultValue=""
+                disabled={!ready || routing}
+                onChange={(e) => void restoreRoute(e.target.value)}
+              >
+                <option value="">Choose a route</option>
+                {savedRoutes.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {new Date(r.created).toLocaleString()} · {r.profile}
+                  </option>
+                ))}
+              </select>
+            </details>
+            <details className="atlas-info">
+              <summary>Routing info</summary>
+              <p>
+                Select a place or tap the map, then assign it as Start or
+                Destination. Routes calculate and save on the Pi. Road
+                conditions and closures are unknown.
+              </p>
+            </details>
+          </div>
+          <div hidden={tool !== "layers"} className="atlas-layers">
+            <span className="atlas-subtitle">Basemap</span>
+            <div className="atlas-basemaps">
+              <button
+                disabled={!ready}
+                aria-pressed={!satellite}
+                onClick={() => satellite && toggleSatellite()}
+              >
+                Street<small>Offline</small>
+              </button>
+              <button
+                disabled={!ready}
+                aria-pressed={satellite}
+                onClick={() => !satellite && toggleSatellite()}
+              >
+                Satellite<small>Online</small>
+              </button>
+            </div>
+            <span className="atlas-subtitle">Overlay</span>
             <button
-              className="map-place"
-              key={view.name}
               disabled={!ready}
-              onClick={() =>
-                map.current?.flyTo({ center: view.center, zoom: view.zoom })
-              }
+              aria-pressed={quakeVisible}
+              onClick={() => void toggleQuakes()}
             >
-              {view.name}
+              Earthquakes <span>{quakeVisible ? "On" : "Off"}</span>
             </button>
-          ))}
-          <button
-            disabled={!ready}
-            onClick={() =>
-              region &&
-              (region.views
-                ? map.current?.flyTo({ center: region.center, zoom: 3.5 })
-                : map.current?.fitBounds(region.bounds, { padding: 20 }))
-            }
-          >
-            {region?.views ? "Reset map view" : "Show downloaded region"}
-          </button>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              const values = coordinates.split(",").map(Number);
-              if (
-                values.length !== 2 ||
-                coordinates.split(",").some((v) => !v.trim()) ||
-                !values.every(Number.isFinite)
-              ) {
-                setStatus(
-                  "Enter latitude, longitude — for example 36.1540, -95.9928.",
-                );
-                return;
-              }
-              go([values[1], values[0]]);
-            }}
-          >
-            <label>
-              Go to coordinates
-              <input
-                value={coordinates}
-                onChange={(event) => setCoordinates(event.target.value)}
-                placeholder="Latitude, longitude"
-              />
-            </label>
-            <button disabled={!ready}>Go</button>
-          </form>
-          <h3>Save a place</h3>
-          <p>
-            {selected
-              ? `${selected[1].toFixed(5)}, ${selected[0].toFixed(5)}`
-              : "Click the map to drop a pin."}
-          </p>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void save();
-            }}
-          >
-            <label>
-              Place name
-              <input
-                value={name}
-                maxLength={120}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </label>
-            <button disabled={!selected || !name.trim() || saving}>
-              {saving ? "Saving…" : "Save place"}
-            </button>
-          </form>
+            {quakeStatus && <p>{quakeStatus}</p>}
+            <span className="atlas-subtitle">Explore</span>
+            {region?.views?.map((v) => (
+              <button
+                key={v.name}
+                disabled={!ready}
+                onClick={() =>
+                  map.current?.flyTo({ center: v.center, zoom: v.zoom })
+                }
+              >
+                {v.name}
+              </button>
+            ))}
+            <details>
+              <summary>Go to coordinates</summary>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const v = coordinates.split(",").map(Number);
+                  if (
+                    v.length !== 2 ||
+                    coordinates.split(",").some((s) => !s.trim()) ||
+                    !v.every(Number.isFinite) ||
+                    Math.abs(v[0]) > 85 ||
+                    Math.abs(v[1]) > 180
+                  ) {
+                    setStatus(
+                      "Enter latitude, longitude within −85…85 and −180…180.",
+                    );
+                    return;
+                  }
+                  go([v[1], v[0]]);
+                }}
+              >
+                <input
+                  aria-label="Go to coordinates"
+                  placeholder="Latitude, longitude"
+                  value={coordinates}
+                  onChange={(e) => setCoordinates(e.target.value)}
+                />
+                <button disabled={!ready}>Go</button>
+              </form>
+            </details>
+            <details className="atlas-info">
+              <summary>Map & GPS info</summary>
+              <p>
+                {gpsStatus}. GPS reads a local gpsd receiver only; it does not
+                change weather.
+              </p>
+              <p>
+                Street maps: lower 48 + Alaska, no Hawaii.{" "}
+                {region
+                  ? `${(region.bytes / 1024 ** 3).toFixed(1)} GB saved`
+                  : "Not installed"}
+                .
+              </p>
+              <p>
+                USGS imagery is historical, not live, and needs internet.
+                Collections contain reference points, not access permissions.
+              </p>
+            </details>
+          </div>
         </aside>
+        <span className="atlas-mode">
+          {satellite ? "SATELLITE · ONLINE" : "STREET · OFFLINE"}
+        </span>
+        {status && (
+          <div className="atlas-status" role="status">
+            <span>{status}</span>
+            <button
+              aria-label="Dismiss map status"
+              onClick={() => setStatus("")}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+        {gpsStatus !== "GPS setup pending" && (
+          <span className="atlas-gps-status" role="status">
+            {gpsStatus}
+          </span>
+        )}
       </div>
-      <p className="organizer-caption">
-        {region?.available
-          ? `${(region.bytes / 1024 / 1024).toFixed(1)} MB of map tiles · Downloaded ${region.downloaded} · Street detail to zoom ${region.maxzoom}. `
-          : ""}
-        Street maps, collections, saved places and routes work offline.
-        Satellite imagery and new address searches need internet. GPS and
-        turn-by-turn guidance are not connected.
-      </p>
+      {selected && (
+        <div className="atlas-pinbar">
+          <div>
+            <strong>{pinLabel}</strong>
+            {pinInfo?.url && (
+              <a
+                href={
+                  pinInfo.url.startsWith("https://") ? pinInfo.url : undefined
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Official site ↗
+              </a>
+            )}
+          </div>
+          <button onClick={() => endpoint("start")}>Start</button>
+          <button onClick={() => endpoint("end")}>Destination</button>
+          <details className="atlas-save">
+            <summary>Save pin</summary>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void save();
+              }}
+            >
+              <label>
+                Place name
+                <input
+                  aria-label="Place name"
+                  value={name}
+                  maxLength={120}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </label>
+              <button disabled={!name.trim() || saving}>
+                {saving ? "Saving…" : "Save place"}
+              </button>
+              {pinInfo?.note && <p>{pinInfo.note}</p>}
+            </form>
+          </details>
+          <button
+            aria-label="Clear selected pin"
+            onClick={() => {
+              setSelected(null);
+              marker.current?.remove();
+              setPinInfo(null);
+            }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
     </section>
   );
 }

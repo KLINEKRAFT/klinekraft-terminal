@@ -185,26 +185,42 @@ test("severe reports take priority and a lost service hides the live ticker", as
   await expect(page.locator(".event-ticker")).toHaveCount(0);
 });
 
-test("Field Briefing exposes weather on a dedicated compact page", async ({
+test("Field Briefing defaults to Tulsa weather and separates events from science", async ({
   page,
 }) => {
+  const day = new Date().toLocaleDateString("en-CA", {
+    timeZone: "America/Chicago",
+  });
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.route("**/api/briefing", (r) =>
     r.fulfill({
       json: {
-        settings,
-        events: [],
-        acknowledged: [],
+        settings: { ...settings, location: "Tulsa, Oklahoma" },
+        events: [{ ...fresh, severity: "Severe" }],
+        acknowledged: [fresh.id],
         feeds: {
+          weather: { stale: false },
+          earthquakes: { stale: false },
+          space: { stale: false },
           forecast: {
             stale: false,
             updated: Date.now() / 1000,
             data: {
+              timezone: "America/Chicago",
+              current: {
+                temperature_2m: 65,
+                apparent_temperature: 64,
+                weather_code: 0,
+                wind_speed_10m: 7,
+                relative_humidity_2m: 50,
+                time: day + "T09:00",
+              },
               daily: {
-                time: ["2026-11-17"],
+                time: [day],
                 temperature_2m_min: [40],
                 temperature_2m_max: [65],
                 precipitation_probability_max: [10],
+                weather_code: [0],
               },
             },
           },
@@ -214,17 +230,31 @@ test("Field Briefing exposes weather on a dedicated compact page", async ({
   );
   await page.goto("/");
   await navigate(page, "Field Briefing");
-  await expect(
-    page.getByRole("heading", { name: "Field Briefing", exact: true }),
-  ).toBeVisible();
-  await expect(page.locator(".briefing-page")).toContainText("40–65°F");
-  await expect(
-    page
-      .locator(".briefing-page details")
-      .filter({
-        has: page.getByText("7-day weather · Open-Meteo", { exact: true }),
-      }),
-  ).toHaveAttribute("open", "");
+  await expect(page.locator(".weather-topline")).toContainText(
+    "Tulsa, Oklahoma",
+  );
+  await expect(page.locator(".weather-temperature")).toContainText("65");
+  await expect(page.locator(".weather-week")).toBeVisible();
+  await expect(page.locator(".weather-alert")).toContainText(fresh.title);
+  await page
+    .locator(".briefing-page")
+    .getByRole("button", { name: /^Events/ })
+    .click();
+  await expect(page.locator(".briefing-page .event-report")).toContainText(
+    fresh.title,
+  );
+  await page
+    .locator(".briefing-page")
+    .getByRole("button", { name: "Quakes", exact: true })
+    .click();
+  await expect(page.locator(".briefing-page .event-report")).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Briefing settings", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Use Tulsa", exact: true }).click();
+  await expect(page.getByLabel("Location name", { exact: true })).toHaveValue(
+    "Tulsa, Oklahoma",
+  );
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
     1024,
   );
