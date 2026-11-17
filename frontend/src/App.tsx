@@ -596,19 +596,6 @@ export default function App() {
           )}
           {section === "Home" ? (
             <>
-              <nav className="home-launcher" aria-label="Applications">
-                {sections
-                  .filter((item) => item !== "Home")
-                  .map((item) => {
-                    const Icon = icons[item];
-                    return (
-                      <button key={item} onClick={() => navigate(item)}>
-                        <Icon size={25} strokeWidth={1.4} />
-                        <span>{sectionLabel(item)}</span>
-                      </button>
-                    );
-                  })}
-              </nav>
               <Home
                 history={telemetry.history}
                 reading={reading}
