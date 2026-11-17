@@ -323,59 +323,8 @@ function Home({
           </span>
         </div>
       </section>
-      <section className="quick-section">
-        <div className="section-heading">
-          <h2>Quick access</h2>
-        </div>
-        <div className="quick-grid">
-          {(
-            [
-              {
-                section: "Games",
-                label: "Play something",
-                detail: "Open game library",
-                Icon: Gamepad2,
-              },
-              {
-                section: "Files",
-                label: "Browse files",
-                detail: "Documents & downloads",
-                Icon: Folder,
-              },
-              {
-                section: "System",
-                label: "Check the Pi",
-                detail: "Battery & system readings",
-                Icon: Cpu,
-              },
-              {
-                section: "Library",
-                label: "Look it up",
-                detail: "Your offline references",
-                Icon: Library,
-              },
-            ] as const
-          ).map(({ section, label, detail, Icon }) => (
-            <button
-              className="quick-card"
-              key={section}
-              onClick={() => navigate(section)}
-            >
-              <div>
-                <Icon size={22} strokeWidth={1.4} />
-                <ArrowUpRight size={15} />
-              </div>
-              <strong>{label}</strong>
-              <span>{detail}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-      <HomeTools
-        browser={browser}
-        note={note}
-        openLibrary={openBookmarks}
-      />
+
+      <HomeTools browser={browser} note={note} openLibrary={openBookmarks} />
     </>
   );
 }
@@ -415,7 +364,7 @@ function savedFlag(key: string, fallback = false) {
 }
 export default function App() {
   const [collapsed, setCollapsed] = useState(() =>
-    savedFlag("klinekraft.sidebarCollapsed"),
+    savedFlag("klinekraft.navigation.drawer.v2", true),
   );
   const [dark, setDark] = useState(() =>
     savedFlag(
@@ -427,7 +376,10 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     try {
-      localStorage.setItem("klinekraft.sidebarCollapsed", String(collapsed));
+      localStorage.setItem(
+        "klinekraft.navigation.drawer.v2",
+        String(collapsed),
+      );
       localStorage.setItem("klinekraft.darkMode", String(dark));
       setAppearanceWarning("");
     } catch {
@@ -466,10 +418,16 @@ export default function App() {
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        (document.getElementById("ai-question") ?? input.current)?.focus();
+        const ai = document.getElementById("ai-question");
+        if (ai) ai.focus();
+        else {
+          setSection("Home");
+          requestAnimationFrame(() => input.current?.focus());
+        }
       }
       if (e.key === "Escape") {
         setExitHelp(false);
+        setCollapsed(true);
         input.current?.blur();
       }
     };
@@ -477,6 +435,7 @@ export default function App() {
     return () => window.removeEventListener("keydown", key);
   }, []);
   const navigate = (next: Section) => {
+    setCollapsed(true);
     setSection(next);
     setFeedback("");
   };
@@ -499,7 +458,9 @@ export default function App() {
     }
   }
   return (
-    <div className={`app-shell${collapsed ? " sidebar-collapsed" : ""}`}>
+    <div
+      className={`app-shell minimal-shell${collapsed ? " sidebar-collapsed" : ""}`}
+    >
       <aside className="sidebar" inert={exitHelp}>
         <KlinekraftBrandLockup />
         <div className="sidebar-heading">
@@ -561,20 +522,47 @@ export default function App() {
         </div>
       </aside>
       <main inert={exitHelp} data-page={section}>
-        <PowerControls dimTarget={dimTarget} />
         <header className="page-header">
+          <div className="navigation-controls">
+            <button
+              className="icon-button"
+              aria-label="Open navigation"
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              ☰
+            </button>
+            <button
+              className="icon-button"
+              aria-label="Go Home"
+              onClick={() => navigate("Home")}
+            >
+              ⌂
+            </button>
+          </div>
           <div>
+            {section === "Home" && (
+              <div className="header-brand">
+                <KlinekraftBrandLockup />
+              </div>
+            )}
             <div className="eyebrow">
               KLINEKRAFT TERMINAL{" "}
               <span>
                 / {String(sections.indexOf(section) + 1).padStart(2, "0")}
               </span>
             </div>
-            <h1 className={section === "Home" ? "sr-only" : undefined}>
+            <h1
+              className={
+                ["Home", "Paint", "AI assistant"].includes(section)
+                  ? "sr-only"
+                  : undefined
+              }
+            >
               {sectionLabel(section)}
             </h1>
           </div>
           <div className="header-actions">
+            <PowerControls dimTarget={dimTarget} />
             <span className="dim-toggle-slot" ref={setDimTarget} />
             <button
               className="icon-button"
@@ -607,16 +595,34 @@ export default function App() {
             </p>
           )}
           {section === "Home" ? (
-            <Home
-              history={telemetry.history}
-              reading={reading}
-              now={now}
-              navigate={navigate}
-              detail={detail}
-              browser={browser}
-              note={note}
-              openBookmarks={() => { setLibraryView("Bookmarks"); navigate("Library"); }}
-            />
+            <>
+              <nav className="home-launcher" aria-label="Applications">
+                {sections
+                  .filter((item) => item !== "Home")
+                  .map((item) => {
+                    const Icon = icons[item];
+                    return (
+                      <button key={item} onClick={() => navigate(item)}>
+                        <Icon size={25} strokeWidth={1.4} />
+                        <span>{sectionLabel(item)}</span>
+                      </button>
+                    );
+                  })}
+              </nav>
+              <Home
+                history={telemetry.history}
+                reading={reading}
+                now={now}
+                navigate={navigate}
+                detail={detail}
+                browser={browser}
+                note={note}
+                openBookmarks={() => {
+                  setLibraryView("Bookmarks");
+                  navigate("Library");
+                }}
+              />
+            </>
           ) : section === "Emergency" ? (
             <EmergencyDashboard navigate={navigate} onAsk={askAboutFile} />
           ) : section === "AI assistant" ? (
@@ -643,12 +649,38 @@ export default function App() {
           ) : section === "Library" ? (
             <div className="library-workspace">
               <nav className="library-navigation" aria-label="Library sections">
-                {["Documents", "Wikipedia", "Notebook", "Bookmarks"].map(view => <button key={view} aria-pressed={libraryView === view} onClick={() => setLibraryView(view)}>{view}</button>)}
+                {["Documents", "Wikipedia", "Notebook", "Bookmarks"].map(
+                  (view) => (
+                    <button
+                      key={view}
+                      aria-pressed={libraryView === view}
+                      onClick={() => setLibraryView(view)}
+                    >
+                      {view}
+                    </button>
+                  ),
+                )}
               </nav>
-              <div hidden={libraryView !== "Documents"}><ResearchLibrary onAsk={askAboutFile} /></div>
-              <div hidden={libraryView !== "Notebook"}><Notebook onAsk={askAboutFile} /></div>
-              <div hidden={libraryView !== "Wikipedia"}><WikiBrowser onAsk={(article) => { setWikiContext(article); navigate("AI assistant"); }} /></div>
-              <div hidden={libraryView !== "Bookmarks"}><BrowserLibrary store={browser} openSettings={() => navigate("Settings")} /></div>
+              <div hidden={libraryView !== "Documents"}>
+                <ResearchLibrary onAsk={askAboutFile} />
+              </div>
+              <div hidden={libraryView !== "Notebook"}>
+                <Notebook onAsk={askAboutFile} />
+              </div>
+              <div hidden={libraryView !== "Wikipedia"}>
+                <WikiBrowser
+                  onAsk={(article) => {
+                    setWikiContext(article);
+                    navigate("AI assistant");
+                  }}
+                />
+              </div>
+              <div hidden={libraryView !== "Bookmarks"}>
+                <BrowserLibrary
+                  store={browser}
+                  openSettings={() => navigate("Settings")}
+                />
+              </div>
             </div>
           ) : section === "Settings" ? (
             <>
@@ -697,13 +729,15 @@ export default function App() {
               </details>
             </>
           ) : section === "Network" ? (
-            <><ScreenCast /><FieldConnections /><NetworkPanel reading={reading} label={label} /></>
+            <>
+              <ScreenCast />
+              <FieldConnections />
+              <NetworkPanel reading={reading} label={label} />
+            </>
           ) : (
             <Feature section={section} />
           )}
         </div>
-        {section !== "AI assistant" && (
-          <footer className="command-area">
             {feedback && (
               <div
                 className="command-feedback"
@@ -719,6 +753,8 @@ export default function App() {
                 </button>
               </div>
             )}
+        {section !== "AI assistant" && (
+          <footer className="command-area">
             <form onSubmit={submit}>
               <Terminal size={18} />
               <label className="sr-only" htmlFor="command">
@@ -729,7 +765,7 @@ export default function App() {
                 id="command"
                 value={command}
                 onChange={(e) => setCommand(e.target.value)}
-                placeholder="Where would you like to go? Try ‘games’ or ‘system status’"
+                placeholder="Search apps or commands…"
                 autoComplete="off"
                 maxLength={240}
               />
@@ -758,8 +794,10 @@ export default function App() {
               close button to return to the desktop. If fullscreen is active,
               press F11 first to reveal the window controls.
             </p>
-            <p>Your saved work stays on this Pi. The local service keeps running
-              when you close the window.</p>
+            <p>
+              Your saved work stays on this Pi. The local service keeps running
+              when you close the window.
+            </p>
             <button
               autoFocus
               onClick={() => {

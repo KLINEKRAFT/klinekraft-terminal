@@ -60,16 +60,16 @@ def query_terms(query):
     return [t for t in dict.fromkeys(re.findall(r"[^\W_]{2,}", query.lower())) if t not in stop][:12]
 
 
-def ranked_rows(connection, query, collection="", limit=101, exclude_historical=False):
+def ranked_rows(connection, query, collection="", limit=101, exclude_historical=False, mime=""):
     terms = query_terms(query)
     if not terms:
         if query.strip():
             return []
-        return connection.execute("SELECT * FROM research_files WHERE (?='' OR collection=?) AND (?=0 OR collection NOT LIKE 'Historical%') ORDER BY name COLLATE NOCASE,id LIMIT ?", (collection,collection,exclude_historical,limit)).fetchall()
+        return connection.execute("SELECT * FROM research_files WHERE (?='' OR collection=?) AND (?=0 OR collection NOT LIKE 'Historical%') AND (?='' OR mime=?) ORDER BY CASE WHEN mime='application/pdf' THEN 0 ELSE 1 END,name COLLATE NOCASE,id LIMIT ?", (collection,collection,exclude_historical,mime,mime,limit)).fetchall()
     expression = ' OR '.join('"' + term + '"' for term in terms)
     return connection.execute("""SELECT f.* FROM research_fts JOIN research_files f ON f.id=research_fts.rowid
-        WHERE research_fts MATCH ? AND (?='' OR f.collection=?) AND (?=0 OR f.collection NOT LIKE 'Historical%')
-        ORDER BY bm25(research_fts,4.0,1.0), f.id LIMIT ?""", (expression,collection,collection,exclude_historical,limit)).fetchall()
+        WHERE research_fts MATCH ? AND (?='' OR f.collection=?) AND (?=0 OR f.collection NOT LIKE 'Historical%') AND (?='' OR f.mime=?)
+        ORDER BY bm25(research_fts,4.0,1.0), f.id LIMIT ?""", (expression,collection,collection,exclude_historical,mime,mime,limit)).fetchall()
 
 
 def best_excerpt(row, terms, length=450):
@@ -172,13 +172,13 @@ def import_folder(body: FolderImport):
 
 
 @router.get("")
-def search(q: str = Query(default="", max_length=200), collection: str = Query(default="", max_length=80)):
+def search(q: str = Query(default="", max_length=200), collection: str = Query(default="", max_length=80), mime: str = ""):
     with database() as connection:
         init(connection)
         collections = [row[0] for row in connection.execute(
             "SELECT DISTINCT collection FROM research_files ORDER BY collection"
         )]
-        rows = ranked_rows(connection, q, collection)
+        rows = ranked_rows(connection, q, collection, mime=mime)
         total = connection.execute("SELECT count(*) FROM research_files WHERE (?='' OR collection=?)", (collection,collection)).fetchone()[0]
     files = [{**{key:row[key] for key in ('id','collection','name','mime')},
               **best_excerpt(row,query_terms(q)), 'searchable':bool(row['extracted'].strip())} for row in rows[:100]]
@@ -218,3 +218,33 @@ def relevant_passages(question):
         if len(passages)==4:
             break
     return passages
+
+
+_preview_lock = __import__('threading').Semaphore(2)
+
+@router.get("/{file_id}/thumbnail")
+def thumbnail(file_id: int):
+    from PIL import Image
+    with database() as connection:
+        init(connection)
+        row=connection.execute("SELECT digest,mime FROM research_files WHERE id=?",(file_id,)).fetchone()
+    if row is None: raise HTTPException(404,"Document not found")
+    if row['mime']!='application/pdf' and not row['mime'].startswith('image/'):
+        raise HTTPException(404,"No image preview")
+    source=files_root()/row['digest']
+    cache=files_root().parent/'research-previews';cache.mkdir(exist_ok=True)
+    target=cache/(row['digest']+'.jpg')
+    if not target.exists():
+        with _preview_lock:
+            if not target.exists():
+                try:
+                    with tempfile.TemporaryDirectory(dir=cache) as temp:
+                        output=Path(temp)/'preview'
+                        if row['mime']=='application/pdf':
+                            subprocess.run(['pdftoppm','-f','1','-singlefile','-scale-to','420','-jpeg',str(source),str(output)],check=True,timeout=15,capture_output=True)
+                        else:
+                            with Image.open(source) as image:
+                                image.thumbnail((420,420));image.convert('RGB').save(str(output)+'.jpg')
+                        Path(str(output)+'.jpg').replace(target)
+                except (OSError,ValueError,subprocess.SubprocessError): raise HTTPException(422,"Preview unavailable")
+    return FileResponse(target,media_type='image/jpeg',headers={'Cache-Control':'private, max-age=86400'})

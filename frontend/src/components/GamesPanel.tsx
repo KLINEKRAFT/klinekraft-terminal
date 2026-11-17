@@ -1,3 +1,4 @@
+import { LocalImage } from "./LocalImage";
 import { useEffect, useState } from "react";
 import { Play, Star } from "lucide-react";
 import { isHostedDemo } from "../runtime";
@@ -83,24 +84,38 @@ export function GamesPanel() {
     if (isHostedDemo) return;
     let active = true;
     async function restore() {
-      const migrated = localStorage.getItem("klinekraft.games.favorites.pi-migrated");
+      const migrated = localStorage.getItem(
+        "klinekraft.games.favorites.pi-migrated",
+      );
       if (!migrated) {
         for (const id of favorites) {
           const response = await fetch("/api/games/favorites/" + id, {
-            method: "PUT", headers: { ...headers, "Content-Type": "application/json" },
+            method: "PUT",
+            headers: { ...headers, "Content-Type": "application/json" },
             body: JSON.stringify({ selected: true }),
           });
-          if (!response.ok) throw Error("Could not migrate game favorites to the Pi.");
+          if (!response.ok)
+            throw Error("Could not migrate game favorites to the Pi.");
         }
         localStorage.setItem("klinekraft.games.favorites.pi-migrated", "true");
       }
-      const response = await fetch("/api/games/favorites", { headers, cache: "no-store" });
+      const response = await fetch("/api/games/favorites", {
+        headers,
+        cache: "no-store",
+      });
       if (!response.ok) throw Error("Could not load saved game favorites.");
       const saved: string[] = await response.json();
-      if (active) { setFavorites(saved); setFavoritesReady(true); }
+      if (active) {
+        setFavorites(saved);
+        setFavoritesReady(true);
+      }
     }
-    void restore().catch((error: Error) => { if (active) setStorageWarning(error.message); });
-    return () => { active = false; };
+    void restore().catch((error: Error) => {
+      if (active) setStorageWarning(error.message);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
   async function favorite(id: string) {
     if (!favoritesReady || favoriteBusy) return;
@@ -108,29 +123,34 @@ export function GamesPanel() {
     try {
       if (!isHostedDemo) {
         const response = await fetch("/api/games/favorites/" + id, {
-          method: "PUT", headers: { ...headers, "Content-Type": "application/json" },
+          method: "PUT",
+          headers: { ...headers, "Content-Type": "application/json" },
           body: JSON.stringify({ selected: !favorites.includes(id) }),
         });
-        if (!response.ok) throw Error("Favorite was not saved on the Pi. Please retry.");
+        if (!response.ok)
+          throw Error("Favorite was not saved on the Pi. Please retry.");
       }
 
-    const next = favorites.includes(id)
-      ? favorites.filter((item) => item !== id)
-      : [...favorites, id];
-    setFavorites(next);
-    try {
-      localStorage.setItem(
-        "klinekraft.games.favorites.v1",
-        JSON.stringify(next),
-      );
-      setStorageWarning("");
-    } catch {
-      setStorageWarning(
-        "Favorites apply now but cannot be saved in this browser.",
-      );
+      const next = favorites.includes(id)
+        ? favorites.filter((item) => item !== id)
+        : [...favorites, id];
+      setFavorites(next);
+      try {
+        localStorage.setItem(
+          "klinekraft.games.favorites.v1",
+          JSON.stringify(next),
+        );
+        setStorageWarning("");
+      } catch {
+        setStorageWarning(
+          "Favorites apply now but cannot be saved in this browser.",
+        );
+      }
+    } catch (error) {
+      setStorageWarning((error as Error).message);
+    } finally {
+      setFavoriteBusy(false);
     }
-    } catch (error) { setStorageWarning((error as Error).message); }
-    finally { setFavoriteBusy(false); }
   }
   async function play(game: Game) {
     setLaunching(true);
@@ -278,6 +298,18 @@ export function GamesPanel() {
                   <ul className="game-list">
                     {filtered.slice(0, limit).map((game) => (
                       <li key={game.id}>
+                        <div className="game-cover">
+                          <LocalImage
+                            src={`/api/games/${game.id}/artwork`}
+                            alt={game.title}
+                            fallback={
+                              <span className="game-cover-fallback">
+                                <small>{names[game.system]}</small>
+                                <strong>{game.title}</strong>
+                              </span>
+                            }
+                          />
+                        </div>
                         <button
                           className="game-favorite"
                           aria-label={`${favorites.includes(game.id) ? "Unfavorite" : "Favorite"} ${game.title}`}

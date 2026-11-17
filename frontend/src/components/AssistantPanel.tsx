@@ -1,3 +1,4 @@
+import { Info } from "./Info";
 import { DocumentReader, type DocumentSource } from "./DocumentReader";
 import { NotebookSave } from "./Notebook";
 import { useConversations, downloadJSON } from "./useConversations";
@@ -15,7 +16,11 @@ export type Turn = {
   attachmentName?: string | null;
   answer: string;
   notice: string;
-  sources: (WikiReference & { id: number; fileId?: number | null; page?: number | null })[];
+  sources: (WikiReference & {
+    id: number;
+    fileId?: number | null;
+    page?: number | null;
+  })[];
   images: {
     path: string;
     caption: string;
@@ -24,13 +29,19 @@ export type Turn = {
     sourceId: number;
   }[];
 };
-const attachmentTypes = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
+const attachmentTypes = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "application/pdf",
+];
 
 function encodeAttachment(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result).split(",", 2)[1]);
-    reader.onerror = () => reject(new Error("The attachment could not be read."));
+    reader.onerror = () =>
+      reject(new Error("The attachment could not be read."));
     reader.readAsDataURL(file);
   });
 }
@@ -49,6 +60,7 @@ export function AssistantPanel({
   const store = useConversations(context);
   const { turns, context: articleContext } = store.chat;
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [selectedChats, setSelectedChats] = useState<string[]>([]);
   const [rename, setRename] = useState("");
   useEffect(() => {
     onClearContext();
@@ -60,12 +72,27 @@ export function AssistantPanel({
     local?: { configured: boolean; model: string };
     cloud?: { configured: boolean; model: string };
   } | null>(null);
-  const [provider, setProvider] = useState<"local" | "cloud">(() => localStorage.getItem("klinekraft.ai.provider") === "cloud" ? "cloud" : "local");
+  const [provider, setProvider] = useState<"local" | "cloud">(() =>
+    localStorage.getItem("klinekraft.ai.provider") === "cloud"
+      ? "cloud"
+      : "local",
+  );
   const [referenceOnly, setReferenceOnly] = useState(true);
-  const ready = provider === "local" && referenceOnly ? true : status?.[provider]?.configured ?? (status?.local ? false : status?.configured);
-  const recipient = provider === "local" ? (referenceOnly ? "the local reference reader (no AI request)" : "the local model on this Pi") : "OpenAI";
+  const ready =
+    provider === "local" && referenceOnly
+      ? true
+      : (status?.[provider]?.configured ??
+        (status?.local ? false : status?.configured));
+  const recipient =
+    provider === "local"
+      ? referenceOnly
+        ? "the local reference reader (no AI request)"
+        : "the local model on this Pi"
+      : "OpenAI";
   const [question, setQuestion] = useState("");
-  const [attachment, setAttachment] = useState<File | null>(initialAttachment ?? null);
+  const [attachment, setAttachment] = useState<File | null>(
+    initialAttachment ?? null,
+  );
   const [preview, setPreview] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -79,7 +106,9 @@ export function AssistantPanel({
   }, [attachment]);
   const [useDiagnostics, setUseDiagnostics] = useState(false);
   const [useResearch, setUseResearch] = useState(true);
-  const [researchSource, setResearchSource] = useState<DocumentSource | null>(null);
+  const [researchSource, setResearchSource] = useState<DocumentSource | null>(
+    null,
+  );
   const [useWiki, setUseWiki] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -108,16 +137,15 @@ export function AssistantPanel({
     end.current?.scrollIntoView({ block: "nearest" });
   }, [turns.length, busy]);
   const composerDisabled =
-    busy || isHostedDemo || store.loading || store.saving || store.dirty ||
+    busy ||
+    isHostedDemo ||
+    store.loading ||
+    store.saving ||
+    store.dirty ||
     turns.length >= 200;
   async function ask(e: FormEvent) {
     e.preventDefault();
-    if (
-      !question.trim() ||
-      composerDisabled ||
-      !ready
-    )
-      return;
+    if (!question.trim() || composerDisabled || !ready) return;
     const sent = question;
     const request = new AbortController();
     controller.current = request;
@@ -133,7 +161,10 @@ export function AssistantPanel({
       const data = await localJSON("/api/ai/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.any([request.signal, AbortSignal.timeout(provider === "local" ? 260000 : 120000)]),
+        signal: AbortSignal.any([
+          request.signal,
+          AbortSignal.timeout(provider === "local" ? 260000 : 120000),
+        ]),
         body: JSON.stringify({
           provider,
           reference_only: provider === "local" && referenceOnly,
@@ -147,13 +178,17 @@ export function AssistantPanel({
             .slice(-6),
           use_wiki: useWiki,
           use_research: useResearch,
-          use_diagnostics: useDiagnostics && !(provider === "local" && referenceOnly),
+          use_diagnostics:
+            useDiagnostics && !(provider === "local" && referenceOnly),
           article_path: useWiki ? articleContext?.path : null,
         }),
       });
       if (request.signal.aborted) return;
       setAttachment(null);
-      await store.update([...turns, { question: sent, attachmentName: attachment?.name, ...data }]);
+      await store.update([
+        ...turns,
+        { question: sent, attachmentName: attachment?.name, ...data },
+      ]);
       requestAnimationFrame(() => input.current?.focus());
     } catch (e) {
       if (!request.signal.aborted) {
@@ -172,7 +207,11 @@ export function AssistantPanel({
     }
   }
   function openResearchSource(source: Turn["sources"][number]) {
-    setResearchSource({ title: source.title, url: `/api/research/${source.fileId}`, page: source.page });
+    setResearchSource({
+      title: source.title,
+      url: `/api/research/${source.fileId}`,
+      page: source.page,
+    });
   }
 
   return (
@@ -211,7 +250,19 @@ export function AssistantPanel({
         >
           History
         </button>
-        {provider === "local" && <button type="button" className="ai-quiet-button" disabled={busy} aria-pressed={referenceOnly} onClick={() => setReferenceOnly(value => !value)}>{referenceOnly ? "Mode: reference excerpts" : "Mode: AI explanation"}</button>}
+        {provider === "local" && (
+          <button
+            type="button"
+            className="ai-quiet-button"
+            disabled={busy}
+            aria-pressed={referenceOnly}
+            onClick={() => setReferenceOnly((value) => !value)}
+          >
+            {referenceOnly
+              ? "Mode: reference excerpts"
+              : "Mode: AI explanation"}
+          </button>
+        )}
         <details className="ai-options">
           <summary aria-label="Chat settings">
             <SlidersHorizontal size={16} />
@@ -227,14 +278,48 @@ export function AssistantPanel({
               />{" "}
               Use local Wikipedia
             </label>
-            <label>Answer engine <select value={provider} disabled={busy} onChange={e => {
-              const next = e.target.value as "local" | "cloud";
-              setProvider(next); localStorage.setItem("klinekraft.ai.provider", next);
-            }}><option value="local">Offline · this Pi</option><option value="cloud">Cloud · OpenAI</option></select></label>
-            {provider === "local" && <label><input type="checkbox" checked={referenceOnly} disabled={busy} onChange={e => setReferenceOnly(e.target.checked)} /> Quote guides directly (no AI rewriting)</label>}
-            {provider === "local" && <p>{referenceOnly ? "Reference mode shows source excerpts immediately. Uncheck for AI explanations of general questions." : "AI explanation mode can misread safety guidance. Use direct-reference mode for emergency and medical questions."}</p>}
-            <p>{status?.[provider]?.model || (provider === "local" ? "Local model" : status?.model)}</p>
-            <p>{provider === "local" ? "Works without internet after installation. Smaller model; answers may take longer. No automatic cloud fallback." : "Questions, recent messages and selected references go to OpenAI. Internet and API billing required."}</p>
+            <label>
+              Answer engine{" "}
+              <select
+                value={provider}
+                disabled={busy}
+                onChange={(e) => {
+                  const next = e.target.value as "local" | "cloud";
+                  setProvider(next);
+                  localStorage.setItem("klinekraft.ai.provider", next);
+                }}
+              >
+                <option value="local">Offline · this Pi</option>
+                <option value="cloud">Cloud · OpenAI</option>
+              </select>
+            </label>
+            {provider === "local" && (
+              <label>
+                <input
+                  type="checkbox"
+                  checked={referenceOnly}
+                  disabled={busy}
+                  onChange={(e) => setReferenceOnly(e.target.checked)}
+                />{" "}
+                Quote guides directly (no AI rewriting)
+              </label>
+            )}
+            {provider === "local" && (
+              <p>
+                {referenceOnly
+                  ? "Reference mode shows source excerpts immediately. Uncheck for AI explanations of general questions."
+                  : "AI explanation mode can misread safety guidance. Use direct-reference mode for emergency and medical questions."}
+              </p>
+            )}
+            <p>
+              {status?.[provider]?.model ||
+                (provider === "local" ? "Local model" : status?.model)}
+            </p>
+            <p>
+              {provider === "local"
+                ? "Works without internet after installation. Smaller model; answers may take longer. No automatic cloud fallback."
+                : "Questions, recent messages and selected references go to OpenAI. Internet and API billing required."}
+            </p>
             <p>
               Chats are saved on this Pi. Only recent messages are sent with
               each question. Wikipedia stays available offline.
@@ -258,21 +343,61 @@ export function AssistantPanel({
               Close
             </button>
           </div>
+          <div className="chat-selection">
+            <button
+              disabled={busy || store.saving || store.dirty}
+              onClick={() =>
+                setSelectedChats(
+                  selectedChats.length ? [] : store.items.map((i) => i.id),
+                )
+              }
+            >
+              {selectedChats.length ? "Clear selection" : "Select all"}
+            </button>
+            <button
+              disabled={
+                !selectedChats.length || busy || store.saving || store.dirty
+              }
+              onClick={() =>
+                void store
+                  .removeMany(selectedChats)
+                  .then(() => setSelectedChats([]))
+              }
+            >
+              Delete selected ({selectedChats.length})
+            </button>
+          </div>
           <div className="ai-history-list">
             {store.items.map((item) => (
-              <button
-                disabled={busy || store.saving || store.loading || store.dirty}
-                aria-current={item.id === store.chat.id ? "true" : undefined}
-                key={item.id}
-                onClick={() => {
-                  setAttachment(null);
-                  void store.open(item.id);
-                  setHistoryOpen(false);
-                }}
-              >
-                {item.title}
-                <small>{new Date(item.updated).toLocaleDateString()}</small>
-              </button>
+              <div className="chat-history-row" key={item.id}>
+                <input
+                  type="checkbox"
+                  aria-label={`Select ${item.title}`}
+                  checked={selectedChats.includes(item.id)}
+                  onChange={(e) =>
+                    setSelectedChats(
+                      e.target.checked
+                        ? [...selectedChats, item.id]
+                        : selectedChats.filter((id) => id !== item.id),
+                    )
+                  }
+                />
+                <button
+                  disabled={
+                    busy || store.saving || store.loading || store.dirty
+                  }
+                  aria-current={item.id === store.chat.id ? "true" : undefined}
+                  key={item.id}
+                  onClick={() => {
+                    setAttachment(null);
+                    void store.open(item.id);
+                    setHistoryOpen(false);
+                  }}
+                >
+                  {item.title}
+                  <small>{new Date(item.updated).toLocaleDateString()}</small>
+                </button>
+              </div>
             ))}
             {!store.items.length && <p>No saved conversations found.</p>}
           </div>
@@ -352,11 +477,21 @@ export function AssistantPanel({
           <p className="ai-empty">Open the local Pi app to chat.</p>
         ) : status && !ready ? (
           <div className="ai-setup">
-            <p>{provider === "local" ? "Offline Shackleton is not ready." : "Connect your cloud assistant."}</p>
-            <p className="ai-footnote">
-              {provider === "local" ? "Check the local model service, then retry." : "Run AI setup on the Pi to enter your OpenAI API key privately."}
+            <p>
+              {provider === "local"
+                ? "Offline Shackleton is not ready."
+                : "Connect your cloud assistant."}
             </p>
-            <pre>{provider === "local" ? "systemctl --user status klinekraft-ai" : "python3 ~/klinekraft-terminal/scripts/setup-ai.py"}</pre>
+            <p className="ai-footnote">
+              {provider === "local"
+                ? "Check the local model service, then retry."
+                : "Run AI setup on the Pi to enter your OpenAI API key privately."}
+            </p>
+            <pre>
+              {provider === "local"
+                ? "systemctl --user status klinekraft-ai"
+                : "python3 ~/klinekraft-terminal/scripts/setup-ai.py"}
+            </pre>
             <button
               className="ai-quiet-button"
               onClick={() => {
@@ -369,6 +504,11 @@ export function AssistantPanel({
           </div>
         ) : !turns.length && !busy ? (
           <div className="ai-empty">
+            <img
+              className="shackleton-mark"
+              src="/brand/shackleton.png"
+              alt="Shackleton"
+            />
             <p>What would you like to explore?</p>
           </div>
         ) : null}
@@ -376,7 +516,9 @@ export function AssistantPanel({
           {turns.map((turn, i) => (
             <article className="ai-turn" key={i}>
               <h2 className="ai-user-message">{turn.question}</h2>
-              {turn.attachmentName && <p className="ai-notice">Attachment: {turn.attachmentName}</p>}
+              {turn.attachmentName && (
+                <p className="ai-notice">Attachment: {turn.attachmentName}</p>
+              )}
               <div className="ai-answer">{turn.answer}</div>
               <NotebookSave turn={turn} />
               {turn.notice && <p className="ai-notice">{turn.notice}</p>}
@@ -408,8 +550,14 @@ export function AssistantPanel({
                   </summary>
                   <div className="ai-sources">
                     {turn.sources.map((s) => (
-                      <button key={s.id} onClick={() => s.fileId ? void openResearchSource(s) : setSelected(s)}>
-                        [{s.id}] {s.title}{s.page ? ` · page ${s.page}` : ""}
+                      <button
+                        key={s.id}
+                        onClick={() =>
+                          s.fileId ? void openResearchSource(s) : setSelected(s)
+                        }
+                      >
+                        [{s.id}] {s.title}
+                        {s.page ? ` · page ${s.page}` : ""}
                       </button>
                     ))}
                   </div>
@@ -450,9 +598,15 @@ export function AssistantPanel({
               const file = e.currentTarget.files?.[0];
               e.currentTarget.value = "";
               if (!file) return;
-              if (!attachmentTypes.includes(file.type) || !file.size ||
-                  file.size > 8 * 1024 * 1024 || file.name.length > 255) {
-                setError("Choose a PNG, JPEG, WebP or PDF up to 8 MiB with a filename of 255 characters or fewer.");
+              if (
+                !attachmentTypes.includes(file.type) ||
+                !file.size ||
+                file.size > 8 * 1024 * 1024 ||
+                file.name.length > 255
+              ) {
+                setError(
+                  "Choose a PNG, JPEG, WebP or PDF up to 8 MiB with a filename of 255 characters or fewer.",
+                );
                 return;
               }
               setAttachment(file);
@@ -461,13 +615,14 @@ export function AssistantPanel({
           />
           {attachment && (
             <div className="ai-attachment">
-              {preview && (!attachment.type.startsWith("image/") ? (
-                <a href={preview} target="_blank" rel="noopener noreferrer">
-                  Preview attachment
-                </a>
-              ) : (
-                <img src={preview} alt="Attachment preview" />
-              ))}
+              {preview &&
+                (!attachment.type.startsWith("image/") ? (
+                  <a href={preview} target="_blank" rel="noopener noreferrer">
+                    Preview attachment
+                  </a>
+                ) : (
+                  <img src={preview} alt="Attachment preview" />
+                ))}
               <span>{attachment.name}</span>
               <button
                 type="button"
@@ -481,8 +636,8 @@ export function AssistantPanel({
               <p id="ai-upload-note" className="ai-notice">
                 {attachment.type === "text/plain"
                   ? `Sending shares this note with ${recipient}. Chat history`
-                  : `Sending shares this file with ${recipient} for this answer. Chat history`}
-                {" "}saves the filename and answer on the Pi.
+                  : `Sending shares this file with ${recipient} for this answer. Chat history`}{" "}
+                saves the filename and answer on the Pi.
               </p>
             </div>
           )}
@@ -534,17 +689,42 @@ export function AssistantPanel({
               store.dirty ||
               turns.length >= 200
             }
-            aria-describedby={attachment ? "ai-keyboard-hint ai-upload-note" : "ai-keyboard-hint"}
+            aria-describedby={
+              attachment
+                ? "ai-keyboard-hint ai-upload-note"
+                : "ai-keyboard-hint"
+            }
           />
-          {useDiagnostics && !(provider === "local" && referenceOnly) && <p className="ai-notice">Sending shares current CPU, memory, storage, temperature, battery and Klinekraft service status with {recipient}.</p>}
-          {useResearch && <p className="ai-notice">Sending shares matching library excerpts with {recipient}.</p>}
+          {useDiagnostics && !(provider === "local" && referenceOnly) && (
+            <p className="ai-notice">
+              Sending shares current CPU, memory, storage, temperature, battery
+              and Klinekraft service status with {recipient}.
+            </p>
+          )}
+          {useResearch && (
+            <Info label="Reference sharing information">
+              <p>Sending shares matching library excerpts with {recipient}.</p>
+            </Info>
+          )}
           <div className="ai-compose-controls">
-            <button className="ai-wiki-toggle" type="button" aria-pressed={useDiagnostics}
-              disabled={composerDisabled || (provider === "local" && referenceOnly)} onClick={() => setUseDiagnostics((value) => !value)}>
+            <button
+              className="ai-wiki-toggle"
+              type="button"
+              aria-pressed={useDiagnostics}
+              disabled={
+                composerDisabled || (provider === "local" && referenceOnly)
+              }
+              onClick={() => setUseDiagnostics((value) => !value)}
+            >
               Pi diagnostics {useDiagnostics ? "on" : "off"}
             </button>
-            <button className="ai-wiki-toggle" type="button" aria-pressed={useResearch}
-              disabled={composerDisabled} onClick={() => setUseResearch((value) => !value)}>
+            <button
+              className="ai-wiki-toggle"
+              type="button"
+              aria-pressed={useResearch}
+              disabled={composerDisabled}
+              onClick={() => setUseResearch((value) => !value)}
+            >
               Research {useResearch ? "on" : "off"}
             </button>
             <button
@@ -596,8 +776,13 @@ export function AssistantPanel({
           · Enter to send. AI can make mistakes.
         </p>
       </div>
-      {researchSource && <DocumentReader key={researchSource.url + ":" + researchSource.page}
-        source={researchSource} onClose={() => setResearchSource(null)} />}
+      {researchSource && (
+        <DocumentReader
+          key={researchSource.url + ":" + researchSource.page}
+          source={researchSource}
+          onClose={() => setResearchSource(null)}
+        />
+      )}
       {selected && (
         <ArticleDialog reference={selected} onClose={() => setSelected(null)} />
       )}

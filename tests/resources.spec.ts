@@ -1,3 +1,4 @@
+import { navigate } from "./navigation";
 import { test, expect } from "@playwright/test";
 test("live graphs accumulate unique samples and System shows read-only processes", async ({
   page,
@@ -42,7 +43,7 @@ test("live graphs accumulate unique samples and System shows read-only processes
       timeout: 8000,
     })
     .toContain("L");
-  await page.getByRole("button", { name: "08 System", exact: true }).click();
+  await navigate(page, "System");
   await expect(
     page.getByRole("region", { name: "Resource history" }),
   ).toBeVisible();
@@ -55,7 +56,7 @@ test("live graphs accumulate unique samples and System shows read-only processes
   await expect(page.getByRole("region", { name: "Processes" })).toContainText(
     "READ ONLY",
   );
-  await page.getByRole("button", { name: "01 Home", exact: true }).click();
+  await navigate(page, "Home");
   await expect(page.locator(".metric .graph-line").first()).not.toHaveAttribute(
     "d",
     "",

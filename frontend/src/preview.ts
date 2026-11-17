@@ -42,12 +42,12 @@ export function previewReading(tick: number): Reading {
 }
 export const sections = [
   "Home",
-  "Games",
   "AI assistant",
   "GPS / Maps",
   "Library",
   "Notes",
   "Paint",
+  "Games",
   "Calendar",
   "Calculator",
   "Files",
@@ -57,7 +57,8 @@ export const sections = [
   "Emergency",
 ] as const;
 export type Section = (typeof sections)[number];
-export const sectionLabel = (section: Section) => section === "AI assistant" ? "Shackleton" : section;
+export const sectionLabel = (section: Section) =>
+  section === "AI assistant" ? "Shackleton" : section;
 export type CommandResult = { section?: Section; message: string };
 export function resolveCommand(value: string): CommandResult {
   const command = value.trim().toLowerCase().replace(/\s+/g, " ");
