@@ -1,6 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { navigate } from "./navigation";
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem("klinekraft.ai.provider", "cloud"));
+  await page.addInitScript(() =>
+    localStorage.setItem("klinekraft.ai.provider", "cloud"),
+  );
   await page.route("**/api/conversations**", (r) => {
     if (r.request().method() === "PUT")
       return r.fulfill({
@@ -83,7 +86,7 @@ test("local article flows into cloud answer with verified source and image", asy
     });
   });
   await page.goto("/");
-  await page.getByRole("button", { name: /^05 Library/ }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Wikipedia", exact: true }).click();
   await page.getByLabel("Search Wikipedia", { exact: true }).fill("Moon");
   await page.getByRole("button", { name: "Search", exact: true }).click();
@@ -136,7 +139,7 @@ test("minimal chat keyboard flow, settings and new chat work on a small screen",
     });
   });
   await page.goto("/");
-  await page.getByRole("button", { name: /03 Shackleton/ }).click();
+  await navigate(page, "Shackleton");
   const input = page.getByLabel("Your question");
   await input.fill("First line");
   await input.press("Shift+Enter");

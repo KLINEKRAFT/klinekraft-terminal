@@ -1,3 +1,4 @@
+import { navigate } from "./navigation";
 import { test, expect } from "@playwright/test";
 const snapshot = {
   source: "host",
@@ -25,11 +26,11 @@ test("local mode defaults live, persists choices and never falls back to simulat
   );
   await page.goto("/");
   await expect(page.getByText("LIVE COMPUTER", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "09 Settings", exact: true }).click();
+  await navigate(page, "Settings");
   await page.getByLabel("Dashboard data").selectOption("preview");
   await page.reload();
   await expect(page.getByText("SIMULATED DATA", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "09 Settings", exact: true }).click();
+  await navigate(page, "Settings");
   await page.getByLabel("Dashboard data").selectOption("host");
   await page.unroute("**/api/system");
   await page.route("**/api/system", (route) =>
@@ -80,7 +81,7 @@ test("Tools launches an installed allowlisted utility and disables missing utili
   ).toBeDisabled();
   await page.getByRole("button", { name: "Open Files · nnn" }).click();
   await expect(page.getByRole("dialog").getByRole("status")).toContainText(
-    "terminal window",
+    "desktop window",
   );
   expect(launches).toBe(1);
   await page.keyboard.press("Escape");

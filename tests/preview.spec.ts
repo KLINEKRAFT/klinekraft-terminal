@@ -1,3 +1,4 @@
+import { navigate } from "./navigation";
 import { test, expect } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() =>
@@ -53,12 +54,13 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
       json: { games: [], systems: {}, running: null, lastExitCode: null },
     }),
   );
-  await page.getByRole("button", { name: "Play something" }).click();
+  await navigate(page, "Games");
   await expect(
     page.getByText("Your library is ready for its first games.", {
       exact: false,
     }),
   ).toBeVisible();
+  await navigate(page, "Home");
   await page
     .getByLabel("Workspace command", { exact: true })
     .fill("play paperboy; touch /tmp/unwanted");
@@ -66,6 +68,7 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
   await expect(
     page.getByRole("status", { name: "Command result" }),
   ).toContainText("Typed commands never launch an emulator");
+  await navigate(page, "Home");
   await page
     .getByLabel("Workspace command", { exact: true })
     .fill("system status");
@@ -73,7 +76,7 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "System", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "13 Settings" }).click();
+  await navigate(page, "Settings");
   const toggle = page.getByRole("checkbox", { name: /Automatic updates/ });
   await toggle.uncheck();
   await expect(toggle).not.toBeChecked();
@@ -81,6 +84,7 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
   await expect(
     page.getByLabel("Workspace command", { exact: true }),
   ).toBeFocused();
+  await page.getByRole("button", { name: "Open navigation" }).click();
   await page.getByRole("button", { name: "Return to desktop" }).click();
   await expect(page.getByRole("dialog")).toContainText("Alt + F4");
   await page.keyboard.press("Escape");
@@ -101,14 +105,12 @@ test("all navigation sections render and unknown commands stay bounded", async (
     "System",
     "Settings",
   ]) {
-    await page
-      .getByRole("navigation")
-      .getByRole("button", { name: new RegExp(name.replace("/", "\\/")) })
-      .click();
+    await navigate(page, name);
     await expect(
       page.getByRole("heading", { name, exact: true }),
     ).toBeVisible();
   }
+  await navigate(page, "Home");
   await page
     .getByLabel("Workspace command", { exact: true })
     .fill("constructor");

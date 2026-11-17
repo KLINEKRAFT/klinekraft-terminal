@@ -1,9 +1,20 @@
+import { navigate } from "./navigation";
 import { test, expect } from "@playwright/test";
 const games = [
   { id: "a".repeat(64), title: "NES sample", system: "nes" },
   { id: "b".repeat(64), title: "Genesis sample", system: "megadrive" },
 ];
 test("library filters, favorites and explicit launch", async ({ page }) => {
+  const favorites = new Set<string>();
+  await page.route("**/api/games/favorites", (route) =>
+    route.fulfill({ json: [...favorites] }),
+  );
+  await page.route("**/api/games/favorites/*", (route) => {
+    const id = route.request().url().split("/").pop()!;
+    if (route.request().postDataJSON().selected) favorites.add(id);
+    else favorites.delete(id);
+    return route.fulfill({ json: [...favorites] });
+  });
   let running: string | null = null;
   let launches = 0;
   await page.route("**/api/games", (route) =>
@@ -25,7 +36,7 @@ test("library filters, favorites and explicit launch", async ({ page }) => {
     return route.fulfill({ json: { started: true } });
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "02 Games", exact: true }).click();
+  await navigate(page, "Games");
   await expect(
     page.getByRole("button", { name: "Play NES sample", exact: true }),
   ).toBeEnabled();
@@ -37,7 +48,7 @@ test("library filters, favorites and explicit launch", async ({ page }) => {
     .getByRole("button", { name: "Favorite Genesis sample", exact: true })
     .click();
   await page.reload();
-  await page.getByRole("button", { name: "02 Games", exact: true }).click();
+  await navigate(page, "Games");
   await page.getByRole("button", { name: "Favorites", exact: true }).click();
   await expect(
     page.getByRole("button", {
@@ -77,7 +88,7 @@ test("missing emulator cannot launch and failed library is explicit", async ({
     }),
   );
   await page.goto("/");
-  await page.getByRole("button", { name: "02 Games", exact: true }).click();
+  await navigate(page, "Games");
   await expect(
     page.getByRole("button", { name: "Play NES sample", exact: true }),
   ).toBeDisabled();

@@ -127,3 +127,12 @@ def set_favorite(game_id: str, body: Favorite):
         else:
             connection.execute("DELETE FROM game_favorites WHERE id=?", (game_id,))
     return {'saved': True}
+
+
+@router.get('/{game_id}/artwork')
+def artwork(game_id: str):
+    from fastapi.responses import FileResponse
+    if not re.fullmatch('[a-f0-9]{64}',game_id): raise HTTPException(404,'Artwork not found')
+    root=(library_root()/'artwork').resolve();path=root/(game_id+'.jpg')
+    if not path.is_file() or not path.resolve().is_relative_to(root): raise HTTPException(404,'Artwork not cached')
+    return FileResponse(path,media_type='image/jpeg',headers={'Cache-Control':'private, max-age=86400'})

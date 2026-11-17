@@ -1,3 +1,4 @@
+import { navigate } from "./navigation";
 import { test, expect } from "@playwright/test";
 
 test("bookmarks persist, edit, launch safely, and remove", async ({
@@ -9,14 +10,14 @@ test("bookmarks persist, edit, launch safely, and remove", async ({
     route.fulfill({ body: "Bookmark destination" }),
   );
   await page.goto("/");
-  await page.getByRole("button", { name: "05 Library" }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
   await page.getByRole("button", { name: "Add bookmark" }).click();
   await page.getByLabel("Name", { exact: true }).fill("Reference");
   await page.getByLabel("Web address").fill("https://example.com/reference");
   await page.getByRole("button", { name: "Save bookmark" }).click();
   await page.reload();
-  await page.getByRole("button", { name: "05 Library" }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
   const link = page.getByRole("link", { name: "Open Reference in a new tab" });
   await expect(link).toHaveAttribute("href", "https://example.com/reference");
@@ -45,7 +46,7 @@ test("bookmarks persist, edit, launch safely, and remove", async ({
   );
   await page.getByRole("button", { name: "Remove Manual" }).click();
   await page.reload();
-  await page.getByRole("button", { name: "05 Library" }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
   await expect(page.getByText("A place for your regular stops.")).toBeVisible();
 });
@@ -54,7 +55,7 @@ test("launch URL persists, rejects unsafe schemes, and clears", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "13 Settings" }).click();
+  await navigate(page, "Settings");
   for (const url of [
     "javascript:alert(1)",
     "file:///etc/passwd",
@@ -72,15 +73,15 @@ test("launch URL persists, rejects unsafe schemes, and clears", async ({
   await page.getByLabel("Default launch URL").fill("https://example.com");
   await page.getByRole("button", { name: "Save launch URL" }).click();
   await page.reload();
-  await page.getByRole("button", { name: "05 Library" }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
   await expect(
     page.getByRole("link", { name: "Open launch page" }),
   ).toHaveAttribute("href", "https://example.com/");
-  await page.getByRole("button", { name: "13 Settings" }).click();
+  await navigate(page, "Settings");
   await page.getByRole("button", { name: "Clear launch URL" }).click();
   await page.reload();
-  await page.getByRole("button", { name: "05 Library" }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Set launch URL" }),
@@ -104,7 +105,7 @@ test("untrusted saved data and unavailable storage do not crash the app", async 
     };
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "05 Library" }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
   await expect(
     page.getByRole("region", { name: "Browser bookmarks" }).getByRole("alert"),

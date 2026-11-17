@@ -1,3 +1,4 @@
+import { navigate } from "./navigation";
 import { test, expect } from "@playwright/test";
 
 test("existing bookmarks can be pinned, edited, and unpinned across reloads", async ({
@@ -21,7 +22,7 @@ test("existing bookmarks can be pinned, edited, and unpinned across reloads", as
     ),
   );
   await page.reload();
-  await page.getByRole("button", { name: "05 Library" }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
   await page
     .getByRole("button", { name: "Pin Reference", exact: true })
@@ -41,7 +42,7 @@ test("existing bookmarks can be pinned, edited, and unpinned across reloads", as
     .click();
   await page.reload();
   await expect(pin).toHaveCount(0);
-  await page.getByRole("button", { name: "05 Library" }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
   await expect(
     page.getByRole("link", { name: "Open My reference in a new tab" }),
@@ -56,9 +57,9 @@ test("quick notes survive navigation and reload, including an emptied note", asy
   await page
     .getByLabel("Quick notes", { exact: true })
     .fill("Next mission: finish the Pi.\nPack the charger.");
-  await page.getByRole("button", { name: "05 Library" }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
-  await page.getByRole("button", { name: "01 Home" }).click();
+  await navigate(page, "Home");
   await expect(page.getByLabel("Quick notes", { exact: true })).toHaveValue(
     "Next mission: finish the Pi.\nPack the charger.",
   );
@@ -90,9 +91,9 @@ test("failed note storage is explicit and the draft survives navigation", async 
   await page.goto("/");
   await page.getByLabel("Quick notes", { exact: true }).fill("Keep this draft");
   await expect(page.getByRole("alert")).toContainText("Not saved");
-  await page.getByRole("button", { name: "05 Library" }).click();
+  await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
-  await page.getByRole("button", { name: "01 Home" }).click();
+  await navigate(page, "Home");
   await expect(page.getByLabel("Quick notes", { exact: true })).toHaveValue(
     "Keep this draft",
   );

@@ -184,6 +184,38 @@ export function useConversations(initialContext: WikiReference | null) {
       setSaving(false);
     }
   }
+  async function removeMany(ids: string[]) {
+    if (saving || dirty || !ids.length) return;
+    if (
+      !window.confirm(
+        `Delete ${ids.length} selected conversations from the Pi?`,
+      )
+    )
+      return;
+    setSaving(true);
+    setError("");
+    const deleted: string[] = [];
+    try {
+      for (const id of ids) {
+        const item = items.find((x) => x.id === id);
+        if (!item) continue;
+        await localJSON(`/api/conversations/${id}?revision=${item.revision}`, {
+          method: "DELETE",
+          signal: AbortSignal.timeout(10000),
+        });
+        deleted.push(id);
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      if (deleted.includes(chat.id)) {
+        setChat(fresh());
+        remember("");
+      }
+      setRefresh((v) => v + 1);
+      setSaving(false);
+    }
+  }
   async function exportAll() {
     try {
       downloadJSON(
@@ -214,6 +246,7 @@ export function useConversations(initialContext: WikiReference | null) {
     update,
     open,
     remove,
+    removeMany,
     exportAll,
     clearContext,
     retry: () => save(),
