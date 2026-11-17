@@ -19,6 +19,7 @@ class Reference(BaseModel):
 
 
 class Source(Reference):
+    url: str | None = Field(default=None, max_length=2048)
     id: int
     fileId: int | None = None
     page: int | None = None

@@ -1,3 +1,5 @@
+import { Briefing } from "./components/Briefing";
+import { ScienceSearch } from "./components/ScienceSearch";
 import {
   lazy,
   Suspense,
@@ -562,6 +564,7 @@ export default function App() {
             </h1>
           </div>
           <div className="header-actions">
+            <Briefing />
             <PowerControls dimTarget={dimTarget} />
             <span className="dim-toggle-slot" ref={setDimTarget} />
             <button
@@ -636,18 +639,25 @@ export default function App() {
           ) : section === "Library" ? (
             <div className="library-workspace">
               <nav className="library-navigation" aria-label="Library sections">
-                {["Documents", "Wikipedia", "Notebook", "Bookmarks"].map(
-                  (view) => (
-                    <button
-                      key={view}
-                      aria-pressed={libraryView === view}
-                      onClick={() => setLibraryView(view)}
-                    >
-                      {view}
-                    </button>
-                  ),
-                )}
+                {[
+                  "Documents",
+                  "Research",
+                  "Wikipedia",
+                  "Notebook",
+                  "Bookmarks",
+                ].map((view) => (
+                  <button
+                    key={view}
+                    aria-pressed={libraryView === view}
+                    onClick={() => setLibraryView(view)}
+                  >
+                    {view}
+                  </button>
+                ))}
               </nav>
+              <div hidden={libraryView !== "Research"}>
+                <ScienceSearch />
+              </div>
               <div hidden={libraryView !== "Documents"}>
                 <ResearchLibrary onAsk={askAboutFile} />
               </div>
@@ -725,21 +735,21 @@ export default function App() {
             <Feature section={section} />
           )}
         </div>
-            {feedback && (
-              <div
-                className="command-feedback"
-                role="status"
-                aria-label="Command result"
-              >
-                <span>{feedback}</span>
-                <button
-                  aria-label="Dismiss command result"
-                  onClick={() => setFeedback("")}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            )}
+        {feedback && (
+          <div
+            className="command-feedback"
+            role="status"
+            aria-label="Command result"
+          >
+            <span>{feedback}</span>
+            <button
+              aria-label="Dismiss command result"
+              onClick={() => setFeedback("")}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
         {section !== "AI assistant" && (
           <footer className="command-area">
             <form onSubmit={submit}>

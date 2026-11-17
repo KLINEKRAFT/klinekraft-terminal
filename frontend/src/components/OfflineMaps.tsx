@@ -186,11 +186,75 @@ export default function OfflineMaps() {
   const [routing, setRouting] = useState(false);
   const [routeSummary, setRouteSummary] = useState("");
   const [routeData, setRouteData] = useState("");
-  const [savedRoutes, setSavedRoutes] = useState<{ id:string; created:string; profile:string }[]>([]);
+  const [savedRoutes, setSavedRoutes] = useState<
+    { id: string; created: string; profile: string }[]
+  >([]);
+  const [quakeVisible, setQuakeVisible] = useState(false);
+  const [quakeStatus, setQuakeStatus] = useState("");
+  async function toggleQuakes() {
+    const view = map.current;
+    if (!view || !ready) return;
+    if (quakeVisible) {
+      view.setLayoutProperty("earthquake-points", "visibility", "none");
+      setQuakeVisible(false);
+      return;
+    }
+    try {
+      const data = await localJSON("/api/briefing/earthquakes");
+      if (map.current !== view) return;
+      if (view.getSource("earthquakes"))
+        (view.getSource("earthquakes") as maplibregl.GeoJSONSource).setData(
+          data.geojson,
+        );
+      else {
+        view.addSource("earthquakes", {
+          type: "geojson",
+          data: data.geojson,
+        });
+        view.addLayer({
+          id: "earthquake-points",
+          type: "circle",
+          source: "earthquakes",
+          paint: {
+            "circle-color": "#123aff",
+            "circle-opacity": 0.65,
+            "circle-stroke-color": "#fff",
+            "circle-stroke-width": 1,
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["get", "magnitude"],
+              2.5,
+              4,
+              7,
+              14,
+            ],
+          },
+        });
+        view.on("click", "earthquake-points", (e) => {
+          const feature = e.features?.[0];
+          if (feature)
+            new maplibregl.Popup()
+              .setLngLat(e.lngLat)
+              .setText(String(feature.properties?.title))
+              .addTo(view);
+        });
+      }
+      view.setLayoutProperty("earthquake-points", "visibility", "visible");
+      setQuakeVisible(true);
+      setQuakeStatus(
+        `USGS · ${data.stale ? "Last known" : "Updated"} · ${data.updated ? new Date(data.updated * 1000).toLocaleString() : "No saved data"}`,
+      );
+    } catch {
+      setQuakeStatus("Earthquake feed unavailable");
+    }
+  }
   useEffect(() => {
-    const request=new AbortController();
-    localJSON('/api/routing/saved',{signal:request.signal}).then(setSavedRoutes).catch(()=>{});
-    return ()=>request.abort();
+    const request = new AbortController();
+    localJSON("/api/routing/saved", { signal: request.signal })
+      .then(setSavedRoutes)
+      .catch(() => {});
+    return () => request.abort();
   }, []);
   const container = useRef<HTMLDivElement>(null),
     map = useRef<maplibregl.Map | null>(null),
@@ -248,7 +312,7 @@ export default function OfflineMaps() {
         });
         map.current = view;
         view.addControl(new maplibregl.NavigationControl(), "top-right");
-        view.addControl(new maplibregl.ScaleControl({ unit: 'imperial' }));
+        view.addControl(new maplibregl.ScaleControl({ unit: "imperial" }));
         view.addControl(new maplibregl.FullscreenControl());
         view.on("load", () => {
           if (active) {
@@ -324,38 +388,58 @@ export default function OfflineMaps() {
     }
   }
   function showRoute(data: GeoJSON.FeatureCollection<GeoJSON.LineString>) {
-      const view = map.current;
-      if (!view) return;
-      if (view.getLayer('planned-route')) view.removeLayer('planned-route');
-      if (view.getSource('planned-route')) view.removeSource('planned-route');
-      view.addSource('planned-route', { type: 'geojson', data });
-      view.addLayer({ id: 'planned-route', type: 'line', source: 'planned-route', paint: { 'line-color': '#003dff', 'line-width': 5 } });
-      const coordinates = data.features[0].geometry.coordinates as number[][];
-      const bounds = new maplibregl.LngLatBounds();
-      coordinates.forEach(p => bounds.extend([p[0], p[1]]));
-      view.fitBounds(bounds, { padding: 40 });
-      const props = data.features[0].properties || {};
-      setRouteSummary(`${(Number(props['track-length']) / 1609.344).toFixed(1)} mi · saved on Pi; planned offline. Conditions and closures are unknown.`);
-      setRouteData(JSON.stringify(data));
+    const view = map.current;
+    if (!view) return;
+    if (view.getLayer("planned-route")) view.removeLayer("planned-route");
+    if (view.getSource("planned-route")) view.removeSource("planned-route");
+    view.addSource("planned-route", { type: "geojson", data });
+    view.addLayer({
+      id: "planned-route",
+      type: "line",
+      source: "planned-route",
+      paint: { "line-color": "#003dff", "line-width": 5 },
+    });
+    const coordinates = data.features[0].geometry.coordinates as number[][];
+    const bounds = new maplibregl.LngLatBounds();
+    coordinates.forEach((p) => bounds.extend([p[0], p[1]]));
+    view.fitBounds(bounds, { padding: 40 });
+    const props = data.features[0].properties || {};
+    setRouteSummary(
+      `${(Number(props["track-length"]) / 1609.344).toFixed(1)} mi · saved on Pi; planned offline. Conditions and closures are unknown.`,
+    );
+    setRouteData(JSON.stringify(data));
   }
   async function restoreRoute(id: string) {
     if (!id) return;
-    try { showRoute(await localJSON('/api/routing/saved/'+encodeURIComponent(id))); }
-    catch(e) { setRouteSummary((e as Error).message); }
+    try {
+      showRoute(
+        await localJSON("/api/routing/saved/" + encodeURIComponent(id)),
+      );
+    } catch (e) {
+      setRouteSummary((e as Error).message);
+    }
   }
   async function calculateRoute() {
     if (!routeStart || !selected || routing || !map.current) return;
-    setRouting(true); setRouteSummary("");
+    setRouting(true);
+    setRouteSummary("");
     try {
-      const data = await localJSON('/api/routing/route', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ start: { longitude: routeStart[0], latitude: routeStart[1] }, end: { longitude: selected[0], latitude: selected[1] }, profile: routeProfile }),
+      const data = await localJSON("/api/routing/route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          start: { longitude: routeStart[0], latitude: routeStart[1] },
+          end: { longitude: selected[0], latitude: selected[1] },
+          profile: routeProfile,
+        }),
       });
       showRoute(data);
-      setSavedRoutes(await localJSON('/api/routing/saved'));
-
-    } catch (e) { setRouteSummary((e as Error).message); }
-    finally { setRouting(false); }
+      setSavedRoutes(await localJSON("/api/routing/saved"));
+    } catch (e) {
+      setRouteSummary((e as Error).message);
+    } finally {
+      setRouting(false);
+    }
   }
   return (
     <section className="offline-maps" aria-label="Offline maps">
@@ -373,20 +457,84 @@ export default function OfflineMaps() {
           aria-label="Interactive offline map"
         />
         <aside className="map-sidebar">
-          <details className="route-planner"><summary>Offline route planner</summary>
-            <p>Click the map or select a saved place for each endpoint. Successful routes save automatically on this Pi.</p>
-            <label>Saved routes<select defaultValue="" disabled={!ready || routing} onChange={e => void restoreRoute(e.target.value)}><option value="">Choose a saved route</option>{savedRoutes.map(r=><option key={r.id} value={r.id}>{new Date(r.created).toLocaleString()} · {r.profile}</option>)}</select></label>
-            <button disabled={!selected || routing} onClick={() => { setRouteStart(selected); setRouteSummary(""); }}>Use selected point as start</button>
-            <p>{routeStart ? `Start: ${routeStart[1].toFixed(4)}, ${routeStart[0].toFixed(4)}` : "Choose a start point."}</p>
-            <label>Travel mode<select value={routeProfile} onChange={e => setRouteProfile(e.target.value)} disabled={routing}>
-              <option value="car-fast">Driving</option><option value="trekking">Cycling</option><option value="shortest">Walking</option>
-            </select></label>
-            <button disabled={!ready || !routeStart || !selected || routing} onClick={() => void calculateRoute()}>{routing ? "Calculating…" : "Route to selected point"}</button>
+          <button
+            disabled={!ready}
+            aria-pressed={quakeVisible}
+            onClick={() => void toggleQuakes()}
+          >
+            Earthquakes {quakeVisible ? "on" : "off"}
+          </button>
+          {quakeStatus && <p>{quakeStatus}</p>}
+          <details className="route-planner">
+            <summary>Offline route planner</summary>
+            <p>
+              Click the map or select a saved place for each endpoint.
+              Successful routes save automatically on this Pi.
+            </p>
+            <label>
+              Saved routes
+              <select
+                defaultValue=""
+                disabled={!ready || routing}
+                onChange={(e) => void restoreRoute(e.target.value)}
+              >
+                <option value="">Choose a saved route</option>
+                {savedRoutes.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {new Date(r.created).toLocaleString()} · {r.profile}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              disabled={!selected || routing}
+              onClick={() => {
+                setRouteStart(selected);
+                setRouteSummary("");
+              }}
+            >
+              Use selected point as start
+            </button>
+            <p>
+              {routeStart
+                ? `Start: ${routeStart[1].toFixed(4)}, ${routeStart[0].toFixed(4)}`
+                : "Choose a start point."}
+            </p>
+            <label>
+              Travel mode
+              <select
+                value={routeProfile}
+                onChange={(e) => setRouteProfile(e.target.value)}
+                disabled={routing}
+              >
+                <option value="car-fast">Driving</option>
+                <option value="trekking">Cycling</option>
+                <option value="shortest">Walking</option>
+              </select>
+            </label>
+            <button
+              disabled={!ready || !routeStart || !selected || routing}
+              onClick={() => void calculateRoute()}
+            >
+              {routing ? "Calculating…" : "Route to selected point"}
+            </button>
             {routeSummary && <p role="status">{routeSummary}</p>}
-            {routeData && <button onClick={() => {
-              const url=URL.createObjectURL(new Blob([routeData],{type:'application/geo+json'}));
-              const a=document.createElement('a');a.href=url;a.download='klinekraft-route.geojson';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-            }}>Export route</button>}
+            {routeData && (
+              <button
+                onClick={() => {
+                  const url = URL.createObjectURL(
+                    new Blob([routeData], { type: "application/geo+json" }),
+                  );
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "klinekraft-route.geojson";
+                  a.click();
+                  setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }}
+              >
+                Export route
+              </button>
+            )}
           </details>
           <h3>Explore</h3>
           {region?.views?.map((view) => (
@@ -483,8 +631,8 @@ export default function OfflineMaps() {
         {region?.available
           ? `${(region.bytes / 1024 / 1024).toFixed(1)} MB of map tiles · Downloaded ${region.downloaded} · Street detail to zoom ${region.maxzoom}. `
           : ""}
-        Maps, saved places and route planning work offline. Live GPS, address search
-        and turn-by-turn guidance are not connected.
+        Maps, saved places and route planning work offline. Live GPS, address
+        search and turn-by-turn guidance are not connected.
       </p>
     </section>
   );

@@ -20,7 +20,7 @@ from .organizer import router as organizer_router
 from .mesh import router as mesh_router
 from .hotspot import router as hotspot_router
 from .casting import router as casting_router
-from . import power, desktop_away
+from . import power, desktop_away, briefing
 from .routing import router as routing_router
 from .maps import router as maps_router
 from .emergency import router as emergency_router
@@ -36,9 +36,13 @@ async def lifespan(app: FastAPI):
     app.state.telemetry = service
     await service.start()
     power_task = asyncio.create_task(power.monitor())
+    briefing_task = asyncio.create_task(briefing.monitor())
     try:
         yield
     finally:
+        briefing_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await briefing_task
         power_task.cancel()
         with suppress(asyncio.CancelledError):
             await power_task
@@ -93,6 +97,7 @@ app.include_router(casting_router)
 app.include_router(power.router)
 app.include_router(desktop_away.router)
 app.include_router(emergency_router)
+app.include_router(briefing.router)
 app.include_router(diagnostics_router)
 app.include_router(tools_router)
 
