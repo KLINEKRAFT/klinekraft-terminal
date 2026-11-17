@@ -1,3 +1,4 @@
+import { DetailsPanel } from "./DetailsPanel";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Bell, X, Settings2 } from "lucide-react";
 import { localJSON } from "./WikiReader";
@@ -364,11 +365,10 @@ export function Briefing({ page = false }: { page?: boolean }) {
                         </div>
                         <h3>{e.title}</h3>
                         <div className="event-actions">
-                          <details>
-                            <summary>Read report</summary>
+                          <DetailsPanel title="Read report">
                             <p className="event-text">{e.text}</p>
                             <SourceLink url={e.url}>{e.source} ↗</SourceLink>
-                          </details>
+                          </DetailsPanel>
                           <button
                             disabled={data.acknowledged?.includes(e.id)}
                             onClick={() => void acknowledge(e.id)}
@@ -385,8 +385,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
               {tab === "Science" && (
                 <div className="briefing-science">
                   {" "}
-                  <details>
-                    <summary>NASA · Earth events</summary>
+                  <DetailsPanel title="NASA · Earth events">
                     <FeedAge feed={data.feeds.earthEvents} />
                     {data.feeds.earthEvents?.data?.map((v: any) => (
                       <p key={v.id}>
@@ -395,9 +394,8 @@ export function Briefing({ page = false }: { page?: boolean }) {
                         </SourceLink>
                       </p>
                     ))}
-                  </details>
-                  <details>
-                    <summary>NASA · Asteroid approaches</summary>
+                  </DetailsPanel>
+                  <DetailsPanel title="NASA · Asteroid approaches">
                     <FeedAge feed={data.feeds.asteroids} />
                     {Object.values(data.feeds.asteroids?.data || {})
                       .flat()
@@ -416,9 +414,8 @@ export function Briefing({ page = false }: { page?: boolean }) {
                     <p className="briefing-caption">
                       Astronomy information, not impact warnings.
                     </p>
-                  </details>
-                  <details>
-                    <summary>NASA · Astronomy</summary>
+                  </DetailsPanel>
+                  <DetailsPanel title="NASA · Astronomy">
                     <FeedAge feed={data.feeds.astronomy} />
                     {data.feeds.astronomy?.data ? (
                       <>
@@ -435,7 +432,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                         allowance.
                       </p>
                     )}
-                  </details>
+                  </DetailsPanel>
                 </div>
               )}
               {tab === "Settings" && (
@@ -526,8 +523,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                       <button disabled={saving}>Save settings</button>
                     </form>
                   )}
-                  <details>
-                    <summary>Source status</summary>
+                  <DetailsPanel title="Source status">
                     {Object.entries(data.feeds).map(([name, f]) => (
                       <p key={name}>
                         {name}:{" "}
@@ -537,16 +533,15 @@ export function Briefing({ page = false }: { page?: boolean }) {
                           : "No saved data"}
                       </p>
                     ))}
-                  </details>
-                  <details>
-                    <summary>About these feeds</summary>
+                  </DetailsPanel>
+                  <DetailsPanel title="About these feeds">
                     <p>
                       Saved readings remain available offline. Internet is
                       needed for new forecasts, alerts and radar. This is not a
                       guaranteed emergency notification service. GPS does not
                       change your weather location automatically.
                     </p>
-                  </details>
+                  </DetailsPanel>
                 </div>
               )}
             </>

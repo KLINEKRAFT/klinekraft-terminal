@@ -1,3 +1,13 @@
+import { DetailsPanel } from "./components/DetailsPanel";
+import {
+  UniversalSearch,
+  type SearchResult,
+} from "./components/UniversalSearch";
+import {
+  DocumentReader,
+  type DocumentSource,
+} from "./components/DocumentReader";
+import type { MapLocation } from "./components/MapCollections";
 import { Briefing } from "./components/Briefing";
 import { ScienceSearch } from "./components/ScienceSearch";
 import {
@@ -9,6 +19,7 @@ import {
   type FormEvent,
 } from "react";
 import {
+  Search,
   Paintbrush,
   Shield,
   StickyNote,
@@ -422,6 +433,23 @@ export default function App() {
   const [paused, setPaused] = useState(false);
   const telemetry = useTelemetry(paused, now.getTime());
   const { reading, mode, setMode, label, detail } = telemetry;
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchDocument, setSearchDocument] = useState<DocumentSource | null>(
+    null,
+  );
+  const [searchNote, setSearchNote] = useState<string | undefined>();
+  const [searchPlace, setSearchPlace] = useState<MapLocation | undefined>();
+  function selectSearch(result: SearchResult) {
+    setSearchOpen(false);
+    if (result.document) setSearchDocument(result.document);
+    else if (result.noteId) {
+      setSearchNote(result.noteId);
+      navigate("Notes");
+    } else if (result.place) {
+      setSearchPlace(result.place);
+      navigate("GPS / Maps");
+    } else if (result.section) navigate(result.section);
+  }
   const [command, setCommand] = useState("");
   const [feedback, setFeedback] = useState("");
   const [exitHelp, setExitHelp] = useState(false);
@@ -435,12 +463,7 @@ export default function App() {
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        const ai = document.getElementById("ai-question");
-        if (ai) ai.focus();
-        else {
-          setSection("Home");
-          requestAnimationFrame(() => input.current?.focus());
-        }
+        setSearchOpen(true);
       }
       if (e.key === "Escape") {
         setExitHelp(false);
@@ -478,6 +501,22 @@ export default function App() {
     <div
       className={`app-shell minimal-shell${collapsed ? " sidebar-collapsed" : ""}`}
     >
+      {searchOpen && (
+        <UniversalSearch
+          onClose={() => setSearchOpen(false)}
+          onSelect={selectSearch}
+        />
+      )}
+      {searchDocument && (
+        <DocumentReader
+          source={searchDocument}
+          onClose={() => setSearchDocument(null)}
+          onAsk={(file) => {
+            setSearchDocument(null);
+            askAboutFile(file);
+          }}
+        />
+      )}
       <aside className="sidebar" inert={exitHelp}>
         <KlinekraftBrandLockup />
         <div className="sidebar-heading">
@@ -579,6 +618,14 @@ export default function App() {
             </h1>
           </div>
           <div className="header-actions">
+            <button
+              className="icon-button"
+              aria-label="Search Terminal"
+              title="Search Terminal (Ctrl+K)"
+              onClick={() => setSearchOpen(true)}
+            >
+              <Search size={18} />
+            </button>
             <Briefing />
             <PowerControls dimTarget={dimTarget} />
             <span className="dim-toggle-slot" ref={setDimTarget} />
@@ -641,12 +688,20 @@ export default function App() {
             <Briefing page />
           ) : section === "GPS / Maps" ? (
             <Suspense fallback={<p>Loading offline maps…</p>}>
-              <OfflineMaps />
+              <OfflineMaps
+                initialPlace={searchPlace}
+                onConsumePlace={() => setSearchPlace(undefined)}
+              />
             </Suspense>
           ) : section === "Paint" ? (
             <Paint />
           ) : section === "Notes" ? (
-            <Organizer key="notes" kind="note" />
+            <Organizer
+              key="notes"
+              kind="note"
+              initialId={searchNote}
+              onConsumeInitialId={() => setSearchNote(undefined)}
+            />
           ) : section === "Calendar" ? (
             <Organizer key="calendar" kind="event" />
           ) : section === "Calculator" ? (
@@ -737,10 +792,12 @@ export default function App() {
                 label={label}
               />
               <ProcessList live={mode === "host"} paused={paused} />
-              <details className="resource-hardware">
-                <summary>Hardware & sensors</summary>
+              <DetailsPanel
+                className="resource-hardware"
+                title="Hardware & sensors"
+              >
                 <SystemPanel reading={reading} label={label} />
-              </details>
+              </DetailsPanel>
             </>
           ) : section === "Network" ? (
             <>
@@ -779,11 +836,11 @@ export default function App() {
                 id="command"
                 value={command}
                 onChange={(e) => setCommand(e.target.value)}
-                placeholder="Search apps or commands…"
+                placeholder="Open app or run command…"
                 autoComplete="off"
                 maxLength={240}
               />
-              <kbd>⌘ / Ctrl K</kbd>
+              <kbd>Enter ↵</kbd>
               <button aria-label="Run workspace command" type="submit">
                 <ArrowRight size={18} />
               </button>

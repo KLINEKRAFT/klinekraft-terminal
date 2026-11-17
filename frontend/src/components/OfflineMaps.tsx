@@ -8,7 +8,13 @@ import { localJSON } from "./WikiReader";
 import { isHostedDemo } from "../runtime";
 
 type Place = { id: string; name: string; longitude: number; latitude: number };
-export default function OfflineMaps() {
+export default function OfflineMaps({
+  initialPlace,
+  onConsumePlace,
+}: {
+  initialPlace?: MapLocation;
+  onConsumePlace?: () => void;
+}) {
   const [tool, setTool] = useState<
     "find" | "places" | "route" | "layers" | null
   >("find");
@@ -248,6 +254,16 @@ export default function OfflineMaps() {
     },
     [region],
   );
+  useEffect(() => {
+    if (ready && initialPlace) {
+      go(
+        [initialPlace.longitude, initialPlace.latitude],
+        initialPlace.name,
+        initialPlace,
+      );
+      onConsumePlace?.();
+    }
+  }, [ready, initialPlace, go]);
   function toggleSatellite() {
     const view = map.current;
     if (!view || !ready) return;

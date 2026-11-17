@@ -1,3 +1,4 @@
+import { DetailsPanel } from "./DetailsPanel";
 import { LocalImage } from "./LocalImage";
 import { Info } from "./Info";
 import { DocumentReader, type DocumentSource } from "./DocumentReader";
@@ -126,8 +127,7 @@ export function ResearchLibrary({
           </p>
         </Info>
       </div>
-      <details className="library-import">
-        <summary>＋ Import</summary>
+      <DetailsPanel title="Import documents" className="library-import">
         <form onSubmit={importFolder}>
           <label>
             Collection{" "}
@@ -166,22 +166,10 @@ export function ResearchLibrary({
           PDFs, images and text notes up to 8 MiB. Imported files are copied to
           the Pi library.
         </p>
-      </details>
+      </DetailsPanel>
       {message && <p role="status">{message}</p>}
       {error && <p role="alert">{error}</p>}
-      <div className="research-fields">
-        <label>
-          Format
-          <select
-            aria-label="Document format"
-            value={mime}
-            onChange={(e) => setMime(e.target.value)}
-          >
-            <option value="">All</option>
-            <option value="application/pdf">PDF</option>
-            <option value="text/plain">Text</option>
-          </select>
-        </label>
+      <div className="library-search">
         <label>
           Search files{" "}
           <input
@@ -191,19 +179,36 @@ export function ResearchLibrary({
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
-        <label>
-          Collection{" "}
-          <select
-            value={filter}
-            onChange={(event) => setFilter(event.target.value)}
-          >
-            <option value="">All collections</option>
-            {results?.collections.map((name) => (
-              <option key={name}>{name}</option>
-            ))}
-          </select>
-        </label>
       </div>
+      <DetailsPanel title="Filters">
+        <div className="research-fields">
+          <label>
+            Format
+            <select
+              aria-label="Document format"
+              value={mime}
+              onChange={(e) => setMime(e.target.value)}
+            >
+              <option value="">All</option>
+              <option value="application/pdf">PDF</option>
+              <option value="text/plain">Text</option>
+            </select>
+          </label>
+
+          <label>
+            Collection{" "}
+            <select
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+            >
+              <option value="">All collections</option>
+              {results?.collections.map((name) => (
+                <option key={name}>{name}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </DetailsPanel>
       {results && !results.files.length && (
         <p>{query ? "No matching files." : "No files in this view."}</p>
       )}

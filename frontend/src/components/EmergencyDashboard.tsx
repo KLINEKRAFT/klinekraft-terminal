@@ -1,3 +1,4 @@
+import { DetailsPanel } from "./DetailsPanel";
 import { Info } from "./Info";
 import { emergencyGuides } from "../emergencyGuides";
 import { useEffect, useState } from "react";
@@ -88,8 +89,10 @@ export function EmergencyDashboard({
               </small>
             </article>
           )}
-          <details className="emergency-checks">
-            <summary>Deck readiness &amp; backup checks</summary>
+          <DetailsPanel
+            title="Deck readiness &amp; backup checks"
+            className="emergency-checks"
+          >
             <div className="emergency-readiness">
               {readiness ? (
                 readiness.checks.map((check) => (
@@ -112,7 +115,7 @@ export function EmergencyDashboard({
                 <p>Checking local readiness…</p>
               )}
             </div>
-          </details>
+          </DetailsPanel>
           {error && <p role="alert">Readiness check: {error}</p>}
 
           <div className="emergency-actions">

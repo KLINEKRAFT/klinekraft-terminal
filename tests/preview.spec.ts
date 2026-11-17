@@ -82,8 +82,9 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
   await expect(toggle).not.toBeChecked();
   await page.keyboard.press("Control+k");
   await expect(
-    page.getByLabel("Workspace command", { exact: true }),
+    page.getByRole("searchbox", { name: "Search Terminal", exact: true }),
   ).toBeFocused();
+  await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Open navigation" }).click();
   await page.getByRole("button", { name: "Return to desktop" }).click();
   await expect(page.getByRole("dialog")).toContainText("Alt + F4");
