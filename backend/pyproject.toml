@@ -16,3 +16,6 @@ dev = ["httpx>=0.28,<1", "pytest>=8,<10"]
 
 [tool.setuptools.packages.find]
 include = ["klinekraft*"]
+
+[tool.setuptools.package-data]
+klinekraft = ["data/*.json"]

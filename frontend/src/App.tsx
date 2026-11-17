@@ -89,6 +89,7 @@ const icons: Record<Section, LucideIcon> = {
   Games: Gamepad2,
   "AI assistant": MessageSquare,
   "GPS / Maps": Compass,
+  "Field Briefing": Compass,
   Library,
   Files: Folder,
   Network: Wifi,
@@ -622,6 +623,8 @@ export default function App() {
               onConsumeAttachment={() => setResearchAttachment(null)}
               onClearContext={() => setWikiContext(null)}
             />
+          ) : section === "Field Briefing" ? (
+            <Briefing page />
           ) : section === "GPS / Maps" ? (
             <Suspense fallback={<p>Loading offline maps…</p>}>
               <OfflineMaps />

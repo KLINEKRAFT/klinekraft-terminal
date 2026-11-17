@@ -1,0 +1,2952 @@
+{
+  "updated": "2026-11-17T14:54:28.974291+00:00",
+  "groups": [
+    {
+      "id": "national-parks",
+      "name": "US national parks · no Hawaii",
+      "note": "NPS park reference locations, including Alaska and US territories. Basemap coverage is lower 48 + Alaska."
+    },
+    {
+      "id": "oklahoma-nps",
+      "name": "Oklahoma · NPS sites",
+      "note": "Oklahoma NPS destinations: recreation area and historic site; not designated National Parks."
+    },
+    {
+      "id": "oklahoma-land",
+      "name": "Oklahoma · wildlife-area entrances",
+      "note": "ODWC public entrances, not all Oklahoma public land or land boundaries."
+    },
+    {
+      "id": "missile-history",
+      "name": "Historic missile sites",
+      "note": "Selected preserved decommissioned silos and control facilities. Not a nationwide inventory."
+    }
+  ],
+  "places": [
+    {
+      "id": "nps-acad",
+      "name": "Acadia National Park",
+      "longitude": -68.247501,
+      "latitude": 44.409286,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/acad/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-5602",
+      "name": "Altus Lugert Wildlife Management Area · entrance 5602",
+      "longitude": -99.3426757164268,
+      "latitude": 34.94280731766372,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-88",
+      "name": "Altus Lugert Wildlife Management Area · entrance 88",
+      "longitude": -99.34896645049467,
+      "latitude": 34.96718254917374,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-89",
+      "name": "Altus Lugert Wildlife Management Area · entrance 89",
+      "longitude": -99.35159464933541,
+      "latitude": 34.97244280599798,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-90",
+      "name": "Altus Lugert Wildlife Management Area · entrance 90",
+      "longitude": -99.34898721536103,
+      "latitude": 34.98692364307767,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-91",
+      "name": "Altus Lugert Wildlife Management Area · entrance 91",
+      "longitude": -99.33129362413284,
+      "latitude": 35.01591307410955,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-92",
+      "name": "Altus Lugert Wildlife Management Area · entrance 92",
+      "longitude": -99.33312626777783,
+      "latitude": 34.98690077915633,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-81",
+      "name": "American Horse Lake · entrance 81",
+      "longitude": -98.50801561114764,
+      "latitude": 35.636927166640994,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-201",
+      "name": "Arcadia Conservation Education Area · entrance 201",
+      "longitude": -97.38951321768883,
+      "latitude": 35.61831992136484,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-arch",
+      "name": "Arches National Park",
+      "longitude": -109.5863666,
+      "latitude": 38.72261844,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/arch/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-143",
+      "name": "Atoka Public Hunting Area · entrance 143",
+      "longitude": -95.9492365424969,
+      "latitude": 34.55967173065263,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-20402",
+      "name": "Atoka Public Hunting Area · entrance 20402",
+      "longitude": -95.94969492183323,
+      "latitude": 34.49249822758688,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-20403",
+      "name": "Atoka Public Hunting Area · entrance 20403",
+      "longitude": -95.90951531801855,
+      "latitude": 34.500199549404115,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-20404",
+      "name": "Atoka Public Hunting Area · entrance 20404",
+      "longitude": -95.8913889495137,
+      "latitude": 34.506340017903874,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-10002",
+      "name": "Atoka Wildlife Management Area · entrance 10002",
+      "longitude": -96.03233791671353,
+      "latitude": 34.5260702994743,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-22002",
+      "name": "Atoka Wildlife Management Area · entrance 22002",
+      "longitude": -95.96950134093449,
+      "latitude": 34.54967787941794,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-badl",
+      "name": "Badlands National Park",
+      "longitude": -102.482942,
+      "latitude": 43.68584846,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/badl/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-13602",
+      "name": "Barren Fork Wildlife Management Area · entrance 13602",
+      "longitude": -94.58550056149744,
+      "latitude": 35.910838637206446,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-165",
+      "name": "Beaver River Wildlife Management Area · entrance 165",
+      "longitude": -100.60314373115197,
+      "latitude": 36.86334643962321,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-170",
+      "name": "Beaver River Wildlife Management Area · entrance 170",
+      "longitude": -100.62789332822467,
+      "latitude": 36.86320138576784,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-83",
+      "name": "Beaver River Wildlife Management Area · entrance 83",
+      "longitude": -100.71107531363883,
+      "latitude": 36.85247954644311,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-86",
+      "name": "Beaver River Wildlife Management Area · entrance 86",
+      "longitude": -100.7033387925459,
+      "latitude": 36.81250625060291,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-bibe",
+      "name": "Big Bend National Park",
+      "longitude": -103.2297897,
+      "latitude": 29.29817767,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/bibe/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-bisc",
+      "name": "Biscayne National Park",
+      "longitude": -80.21023851,
+      "latitude": 25.490587,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/bisc/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-blca",
+      "name": "Black Canyon Of The Gunnison National Park",
+      "longitude": -107.7242756,
+      "latitude": 38.57779869,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/blca/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-48",
+      "name": "Blue River Public Fishing & Hunting Area · entrance 48",
+      "longitude": -96.61877368938399,
+      "latitude": 34.31746325410857,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-brca",
+      "name": "Bryce Canyon National Park",
+      "longitude": -112.1826689,
+      "latitude": 37.58399144,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/brca/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-172",
+      "name": "Canton Wildlife Management Area · entrance 172",
+      "longitude": -98.64926249975683,
+      "latitude": 36.1592526662336,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-51",
+      "name": "Canton Wildlife Management Area · entrance 51",
+      "longitude": -98.76031040044813,
+      "latitude": 36.16645353576282,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-52",
+      "name": "Canton Wildlife Management Area · entrance 52",
+      "longitude": -98.69036747182868,
+      "latitude": 36.15878314697101,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-53",
+      "name": "Canton Wildlife Management Area · entrance 53",
+      "longitude": -98.66510578674107,
+      "latitude": 36.159959439060344,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-54",
+      "name": "Canton Wildlife Management Area · entrance 54",
+      "longitude": -98.6364357912549,
+      "latitude": 36.1599430641051,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-60",
+      "name": "Canton Wildlife Management Area · entrance 60",
+      "longitude": -98.60070141843934,
+      "latitude": 36.1525502732906,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-61",
+      "name": "Canton Wildlife Management Area · entrance 61",
+      "longitude": -98.58349926336915,
+      "latitude": 36.15229092661896,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-62",
+      "name": "Canton Wildlife Management Area · entrance 62",
+      "longitude": -98.56231891887074,
+      "latitude": 36.13017667848635,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-63",
+      "name": "Canton Wildlife Management Area · entrance 63",
+      "longitude": -98.56529918328866,
+      "latitude": 36.10174720411854,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-64",
+      "name": "Canton Wildlife Management Area · entrance 64",
+      "longitude": -98.61914632280494,
+      "latitude": 36.12180206831746,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-65",
+      "name": "Canton Wildlife Management Area · entrance 65",
+      "longitude": -98.6546619237496,
+      "latitude": 36.12987938416096,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-66",
+      "name": "Canton Wildlife Management Area · entrance 66",
+      "longitude": -98.67243449727886,
+      "latitude": 36.12289221563386,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-67",
+      "name": "Canton Wildlife Management Area · entrance 67",
+      "longitude": -98.6898518240194,
+      "latitude": 36.124170803229504,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-68",
+      "name": "Canton Wildlife Management Area · entrance 68",
+      "longitude": -98.71049253878608,
+      "latitude": 36.12973316947484,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-69",
+      "name": "Canton Wildlife Management Area · entrance 69",
+      "longitude": -98.7254249019277,
+      "latitude": 36.13756553172432,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-70",
+      "name": "Canton Wildlife Management Area · entrance 70",
+      "longitude": -98.76048727950442,
+      "latitude": 36.14079221369272,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-71",
+      "name": "Canton Wildlife Management Area · entrance 71",
+      "longitude": -98.77895960995441,
+      "latitude": 36.14084563898841,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-cany",
+      "name": "Canyonlands National Park",
+      "longitude": -109.8801624,
+      "latitude": 38.24555783,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/cany/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-care",
+      "name": "Capitol Reef National Park",
+      "longitude": -111.247048378,
+      "latitude": 38.2821653131,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/care/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-cave",
+      "name": "Carlsbad Caverns National Park",
+      "longitude": -104.5529688,
+      "latitude": 32.14089463,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/cave/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-chis",
+      "name": "Channel Islands National Park",
+      "longitude": -119.9112735,
+      "latitude": 33.98680093,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/chis/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-15",
+      "name": "Cherokee Wildlife Management Area · entrance 15",
+      "longitude": -95.12755117148458,
+      "latitude": 35.765066818102284,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-16",
+      "name": "Cherokee Wildlife Management Area · entrance 16",
+      "longitude": -95.12776033899321,
+      "latitude": 35.71270883965715,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-19202",
+      "name": "Cherokee Wildlife Management Area · entrance 19202",
+      "longitude": -95.03925642439685,
+      "latitude": 35.7062962303594,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-196",
+      "name": "Cherokee Wildlife Management Area · entrance 196",
+      "longitude": -95.03844606097115,
+      "latitude": 35.72096132478406,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-203",
+      "name": "Cherokee Wildlife Management Area · entrance 203",
+      "longitude": -95.07395927659248,
+      "latitude": 35.78367932223449,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-chic",
+      "name": "Chickasaw National Recreation Area",
+      "longitude": -97.00715669,
+      "latitude": 34.46050507,
+      "group": "oklahoma-nps",
+      "url": "https://www.nps.gov/chic/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-chir",
+      "name": "Chiricahua National Park",
+      "longitude": -109.341607,
+      "latitude": 32.01214618,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/chir/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-35",
+      "name": "Cimarron Bluff Wildlife Management Area · entrance 35",
+      "longitude": -99.34832288603504,
+      "latitude": 36.84118058143497,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-36",
+      "name": "Cimarron Bluff Wildlife Management Area · entrance 36",
+      "longitude": -99.34156103570845,
+      "latitude": 36.798003032572296,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-38",
+      "name": "Cimarron Hills Wildlife Management Area · entrance 38",
+      "longitude": -99.35571548635956,
+      "latitude": 36.947326680378225,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-cong",
+      "name": "Congaree National Park",
+      "longitude": -80.74867805,
+      "latitude": 33.79187523,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/cong/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-197",
+      "name": "Cookson Wildlife Management Area · entrance 197",
+      "longitude": -94.84658121345376,
+      "latitude": 35.67958683747053,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-crla",
+      "name": "Crater Lake National Park",
+      "longitude": -122.1338414,
+      "latitude": 42.94065854,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/crla/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-161",
+      "name": "Cross Timbers Wildlife Management Area · entrance 161",
+      "longitude": -97.36254623617971,
+      "latitude": 33.94031338007134,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-162",
+      "name": "Cross Timbers Wildlife Management Area · entrance 162",
+      "longitude": -97.3348463246657,
+      "latitude": 33.96941462775092,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-163",
+      "name": "Cross Timbers Wildlife Management Area · entrance 163",
+      "longitude": -97.32618902205925,
+      "latitude": 33.95506823854644,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-cuva",
+      "name": "Cuyahoga Valley National Park",
+      "longitude": -81.57116722,
+      "latitude": 41.26093905,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/cuva/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-deva",
+      "name": "Death Valley National Park",
+      "longitude": -117.134395,
+      "latitude": 36.48753731,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/deva/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-6002",
+      "name": "Deep Fork Wildlife Management Area · entrance 6002",
+      "longitude": -96.23366747274724,
+      "latitude": 35.65351086996565,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6003",
+      "name": "Deep Fork Wildlife Management Area · entrance 6003",
+      "longitude": -96.31463531615431,
+      "latitude": 35.63882222621108,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6004",
+      "name": "Deep Fork Wildlife Management Area · entrance 6004",
+      "longitude": -96.32579866971685,
+      "latitude": 35.61001906993553,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6005",
+      "name": "Deep Fork Wildlife Management Area · entrance 6005",
+      "longitude": -96.35839823839743,
+      "latitude": 35.668146695226234,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6006",
+      "name": "Deep Fork Wildlife Management Area · entrance 6006",
+      "longitude": -96.36906001953511,
+      "latitude": 35.660395446599686,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6007",
+      "name": "Deep Fork Wildlife Management Area · entrance 6007",
+      "longitude": -96.38482872612018,
+      "latitude": 35.66830576529031,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6008",
+      "name": "Deep Fork Wildlife Management Area · entrance 6008",
+      "longitude": -96.38098377919964,
+      "latitude": 35.653822530076795,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6009",
+      "name": "Deep Fork Wildlife Management Area · entrance 6009",
+      "longitude": -96.44129995437018,
+      "latitude": 35.56721488166999,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6011",
+      "name": "Deep Fork Wildlife Management Area · entrance 6011",
+      "longitude": -96.47719327561909,
+      "latitude": 35.667994161563605,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6012",
+      "name": "Deep Fork Wildlife Management Area · entrance 6012",
+      "longitude": -96.51068333796152,
+      "latitude": 35.653477088359146,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6013",
+      "name": "Deep Fork Wildlife Management Area · entrance 6013",
+      "longitude": -96.51228729895602,
+      "latitude": 35.64383026999539,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6014",
+      "name": "Deep Fork Wildlife Management Area · entrance 6014",
+      "longitude": -96.53003052431342,
+      "latitude": 35.658635130375465,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6015",
+      "name": "Deep Fork Wildlife Management Area · entrance 6015",
+      "longitude": -96.5464671008955,
+      "latitude": 35.653583336584305,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6016",
+      "name": "Deep Fork Wildlife Management Area · entrance 6016",
+      "longitude": -96.5657199968036,
+      "latitude": 35.64632981466882,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6017",
+      "name": "Deep Fork Wildlife Management Area · entrance 6017",
+      "longitude": -96.58364519993101,
+      "latitude": 35.653497248473805,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6018",
+      "name": "Deep Fork Wildlife Management Area · entrance 6018",
+      "longitude": -96.58341587059364,
+      "latitude": 35.65817420589203,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "historic-799BF773-FFBE-41DB-AB0D-572E74C86F5A",
+      "name": "Delta-01 Launch Control Facility",
+      "longitude": -101.9606,
+      "latitude": 43.87769,
+      "group": "missile-history",
+      "url": "https://www.nps.gov/places/delta-01.htm",
+      "note": "Preserved former missile facility. Check official opening hours and access."
+    },
+    {
+      "id": "historic-0B247D39-7F4E-447E-BF86-90B0C9F4D553",
+      "name": "Delta-09 Missile Silo",
+      "longitude": -102.15931,
+      "latitude": 43.9316,
+      "group": "missile-history",
+      "url": "https://www.nps.gov/places/delta-09.htm",
+      "note": "Preserved former missile facility. Check official opening hours and access."
+    },
+    {
+      "id": "nps-dena",
+      "name": "Denali National Park & Preserve",
+      "longitude": -151.0526568,
+      "latitude": 63.29777484,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/dena/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-164",
+      "name": "Drummond Flats Wildlife Management Area · entrance 164",
+      "longitude": -98.08666230386027,
+      "latitude": 36.32549096091116,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-72",
+      "name": "Drummond Flats Wildlife Management Area · entrance 72",
+      "longitude": -98.068806097141,
+      "latitude": 36.33281031647925,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-73",
+      "name": "Drummond Flats Wildlife Management Area · entrance 73",
+      "longitude": -98.05088409284366,
+      "latitude": 36.33279631720088,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-74",
+      "name": "Drummond Flats Wildlife Management Area · entrance 74",
+      "longitude": -98.03721112640554,
+      "latitude": 36.31819284794645,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-75",
+      "name": "Drummond Flats Wildlife Management Area · entrance 75",
+      "longitude": -98.04179381261523,
+      "latitude": 36.30373699857537,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-76",
+      "name": "Drummond Flats Wildlife Management Area · entrance 76",
+      "longitude": -98.04185657179656,
+      "latitude": 36.2964760842719,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-77",
+      "name": "Drummond Flats Wildlife Management Area · entrance 77",
+      "longitude": -98.08667009751335,
+      "latitude": 36.278327305849444,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-78",
+      "name": "Drummond Flats Wildlife Management Area · entrance 78",
+      "longitude": -98.0866550990099,
+      "latitude": 36.28933030798454,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-79",
+      "name": "Drummond Flats Wildlife Management Area · entrance 79",
+      "longitude": -98.08663211554932,
+      "latitude": 36.303779314474234,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-drto",
+      "name": "Dry Tortugas National Park",
+      "longitude": -82.87319,
+      "latitude": 24.628741,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/drto/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-4",
+      "name": "Ellis County Wildlife Management Area · entrance 4",
+      "longitude": -99.91666353856186,
+      "latitude": 36.08254717466523,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-5",
+      "name": "Ellis County Wildlife Management Area · entrance 5",
+      "longitude": -99.9171151032169,
+      "latitude": 36.04276108457544,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-93",
+      "name": "Ellis County Wildlife Management Area · entrance 93",
+      "longitude": -99.94321454295708,
+      "latitude": 36.07166217018212,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-144",
+      "name": "Eufaula Wildlife Management Area - Gaines Creek · entrance 144",
+      "longitude": -95.58968292853233,
+      "latitude": 34.872502531550815,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-147",
+      "name": "Eufaula Wildlife Management Area - Gaines Creek · entrance 147",
+      "longitude": -95.54257375291671,
+      "latitude": 34.91095162261219,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-ever",
+      "name": "Everglades National Park",
+      "longitude": -80.88200301,
+      "latitude": 25.37294225,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/ever/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-18",
+      "name": "Fobb Bottom Wildlife Management Area · entrance 18",
+      "longitude": -96.86517457216999,
+      "latitude": 33.89324213696751,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7204",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7204",
+      "longitude": -98.5084122806988,
+      "latitude": 35.20425399911933,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7205",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7205",
+      "longitude": -98.53542212552945,
+      "latitude": 35.229616062310804,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7206",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7206",
+      "longitude": -98.50898627368898,
+      "latitude": 35.233130276344966,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7207",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7207",
+      "longitude": -98.50463036595914,
+      "latitude": 35.22933561980207,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7208",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7208",
+      "longitude": -98.48684195587133,
+      "latitude": 35.218783262563726,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7209",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7209",
+      "longitude": -98.48253969241468,
+      "latitude": 35.2222278292394,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7210",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7210",
+      "longitude": -98.47452525135029,
+      "latitude": 35.21881832282064,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7602",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7602",
+      "longitude": -98.51787511416352,
+      "latitude": 35.222337386857674,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7603",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7603",
+      "longitude": -98.55282429800174,
+      "latitude": 35.23497495848915,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7604",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7604",
+      "longitude": -98.50214127613697,
+      "latitude": 35.2224995315499,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7605",
+      "name": "Fort Cobb Wildlife Management Area · entrance 7605",
+      "longitude": -98.47615603548007,
+      "latitude": 35.20433728107287,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-94",
+      "name": "Fort Cobb Wildlife Management Area · entrance 94",
+      "longitude": -98.51793890655735,
+      "latitude": 35.234212950336925,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-95",
+      "name": "Fort Cobb Wildlife Management Area · entrance 95",
+      "longitude": -98.49999524840129,
+      "latitude": 35.21868871033295,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-96",
+      "name": "Fort Cobb Wildlife Management Area · entrance 96",
+      "longitude": -98.50017710002913,
+      "latitude": 35.2038776611872,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-97",
+      "name": "Fort Cobb Wildlife Management Area · entrance 97",
+      "longitude": -98.51784014359121,
+      "latitude": 35.21864666965016,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6",
+      "name": "Fort Gibson Wildlife Management Area · entrance 6",
+      "longitude": -95.34232754630789,
+      "latitude": 35.91538274575445,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-fosm",
+      "name": "Fort Smith National Historic Site",
+      "longitude": -94.43129079,
+      "latitude": 35.38834746,
+      "group": "oklahoma-nps",
+      "url": "https://www.nps.gov/fosm/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-7",
+      "name": "Gary Sherrer Wildlife Management Area · entrance 7",
+      "longitude": -95.55720704413686,
+      "latitude": 34.687997968101044,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-gaar",
+      "name": "Gates Of The Arctic National Park & Preserve",
+      "longitude": -153.2917758,
+      "latitude": 67.75961636,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/gaar/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-jeff",
+      "name": "Gateway Arch National Park",
+      "longitude": -90.1892508,
+      "latitude": 38.6258069,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/jeff/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-98",
+      "name": "Gist Wildlife Management Area · entrance 98",
+      "longitude": -99.18504372527383,
+      "latitude": 34.53610808016263,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-glba",
+      "name": "Glacier Bay National Park & Preserve",
+      "longitude": -136.8407579,
+      "latitude": 58.80086718,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/glba/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-glac",
+      "name": "Glacier National Park",
+      "longitude": -113.8009306,
+      "latitude": 48.68414678,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/glac/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-157",
+      "name": "Grady County Wildlife Management Area · entrance 157",
+      "longitude": -97.86932607789349,
+      "latitude": 34.78326980409531,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-grca",
+      "name": "Grand Canyon National Park",
+      "longitude": -112.121516363,
+      "latitude": 36.0001165336,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/grca/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-grte",
+      "name": "Grand Teton National Park",
+      "longitude": -110.7054666,
+      "latitude": 43.81853565,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/grte/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-14802",
+      "name": "Grassy Slough Wildlife Management Area · entrance 14802",
+      "longitude": -94.7675434822629,
+      "latitude": 33.7795013473163,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-14803",
+      "name": "Grassy Slough Wildlife Management Area · entrance 14803",
+      "longitude": -94.73989133681594,
+      "latitude": 33.77338646618425,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-2002",
+      "name": "Grassy Slough Wildlife Management Area · entrance 2002",
+      "longitude": -94.73802113527373,
+      "latitude": 33.801264569622944,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-2003",
+      "name": "Grassy Slough Wildlife Management Area · entrance 2003",
+      "longitude": -94.78083230019091,
+      "latitude": 33.78934701574819,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-grba",
+      "name": "Great Basin National Park",
+      "longitude": -114.2579782,
+      "latitude": 38.94617378,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/grba/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-grsa",
+      "name": "Great Sand Dunes National Park & Preserve",
+      "longitude": -105.5919572,
+      "latitude": 37.79256812,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/grsa/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-grsm",
+      "name": "Great Smoky Mountains National Park",
+      "longitude": -83.50818326,
+      "latitude": 35.60116374,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/grsm/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-gumo",
+      "name": "Guadalupe Mountains National Park",
+      "longitude": -104.885527,
+      "latitude": 31.92304462,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/gumo/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-105",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 105",
+      "longitude": -98.90619319873956,
+      "latitude": 34.261638231644426,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-109",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 109",
+      "longitude": -98.96724538156647,
+      "latitude": 34.27624581413036,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-111",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 111",
+      "longitude": -98.97565205079324,
+      "latitude": 34.3051274726218,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-14002",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 14002",
+      "longitude": -98.94071822319418,
+      "latitude": 34.29783779043356,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6411",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 6411",
+      "longitude": -98.95821411676978,
+      "latitude": 34.31236330681363,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6412",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 6412",
+      "longitude": -98.92331321372997,
+      "latitude": 34.29774897802522,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6413",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 6413",
+      "longitude": -98.90617926197179,
+      "latitude": 34.29762489223774,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6414",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 6414",
+      "longitude": -98.9062221771064,
+      "latitude": 34.29058711846051,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6415",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 6415",
+      "longitude": -98.89738161637167,
+      "latitude": 34.27599559914477,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6416",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 6416",
+      "longitude": -98.92343123060772,
+      "latitude": 34.26156115383489,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6417",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 6417",
+      "longitude": -98.94089777446156,
+      "latitude": 34.25081350875262,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6418",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 6418",
+      "longitude": -98.95827848935518,
+      "latitude": 34.26170302796867,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6420",
+      "name": "Hackberry Flat Wildlife Management Area · entrance 6420",
+      "longitude": -98.97565920409663,
+      "latitude": 34.29071121541577,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-154",
+      "name": "Hal and Fern Cooper Wildlife Management Area · entrance 154",
+      "longitude": -99.47960416773532,
+      "latitude": 36.498651816178956,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-2",
+      "name": "Hal and Fern Cooper Wildlife Management Area · entrance 2",
+      "longitude": -99.49379363973232,
+      "latitude": 36.60830298228685,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3",
+      "name": "Hal and Fern Cooper Wildlife Management Area · entrance 3",
+      "longitude": -99.5245284030662,
+      "latitude": 36.53047173044962,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-28",
+      "name": "Hickory Creek Wildlife Management Area · entrance 28",
+      "longitude": -97.07392528546288,
+      "latitude": 33.98761083172445,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-30",
+      "name": "Hickory Creek Wildlife Management Area · entrance 30",
+      "longitude": -97.00698243011485,
+      "latitude": 33.99838039438533,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3644",
+      "name": "Hickory Creek Wildlife Management Area · entrance 3644",
+      "longitude": -97.0741452847175,
+      "latitude": 33.99825840307281,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3645",
+      "name": "Hickory Creek Wildlife Management Area · entrance 3645",
+      "longitude": -97.03643464811205,
+      "latitude": 34.01279989614041,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-4009",
+      "name": "Hickory Creek Wildlife Management Area · entrance 4009",
+      "longitude": -97.06944163809816,
+      "latitude": 33.980287424866724,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-hosp",
+      "name": "Hot Springs National Park",
+      "longitude": -93.06332936,
+      "latitude": 34.52414366,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/hosp/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-192",
+      "name": "Hugo Wildlife Management Area - Hamden · entrance 192",
+      "longitude": -95.5391896903679,
+      "latitude": 34.13158762691873,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-193",
+      "name": "Hugo Wildlife Management Area - Sawyer · entrance 193",
+      "longitude": -95.34342573437971,
+      "latitude": 33.96129199520388,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-12803",
+      "name": "Hugo Wildlife Management Area · entrance 12803",
+      "longitude": -95.41733295496859,
+      "latitude": 34.120594527754285,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-12804",
+      "name": "Hugo Wildlife Management Area · entrance 12804",
+      "longitude": -95.4672177578082,
+      "latitude": 34.08431992988958,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-12805",
+      "name": "Hugo Wildlife Management Area · entrance 12805",
+      "longitude": -95.4707539789461,
+      "latitude": 34.07045698447725,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-17602",
+      "name": "Hugo Wildlife Management Area · entrance 17602",
+      "longitude": -95.48681178987772,
+      "latitude": 34.074342079886904,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-17603",
+      "name": "Hugo Wildlife Management Area · entrance 17603",
+      "longitude": -95.42839113302226,
+      "latitude": 34.12808670223098,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-17604",
+      "name": "Hugo Wildlife Management Area · entrance 17604",
+      "longitude": -95.43059697921721,
+      "latitude": 34.17150092876927,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-181",
+      "name": "Hugo Wildlife Management Area · entrance 181",
+      "longitude": -95.46726357403178,
+      "latitude": 34.09893548020183,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-182",
+      "name": "Hugo Wildlife Management Area · entrance 182",
+      "longitude": -95.48700463207281,
+      "latitude": 34.142350478485774,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-183",
+      "name": "Hugo Wildlife Management Area · entrance 183",
+      "longitude": -95.44812794449722,
+      "latitude": 34.169317859773365,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-188",
+      "name": "Hugo Wildlife Management Area · entrance 188",
+      "longitude": -95.46773816809069,
+      "latitude": 34.05524876330108,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-189",
+      "name": "Hugo Wildlife Management Area · entrance 189",
+      "longitude": -95.41744744249935,
+      "latitude": 34.146015928841734,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-190",
+      "name": "Hugo Wildlife Management Area · entrance 190",
+      "longitude": -95.46546112902396,
+      "latitude": 34.183258112205635,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-191",
+      "name": "Hugo Wildlife Management Area · entrance 191",
+      "longitude": -95.49155365813962,
+      "latitude": 34.20008414223362,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-indu",
+      "name": "Indiana Dunes National Park",
+      "longitude": -87.09647445,
+      "latitude": 41.63765525,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/indu/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-isro",
+      "name": "Isle Royale National Park",
+      "longitude": -88.82780657,
+      "latitude": 48.01145819,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/isro/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-7203",
+      "name": "James Collins Wildlife Management Area · entrance 7203",
+      "longitude": -95.48143239919858,
+      "latitude": 35.043924473718015,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-9203",
+      "name": "James Collins Wildlife Management Area · entrance 9203",
+      "longitude": -95.34926836413071,
+      "latitude": 35.02937227827788,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-16007",
+      "name": "John Dahl Wildlife Management Area · entrance 16007",
+      "longitude": -96.54672508958902,
+      "latitude": 36.86934234529381,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-16008",
+      "name": "John Dahl Wildlife Management Area · entrance 16008",
+      "longitude": -96.54663925911069,
+      "latitude": 36.86384894412273,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-16009",
+      "name": "John Dahl Wildlife Management Area · entrance 16009",
+      "longitude": -96.54663925841723,
+      "latitude": 36.854990001852464,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-jotr",
+      "name": "Joshua Tree National Park",
+      "longitude": -115.8398125,
+      "latitude": 33.91418525,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/jotr/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-katm",
+      "name": "Katmai National Park & Preserve",
+      "longitude": -155.0126574,
+      "latitude": 58.62235668,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/katm/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-16002",
+      "name": "Kaw Wildlife Management Area · entrance 16002",
+      "longitude": -96.95424637269129,
+      "latitude": 36.796339375033604,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-16003",
+      "name": "Kaw Wildlife Management Area · entrance 16003",
+      "longitude": -96.94566330410998,
+      "latitude": 36.8108058019469,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-16004",
+      "name": "Kaw Wildlife Management Area · entrance 16004",
+      "longitude": -96.97774143153306,
+      "latitude": 36.8717160289086,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-16006",
+      "name": "Kaw Wildlife Management Area · entrance 16006",
+      "longitude": -96.97765560059946,
+      "latitude": 36.897835881345955,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3611",
+      "name": "Kaw Wildlife Management Area · entrance 3611",
+      "longitude": -96.95950394511112,
+      "latitude": 36.92647934646866,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3612",
+      "name": "Kaw Wildlife Management Area · entrance 3612",
+      "longitude": -96.95746546601751,
+      "latitude": 36.9507818607931,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3614",
+      "name": "Kaw Wildlife Management Area · entrance 3614",
+      "longitude": -96.94892531249657,
+      "latitude": 36.96998513814402,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3615",
+      "name": "Kaw Wildlife Management Area · entrance 3615",
+      "longitude": -96.93514948761505,
+      "latitude": 36.99891807030534,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3616",
+      "name": "Kaw Wildlife Management Area · entrance 3616",
+      "longitude": -96.92206030752793,
+      "latitude": 36.99888379564581,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3618",
+      "name": "Kaw Wildlife Management Area · entrance 3618",
+      "longitude": -96.92364817527846,
+      "latitude": 36.868942254437016,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3621",
+      "name": "Kaw Wildlife Management Area · entrance 3621",
+      "longitude": -96.91163187789117,
+      "latitude": 36.86866759163341,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3630",
+      "name": "Kaw Wildlife Management Area · entrance 3630",
+      "longitude": -96.8186367908521,
+      "latitude": 36.88327818824817,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3637",
+      "name": "Kaw Wildlife Management Area · entrance 3637",
+      "longitude": -96.76134480579533,
+      "latitude": 36.833282798377,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3638",
+      "name": "Kaw Wildlife Management Area · entrance 3638",
+      "longitude": -96.76194562013043,
+      "latitude": 36.8111933810003,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3643",
+      "name": "Kaw Wildlife Management Area · entrance 3643",
+      "longitude": -96.90601502992477,
+      "latitude": 36.85420163902807,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-kefj",
+      "name": "Kenai Fjords National Park",
+      "longitude": -150.106502,
+      "latitude": 59.81804414,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/kefj/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-kova",
+      "name": "Kobuk Valley National Park",
+      "longitude": -159.2002293,
+      "latitude": 67.35631336,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/kova/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-lacl",
+      "name": "Lake Clark National Park & Preserve",
+      "longitude": -153.55535,
+      "latitude": 60.57405857,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/lacl/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-21202",
+      "name": "Lake Elmer · entrance 21202",
+      "longitude": -97.98899539320277,
+      "latitude": 35.885337615295086,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-21203",
+      "name": "Lake Elmer · entrance 21203",
+      "longitude": -97.99468777067669,
+      "latitude": 35.879969374995326,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-21204",
+      "name": "Lake Elmer · entrance 21204",
+      "longitude": -97.99362829792418,
+      "latitude": 35.88523064034171,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-167",
+      "name": "Lake Evans Chambers · entrance 167",
+      "longitude": -100.21128392103518,
+      "latitude": 36.71969150560128,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-168",
+      "name": "Lake Evans Chambers · entrance 168",
+      "longitude": -100.21807551830106,
+      "latitude": 36.71950598150081,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-155",
+      "name": "Lake Hall · entrance 155",
+      "longitude": -99.92125643963485,
+      "latitude": 34.830398961913104,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-156",
+      "name": "Lake Hall · entrance 156",
+      "longitude": -99.9296264422358,
+      "latitude": 34.82680796069787,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-20802",
+      "name": "Lake Jap Beaver · entrance 20802",
+      "longitude": -98.0518123211062,
+      "latitude": 34.183844731589645,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-20803",
+      "name": "Lake Jap Beaver · entrance 20803",
+      "longitude": -98.05183377907183,
+      "latitude": 34.181146593886645,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-20804",
+      "name": "Lake Jap Beaver · entrance 20804",
+      "longitude": -98.05594292278104,
+      "latitude": 34.188158022994514,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-lavo",
+      "name": "Lassen Volcanic National Park",
+      "longitude": -121.4075993,
+      "latitude": 40.49354575,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/lavo/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-47",
+      "name": "Lexington Wildlife Management Area · entrance 47",
+      "longitude": -97.23455187236868,
+      "latitude": 35.08722521660371,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-4002",
+      "name": "Love Valley Wildlife Management Area · entrance 4002",
+      "longitude": -97.14335997999206,
+      "latitude": 33.73178146146632,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-4003",
+      "name": "Love Valley Wildlife Management Area · entrance 4003",
+      "longitude": -97.09889921175665,
+      "latitude": 33.74039723132966,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-4004",
+      "name": "Love Valley Wildlife Management Area · entrance 4004",
+      "longitude": -97.03921147174759,
+      "latitude": 33.8586812290009,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-4006",
+      "name": "Love Valley Wildlife Management Area · entrance 4006",
+      "longitude": -97.02191013730199,
+      "latitude": 33.867755654940346,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-4007",
+      "name": "Love Valley Wildlife Management Area · entrance 4007",
+      "longitude": -97.00143494467235,
+      "latitude": 33.896733612950655,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-802",
+      "name": "Love Valley Wildlife Management Area · entrance 802",
+      "longitude": -97.09119945823254,
+      "latitude": 33.82431750189196,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-805",
+      "name": "Love Valley Wildlife Management Area · entrance 805",
+      "longitude": -97.01318083571677,
+      "latitude": 33.909496974371706,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-141",
+      "name": "Lower Illinois Public Fishing and Hunting Area · entrance 141",
+      "longitude": -95.06612909913156,
+      "latitude": 35.580741473272425,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-50",
+      "name": "Major County Wildlife Management Area · entrance 50",
+      "longitude": -98.92953884390009,
+      "latitude": 36.387603200773796,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-maca",
+      "name": "Mammoth Cave National Park",
+      "longitude": -86.13090198,
+      "latitude": 37.19760458,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/maca/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-14",
+      "name": "McClellan-Kerr Wildlife Management Area · entrance 14",
+      "longitude": -95.46595340247394,
+      "latitude": 35.93075110108676,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-4802",
+      "name": "McClellan-Kerr Wildlife Management Area · entrance 4802",
+      "longitude": -94.9246214830813,
+      "latitude": 35.42000126616444,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-4803",
+      "name": "McClellan-Kerr Wildlife Management Area · entrance 4803",
+      "longitude": -95.08821477491905,
+      "latitude": 35.51625005530437,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-4804",
+      "name": "McClellan-Kerr Wildlife Management Area · entrance 4804",
+      "longitude": -95.0969265900873,
+      "latitude": 35.528457503546306,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-55",
+      "name": "McClellan-Kerr Wildlife Management Area · entrance 55",
+      "longitude": -95.43875610078236,
+      "latitude": 35.900916970628394,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-56",
+      "name": "McClellan-Kerr Wildlife Management Area · entrance 56",
+      "longitude": -95.27015341596173,
+      "latitude": 35.74763770800436,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-57",
+      "name": "McClellan-Kerr Wildlife Management Area · entrance 57",
+      "longitude": -95.23413388203323,
+      "latitude": 35.66792129544717,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-9",
+      "name": "McGee Creek Wildlife Management Area · entrance 9",
+      "longitude": -95.88382488542392,
+      "latitude": 34.43917187272248,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-meve",
+      "name": "Mesa Verde National Park",
+      "longitude": -108.4624032,
+      "latitude": 37.23908345,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/meve/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "historic-D12F191F-B4F0-4E40-A17E-4D5FD5DFFCF9",
+      "name": "Missile Site Park",
+      "longitude": -104.85614,
+      "latitude": 40.42275,
+      "group": "missile-history",
+      "url": "https://www.nps.gov/places/missilesiteparkcolorado.htm",
+      "note": "Preserved former missile facility. Check official opening hours and access."
+    },
+    {
+      "id": "nps-mora",
+      "name": "Mount Rainier National Park",
+      "longitude": -121.7043885,
+      "latitude": 46.86075416,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/mora/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-112",
+      "name": "Mountain Park Wildlife Management Area · entrance 112",
+      "longitude": -99.05329973725115,
+      "latitude": 34.76842916878431,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-113",
+      "name": "Mountain Park Wildlife Management Area · entrance 113",
+      "longitude": -99.03582591672023,
+      "latitude": 34.77553347355001,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-114",
+      "name": "Mountain Park Wildlife Management Area · entrance 114",
+      "longitude": -99.01926185772732,
+      "latitude": 34.77575319075939,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-115",
+      "name": "Mountain Park Wildlife Management Area · entrance 115",
+      "longitude": -99.01041409334184,
+      "latitude": 34.78300844591359,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-116",
+      "name": "Mountain Park Wildlife Management Area · entrance 116",
+      "longitude": -99.01033791741786,
+      "latitude": 34.79076648030536,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-117",
+      "name": "Mountain Park Wildlife Management Area · entrance 117",
+      "longitude": -98.98741478918716,
+      "latitude": 34.80430382926178,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-118",
+      "name": "Mountain Park Wildlife Management Area · entrance 118",
+      "longitude": -98.9665011590369,
+      "latitude": 34.79287577427025,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-119",
+      "name": "Mountain Park Wildlife Management Area · entrance 119",
+      "longitude": -99.01893383853074,
+      "latitude": 34.73410945703869,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-120",
+      "name": "Mountain Park Wildlife Management Area · entrance 120",
+      "longitude": -99.0469746935026,
+      "latitude": 34.75408446817072,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-8002",
+      "name": "Mountain Park Wildlife Management Area · entrance 8002",
+      "longitude": -99.0018479920441,
+      "latitude": 34.79799230626942,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-npsa",
+      "name": "National Park of American Samoa",
+      "longitude": -170.07233073010053,
+      "latitude": -14.225602303618931,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/npsa/index.htm",
+      "note": "USGS/NPS boundary extent center; not an entrance. Use official park directions."
+    },
+    {
+      "id": "odwc-16802",
+      "name": "Neosho Wildlife Management Area · entrance 16802",
+      "longitude": -95.01183200823867,
+      "latitude": 36.94298591184648,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-neri",
+      "name": "New River Gorge National Park & Preserve",
+      "longitude": -80.99956002,
+      "latitude": 37.86878554,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/neri/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-noca",
+      "name": "North Cascades National Park",
+      "longitude": -121.2069423,
+      "latitude": 48.71171756,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/noca/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-okci",
+      "name": "Oklahoma City National Memorial",
+      "longitude": -97.5171,
+      "latitude": 35.473,
+      "group": "oklahoma-nps",
+      "url": "https://www.nps.gov/okci/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-10",
+      "name": "Okmulgee Wildlife Management Area · entrance 10",
+      "longitude": -96.05094505375469,
+      "latitude": 35.682657501692645,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-11",
+      "name": "Okmulgee Wildlife Management Area · entrance 11",
+      "longitude": -96.02100796694499,
+      "latitude": 35.682938499086895,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-12",
+      "name": "Okmulgee Wildlife Management Area · entrance 12",
+      "longitude": -96.05896219643013,
+      "latitude": 35.62472574005606,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-17",
+      "name": "Okmulgee Wildlife Management Area · entrance 17",
+      "longitude": -96.06889771266349,
+      "latitude": 35.660976276690874,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-olym",
+      "name": "Olympic National Park",
+      "longitude": -123.6663848,
+      "latitude": 47.80392754,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/olym/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-137",
+      "name": "Osage Wildlife Management Area - Rock Creek · entrance 137",
+      "longitude": -96.20609643702407,
+      "latitude": 36.856130044460244,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-138",
+      "name": "Osage Wildlife Management Area - Rock Creek · entrance 138",
+      "longitude": -96.20986315297085,
+      "latitude": 36.81716609969964,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-199",
+      "name": "Osage Wildlife Management Area - Rock Creek · entrance 199",
+      "longitude": -96.21988805777261,
+      "latitude": 36.85312857066015,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-178",
+      "name": "Osage Wildlife Management Area - Western Wall · entrance 178",
+      "longitude": -96.30696621532599,
+      "latitude": 36.90445836442849,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-200",
+      "name": "Osage Wildlife Management Area - Western Wall · entrance 200",
+      "longitude": -96.31410268894803,
+      "latitude": 36.81045557209849,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "historic-4BC384DE-D516-4600-B00E-42E1A94C2CF9",
+      "name": "Oscar-Zero Minuteman Missile Alert Facility",
+      "longitude": -98.1237678592639,
+      "latitude": 47.4490736052737,
+      "group": "missile-history",
+      "url": "https://www.nps.gov/places/oscar-zero.htm",
+      "note": "Preserved former missile facility. Check official opening hours and access."
+    },
+    {
+      "id": "odwc-58",
+      "name": "Ozark Plateau Wildlife Management Area · entrance 58",
+      "longitude": -94.51025618174113,
+      "latitude": 35.72530503966626,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-121",
+      "name": "Packsaddle Wildlife Management Area · entrance 121",
+      "longitude": -99.70874116626705,
+      "latitude": 35.89712417164555,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-122",
+      "name": "Packsaddle Wildlife Management Area · entrance 122",
+      "longitude": -99.6898324655185,
+      "latitude": 35.89744415520792,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-123",
+      "name": "Packsaddle Wildlife Management Area · entrance 123",
+      "longitude": -99.65577345849587,
+      "latitude": 35.89713115664439,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-124",
+      "name": "Packsaddle Wildlife Management Area · entrance 124",
+      "longitude": -99.61952761900032,
+      "latitude": 35.89752815942146,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-125",
+      "name": "Packsaddle Wildlife Management Area · entrance 125",
+      "longitude": -99.62943966633675,
+      "latitude": 35.91722131039975,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-126",
+      "name": "Packsaddle Wildlife Management Area · entrance 126",
+      "longitude": -99.73724047756168,
+      "latitude": 35.89801615371529,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-pefo",
+      "name": "Petrified Forest National Park",
+      "longitude": -109.7877678,
+      "latitude": 34.98387664,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/pefo/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-180",
+      "name": "Pine Creek Wildlife Management Area · entrance 180",
+      "longitude": -95.15152198700788,
+      "latitude": 34.186287904377785,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-185",
+      "name": "Pine Creek Wildlife Management Area · entrance 185",
+      "longitude": -95.12143917885346,
+      "latitude": 34.11349006318823,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-186",
+      "name": "Pine Creek Wildlife Management Area · entrance 186",
+      "longitude": -95.12216789091455,
+      "latitude": 34.12563174300844,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-pinn",
+      "name": "Pinnacles National Park",
+      "longitude": -121.1813607,
+      "latitude": 36.49029208,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/pinn/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-37",
+      "name": "Pushmataha Wildlife Management Area · entrance 37",
+      "longitude": -95.34488075906907,
+      "latitude": 34.5507425900107,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-1607",
+      "name": "Red Slough Wildlife Management Area · entrance 1607",
+      "longitude": -94.64228397014332,
+      "latitude": 33.74869182198761,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-17203",
+      "name": "Red Slough Wildlife Management Area · entrance 17203",
+      "longitude": -94.6969003689773,
+      "latitude": 33.72133107776908,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-17204",
+      "name": "Red Slough Wildlife Management Area · entrance 17204",
+      "longitude": -94.69432115823075,
+      "latitude": 33.750395941941015,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-17205",
+      "name": "Red Slough Wildlife Management Area · entrance 17205",
+      "longitude": -94.70333338294482,
+      "latitude": 33.72864104343583,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-redw",
+      "name": "Redwood National Park",
+      "longitude": -124.0039723769928,
+      "latitude": 41.46077165773534,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/redw/index.htm",
+      "note": "USGS/NPS boundary extent center; not an entrance. Use official park directions."
+    },
+    {
+      "id": "odwc-166",
+      "name": "Robbers Cave Wildlife Management Area · entrance 166",
+      "longitude": -95.31472844796765,
+      "latitude": 34.97095954606973,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-9202",
+      "name": "Robbers Cave Wildlife Management Area · entrance 9202",
+      "longitude": -95.33336822875789,
+      "latitude": 35.00295912318342,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-romo",
+      "name": "Rocky Mountain National Park",
+      "longitude": -105.6972879,
+      "latitude": 40.3556924,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/romo/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-sagu",
+      "name": "Saguaro National Park",
+      "longitude": -110.7574974,
+      "latitude": 32.20909636,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/sagu/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-1202",
+      "name": "Sandhills Wildlife Management Area · entrance 1202",
+      "longitude": -98.64446208136945,
+      "latitude": 36.43778343508112,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-130",
+      "name": "Sandy Sanders Wildlife Management Area · entrance 130",
+      "longitude": -99.75507544307386,
+      "latitude": 35.05869009346598,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-169",
+      "name": "Sandy Sanders Wildlife Management Area · entrance 169",
+      "longitude": -99.90425753441075,
+      "latitude": 35.057443077550964,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-198",
+      "name": "Sandy Sanders Wildlife Management Area · entrance 198",
+      "longitude": -99.76552710977741,
+      "latitude": 35.02987291925772,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-5202",
+      "name": "Sandy Sanders Wildlife Management Area · entrance 5202",
+      "longitude": -99.90598090064077,
+      "latitude": 35.08600016737427,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-5203",
+      "name": "Sandy Sanders Wildlife Management Area · entrance 5203",
+      "longitude": -99.85964708078721,
+      "latitude": 35.00556410700357,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-6424",
+      "name": "Sandy Sanders Wildlife Management Area · entrance 6424",
+      "longitude": -99.83571640089161,
+      "latitude": 35.073327578749705,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-22402",
+      "name": "Sans Bois Wildlife Management Area · entrance 22402",
+      "longitude": -94.93233990375292,
+      "latitude": 35.13075925409794,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-3202",
+      "name": "Sans Bois Wildlife Management Area · entrance 3202",
+      "longitude": -94.96336330955262,
+      "latitude": 35.13060636722458,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-seki",
+      "name": "Sequoia & Kings Canyon National Parks",
+      "longitude": -118.587429,
+      "latitude": 36.71277299,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/seki/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-shen",
+      "name": "Shenandoah National Park",
+      "longitude": -78.46907715,
+      "latitude": 38.49236644,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/shen/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-139",
+      "name": "Sparrowhawk Wildlife Management Area · entrance 139",
+      "longitude": -94.90269754959377,
+      "latitude": 35.958870015277135,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-41",
+      "name": "Stringtown Wildlife Management Area · entrance 41",
+      "longitude": -95.95413003249794,
+      "latitude": 34.46123931129223,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-42",
+      "name": "Stringtown Wildlife Management Area · entrance 42",
+      "longitude": -95.93403647963153,
+      "latitude": 34.45753795001651,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-148",
+      "name": "Texoma - Washita Arm Wildlife Management Area · entrance 148",
+      "longitude": -96.76022327361326,
+      "latitude": 34.21977133851548,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-149",
+      "name": "Texoma - Washita Arm Wildlife Management Area · entrance 149",
+      "longitude": -96.7409748276121,
+      "latitude": 34.21614826365441,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-150",
+      "name": "Texoma - Washita Arm Wildlife Management Area · entrance 150",
+      "longitude": -96.71475459614689,
+      "latitude": 34.232570012281734,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-151",
+      "name": "Texoma - Washita Arm Wildlife Management Area · entrance 151",
+      "longitude": -96.78484740652229,
+      "latitude": 34.19036747911024,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-152",
+      "name": "Texoma - Washita Arm Wildlife Management Area · entrance 152",
+      "longitude": -96.78490361184406,
+      "latitude": 34.20171700248367,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-159",
+      "name": "Texoma - Washita Arm Wildlife Management Area · entrance 159",
+      "longitude": -96.75166720410964,
+      "latitude": 34.173000778404976,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-thro",
+      "name": "Theodore Roosevelt National Park",
+      "longitude": -103.4300083,
+      "latitude": 47.17777274,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/thro/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-4402",
+      "name": "Thomas A. Bamberger Sr. Wildlife Management Area · entrance 4402",
+      "longitude": -94.78619000417861,
+      "latitude": 35.9635191182628,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-158",
+      "name": "Tishomingo Wildlife Management Unit · entrance 158",
+      "longitude": -96.67979258320183,
+      "latitude": 34.16592900129158,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-19",
+      "name": "Tishomingo Wildlife Management Unit · entrance 19",
+      "longitude": -96.7056833623016,
+      "latitude": 34.201452612579494,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-7202",
+      "name": "Tishomingo Wildlife Management Unit · entrance 7202",
+      "longitude": -96.69022886611616,
+      "latitude": 34.222476821351634,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-viis",
+      "name": "Virgin Islands National Park",
+      "longitude": -64.74194451,
+      "latitude": 18.34279656,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/viis/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-voya",
+      "name": "Voyageurs National Park",
+      "longitude": -92.8382913,
+      "latitude": 48.48370609,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/voya/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-waba",
+      "name": "Washita Battlefield National Historic Site",
+      "longitude": -99.70445143,
+      "latitude": 35.62083963,
+      "group": "oklahoma-nps",
+      "url": "https://www.nps.gov/waba/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-132",
+      "name": "Washita County Wildlife Management Area · entrance 132",
+      "longitude": -99.02911525658345,
+      "latitude": 35.30595608971434,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-133",
+      "name": "Washita County Wildlife Management Area · entrance 133",
+      "longitude": -99.02915125661193,
+      "latitude": 35.313369090211964,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-134",
+      "name": "Waurika Wildlife Management Area · entrance 134",
+      "longitude": -98.16415915418408,
+      "latitude": 34.36204154146032,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-135",
+      "name": "Waurika Wildlife Management Area · entrance 135",
+      "longitude": -98.14556184338004,
+      "latitude": 34.362356963605336,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-136",
+      "name": "Waurika Wildlife Management Area · entrance 136",
+      "longitude": -98.1044271820057,
+      "latitude": 34.31158481657472,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-whsa",
+      "name": "White Sands National Park",
+      "longitude": -106.3333461,
+      "latitude": 32.77907858,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/whsa/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-40",
+      "name": "Whitegrass Flats Wildlife Management Area · entrance 40",
+      "longitude": -95.03475155294895,
+      "latitude": 33.910251949386605,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-wica",
+      "name": "Wind Cave National Park",
+      "longitude": -103.4394709,
+      "latitude": 43.58012365,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/wica/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-11202",
+      "name": "Wister Wildlife Management Area · entrance 11202",
+      "longitude": -94.97995695848716,
+      "latitude": 34.907388021660594,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-22802",
+      "name": "Wister Wildlife Management Area · entrance 22802",
+      "longitude": -94.92884932294733,
+      "latitude": 34.93813391893498,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "odwc-46",
+      "name": "Wister Wildlife Management Area · entrance 46",
+      "longitude": -94.71954858271882,
+      "latitude": 34.85922132150772,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-wrst",
+      "name": "Wrangell - St Elias National Park & Preserve",
+      "longitude": -142.6028439,
+      "latitude": 61.4182147,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/wrst/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-yell",
+      "name": "Yellowstone National Park",
+      "longitude": -110.5471695,
+      "latitude": 44.59824417,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/yell/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "nps-yose",
+      "name": "Yosemite National Park",
+      "longitude": -119.5571873,
+      "latitude": 37.84883288,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/yose/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    },
+    {
+      "id": "odwc-20",
+      "name": "Yourman Wildlife Management Area · entrance 20",
+      "longitude": -95.28744286151301,
+      "latitude": 34.82539449844374,
+      "group": "oklahoma-land",
+      "url": "https://www.wildlifedepartment.com/hunting/wma",
+      "note": "ODWC public entrance snapshot. Check current rules, seasons and closures. Not a property boundary."
+    },
+    {
+      "id": "nps-zion",
+      "name": "Zion National Park",
+      "longitude": -113.0265138,
+      "latitude": 37.29839254,
+      "group": "national-parks",
+      "url": "https://www.nps.gov/zion/index.htm",
+      "note": "NPS reference point; choose an official entrance before routing."
+    }
+  ]
+}

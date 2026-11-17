@@ -66,3 +66,57 @@ def save_place(place: Place):
             raise HTTPException(409, 'This place ID is already used.')
         connection.execute('INSERT OR IGNORE INTO map_places VALUES (?, ?)', (str(place.id), place.model_dump_json()))
     return place
+
+class AddressQuery(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    address: str = Field(min_length=3, max_length=100, pattern=r'.*\S.*')
+
+
+def census_lookup(address):
+    """Fixed public endpoint; no caller-controlled URL."""
+    import urllib.parse
+    import urllib.request
+    query = urllib.parse.urlencode({'address': address, 'benchmark': 'Public_AR_Current', 'format': 'json'})
+    request = urllib.request.Request('https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?' + query,
+                                    headers={'User-Agent': 'KlinekraftTerminal/1.0'})
+    with urllib.request.urlopen(request, timeout=12) as response:
+        raw = response.read(1_000_001)
+    if len(raw) > 1_000_000:
+        raise ValueError('Response too large')
+    matches = json.loads(raw)['result']['addressMatches']
+    results = []
+    for match in matches[:8]:
+        point = Place(id=UUID(int=0), name=match['matchedAddress'][:120],
+                      longitude=match['coordinates']['x'], latitude=match['coordinates']['y'])
+        results.append(point.model_dump(mode='json', exclude={'id'}))
+    return results
+
+
+@router.post('/search')
+def search_address(query: AddressQuery):
+    import time
+    key = ' '.join(query.address.lower().split())
+    with database() as connection:
+        connection.execute('CREATE TABLE IF NOT EXISTS map_geocodes (query TEXT PRIMARY KEY, payload TEXT NOT NULL, updated REAL NOT NULL)')
+        row = connection.execute('SELECT payload, updated FROM map_geocodes WHERE query=?', (key,)).fetchone()
+    if row:
+        return {'results': json.loads(row[0]), 'cached': True, 'updated': row[1]}
+    try:
+        results = census_lookup(query.address.strip())
+    except Exception:
+        # Do not expose the address or upstream request in errors/logs.
+        raise HTTPException(503, 'Address service unavailable. Previously searched addresses and saved places still work offline.') from None
+    updated = time.time()
+    if results:
+        with database() as connection:
+            connection.execute('INSERT OR REPLACE INTO map_geocodes VALUES (?, ?, ?)', (key, json.dumps(results), updated))
+    return {'results': results, 'cached': False, 'updated': updated}
+
+
+@router.get('/catalog')
+def catalog():
+    path = Path(__file__).parent / 'data' / 'map-catalog.json'
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError):
+        raise HTTPException(503, 'Map collections are not installed.') from None
