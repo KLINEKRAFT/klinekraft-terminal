@@ -3604,10 +3604,6 @@ main:has(.paint-expanded) .page-content { padding-top: 8px; }
 .info-popover>summary { list-style:none; border:1px solid currentColor; border-radius:50%; width:20px; height:20px; display:grid; place-items:center; font:italic 13px Georgia,serif; cursor:pointer; }
 .info-popover>summary::-webkit-details-marker {display:none;}
 .info-content {position:absolute;right:0;top:28px;z-index:100;width:min(340px,80vw);padding:16px;background:var(--paper,#efeee8);color:var(--ink);border:1px solid var(--line);box-shadow:0 8px 30px #0002;font-size:12px;line-height:1.5;}
-.home-launcher {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin:12px 0 24px;}
-.home-launcher button {display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:20px;min-height:96px;padding:14px;border:1px solid var(--line);background:transparent;color:inherit;text-align:left;}
-.home-launcher button:hover {border-color:#123aff;color:#123aff;}
-.home-launcher span {font-size:12px;}
 .save-state {font-size:10px;min-height:14px;text-align:right;margin:0 0 4px;opacity:.65;}
 .organizer-editor>form>label>input {font-size:24px;border:0!important;background:transparent!important;}
 .note-format {display:flex;gap:3px;padding:6px 0;border-bottom:1px solid var(--line);}
@@ -3649,7 +3645,7 @@ main:has(.paint-expanded) .page-content { padding-top: 8px; }
 .calculator-keys .calculator-equals {background:#123aff;color:#fff;border-color:#123aff;}
 .calculator-history {border-left:1px solid var(--line);padding-left:24px;}
 .calculator-history h2 {font:11px 'IBM Plex Mono';text-transform:uppercase;letter-spacing:.12em;}
-@media(max-width:700px){.home-launcher{grid-template-columns:repeat(3,minmax(0,1fr));}.preview-badge{display:none!important;}}
+@media(max-width:700px){.preview-badge{display:none!important;}}
 .paint {position:relative;}
 .paint-document-bar {padding-right:80px;min-height:32px;}
 .paint-name {font-size:0;}
@@ -3711,3 +3707,7 @@ main:not([data-page="Home"])>.command-area {display:none;}
 @media(max-width:700px){.emergency-workbench{display:block;overflow:auto;}.emergency-reference,.emergency-library{overflow:visible;}}
 
 main>.command-feedback {position:fixed;bottom:12px;right:16px;z-index:120;max-width:min(480px,90vw);padding:12px;background:var(--paper);border:1px solid var(--line);box-shadow:0 8px 24px #0002;}
+
+/* Home stays a dashboard; app navigation lives in the collapsible drawer. */
+main[data-page="Home"] .overview {padding-top:24px;padding-bottom:24px;}
+main[data-page="Home"] .home-tools {margin-top:20px;}

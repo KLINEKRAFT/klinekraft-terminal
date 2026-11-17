@@ -1,10 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { navigate } from "./navigation";
 async function go(page: any, name: string) {
   await page.goto("/");
-  await page
-    .getByRole("navigation", { name: "Applications" })
-    .getByRole("button", { name, exact: true })
-    .click();
+  await navigate(page, name);
 }
 for (const kind of ["note", "event"])
   test(`${kind}: typing stays focused during save and latest edits persist`, async ({
@@ -75,7 +73,7 @@ test("blank note can save from body and formatting survives a reload", async ({
     "Bold field note",
   );
 });
-test("launcher gives every workspace full width and Field is a compact switch", async ({
+test("drawer gives every workspace full width and Field is a compact switch", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1024, height: 560 });
