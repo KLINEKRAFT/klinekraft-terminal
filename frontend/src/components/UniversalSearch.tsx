@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { sections, sectionLabel, type Section } from "../preview";
 import { isHostedDemo } from "../runtime";
-import { localJSON } from "./WikiReader";
+import { localJSON, type WikiReference } from "./WikiReader";
 import { noteText } from "./RichNote";
 import type { DocumentSource } from "./DocumentReader";
 import type { MapLocation } from "./MapCollections";
@@ -15,6 +15,7 @@ export type SearchResult = {
   noteId?: string;
   document?: DocumentSource;
   place?: MapLocation;
+  wiki?: WikiReference;
 };
 type Note = { id: string; title: string; body: string; archived: boolean };
 type Research = {
@@ -65,93 +66,145 @@ export function UniversalSearch({
       return () => request.abort();
     }
     setBusy(true);
-    const timer = window.setTimeout(async () => {
+    const timer = window.setTimeout(() => {
       async function localSource(path: string) {
         if (cache.current.has(path)) return cache.current.get(path);
         const data = await localJSON(path, { signal: request.signal });
         if (!request.signal.aborted) cache.current.set(path, data);
         return data;
       }
-      const sources = await Promise.allSettled([
+      const requests = [
         localSource("/api/organizer?kind=note"),
         localJSON(`/api/research?q=${encodeURIComponent(q)}`, {
           signal: request.signal,
         }),
         localSource("/api/maps/places"),
         localSource("/api/maps/catalog"),
-      ]);
-      if (request.signal.aborted) return;
-      const found: SearchResult[] = [...apps];
-      const notes = sources[0];
-      if (notes.status === "fulfilled")
-        (notes.value as Note[])
-          .filter((n) => !n.archived)
-          .forEach((n) => {
-            const plain = noteText(n.body);
-            if (`${n.title} ${plain}`.toLocaleLowerCase().includes(q)) {
-              const at = Math.max(0, plain.toLocaleLowerCase().indexOf(q) - 35);
-              found.push({
-                id: `note:${n.id}`,
-                title: n.title,
-                group: "Notes",
-                snippet: plain.slice(at, at + 150),
-                noteId: n.id,
-              });
-            }
-          });
-      const library = sources[1];
-      if (library.status === "fulfilled")
-        (library.value.files as Research[]).forEach((f) =>
+        localJSON(`/api/wiki/search?q=${encodeURIComponent(q)}`, {
+          signal: AbortSignal.any([request.signal, AbortSignal.timeout(15000)]),
+        }),
+      ];
+      const sources: Array<PromiseSettledResult<unknown> | undefined> = Array(
+        requests.length,
+      ).fill(undefined);
+      function showResults() {
+        if (request.signal.aborted) return;
+        const found: SearchResult[] = [...apps];
+        const notes = sources[0];
+        if (notes?.status === "fulfilled")
+          (notes.value as Note[])
+            .filter((n) => !n.archived)
+            .forEach((n) => {
+              const plain = noteText(n.body);
+              if (`${n.title} ${plain}`.toLocaleLowerCase().includes(q)) {
+                const at = Math.max(
+                  0,
+                  plain.toLocaleLowerCase().indexOf(q) - 35,
+                );
+                found.push({
+                  id: `note:${n.id}`,
+                  title: n.title,
+                  group: "Notes",
+                  snippet: plain.slice(at, at + 150),
+                  noteId: n.id,
+                });
+              }
+            });
+        const wiki = sources[4];
+        const wikiData =
+          wiki?.status === "fulfilled"
+            ? (wiki.value as {
+                results: (WikiReference & {
+                  snippet: string;
+                  bookTitle?: string;
+                })[];
+                unavailable?: string[];
+              })
+            : null;
+        wikiData?.results.forEach((article) =>
           found.push({
-            id: `document:${f.id}`,
-            title: f.name,
-            group: "Library",
-            snippet: f.snippet,
-            document: {
-              url: `/api/research/${f.id}`,
-              title: f.name,
-              mime: f.mime,
-              page: f.page,
-            },
+            id: `wiki:${article.path}`,
+            title: article.title,
+            group: `Kiwix · ${article.bookTitle || "Offline archive"}`,
+            snippet: article.snippet,
+            wiki: article,
           }),
         );
-      for (const i of [2, 3]) {
-        const source = sources[i];
-        if (source.status !== "fulfilled") continue;
-        const places: MapLocation[] =
-          i === 2
-            ? (source.value as MapLocation[])
-            : (source.value as { places: MapLocation[] }).places;
-        places
-          .filter((p) =>
-            `${p.name} ${p.note || ""}`.toLocaleLowerCase().includes(q),
-          )
-          .forEach((p, index) =>
+        const library = sources[1];
+        if (library?.status === "fulfilled")
+          (library.value as { files: Research[] }).files.forEach((f) =>
             found.push({
-              id: `place:${i}:${p.id || index}`,
-              title: p.name,
-              group: i === 2 ? "Saved places" : "Map collections",
-              snippet: p.note,
-              place: p,
+              id: `document:${f.id}`,
+              title: f.name,
+              group: "Library",
+              snippet: f.snippet,
+              document: {
+                url: `/api/research/${f.id}`,
+                title: f.name,
+                mime: f.mime,
+                page: f.page,
+              },
             }),
           );
+        for (const i of [2, 3]) {
+          const source = sources[i];
+          if (source?.status !== "fulfilled") continue;
+          const places: MapLocation[] =
+            i === 2
+              ? (source.value as MapLocation[])
+              : (source.value as { places: MapLocation[] }).places;
+          places
+            .filter((p) =>
+              `${p.name} ${p.note || ""}`.toLocaleLowerCase().includes(q),
+            )
+            .forEach((p, index) =>
+              found.push({
+                id: `place:${i}:${p.id || index}`,
+                title: p.name,
+                group: i === 2 ? "Saved places" : "Map collections",
+                snippet: p.note,
+                place: p,
+              }),
+            );
+        }
+        setResults(found.slice(0, 80));
+        const unavailable = sources
+          .map((s, i) =>
+            s?.status === "rejected"
+              ? [
+                  "Notes",
+                  "Library",
+                  "Saved places",
+                  "Map collections",
+                  "Kiwix",
+                ][i]
+              : "",
+          )
+          .filter(Boolean);
+        unavailable.push(
+          ...(wikiData?.unavailable || []).map((name) => `Kiwix · ${name}`),
+        );
+        setStatus(
+          unavailable.length
+            ? `Unavailable: ${unavailable.join(", ")}. Other results are shown.`
+            : found.length > 80
+              ? "Showing the first 80 matches. Refine your search."
+              : "",
+        );
+        setBusy(sources.some((source) => source === undefined));
       }
-      setResults(found.slice(0, 80));
-      const unavailable = sources
-        .map((s, i) =>
-          s.status === "rejected"
-            ? ["Notes", "Library", "Saved places", "Map collections"][i]
-            : "",
-        )
-        .filter(Boolean);
-      setStatus(
-        unavailable.length
-          ? `Unavailable: ${unavailable.join(", ")}. Other results are shown.`
-          : found.length > 80
-            ? "Showing the first 80 matches. Refine your search."
-            : "",
-      );
-      setBusy(false);
+      requests.forEach((promise, index) => {
+        void promise
+          .then(
+            (value) => {
+              sources[index] = { status: "fulfilled", value };
+            },
+            (reason) => {
+              sources[index] = { status: "rejected", reason };
+            },
+          )
+          .then(showResults);
+      });
     }, 220);
     return () => {
       clearTimeout(timer);
@@ -187,7 +240,7 @@ export function UniversalSearch({
         <input
           type="search"
           aria-label="Search Terminal"
-          placeholder="Notes, library, places, apps…"
+          placeholder="Notes, library, Wikipedia, places…"
           maxLength={200}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
