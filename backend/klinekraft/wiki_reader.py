@@ -1,6 +1,7 @@
 """Bounded Kiwix reading view. Only the fixed loopback reader is contacted."""
 import http.client
 import re
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urljoin, urlsplit, quote, unquote, urlencode
 from bs4 import BeautifulSoup
 from defusedxml import ElementTree as ET
@@ -9,6 +10,9 @@ from .local_content import local_request
 
 router = APIRouter(prefix='/api/wiki', dependencies=[Depends(local_request)])
 BASE = 'http://127.0.0.1:8081'
+# Share a small worker pool across search requests so large libraries cannot
+# spawn an unbounded number of Kiwix connections on the Pi.
+SEARCH_WORKERS = ThreadPoolExecutor(max_workers=3, thread_name_prefix='kiwix-search')
 
 
 def content_path(value, base=BASE + '/'):
@@ -21,9 +25,9 @@ def content_path(value, base=BASE + '/'):
     return quote(decoded, safe='/:@!$&\'()*+,;=-._~')
 
 
-def fetch_local(path, limit=3_000_000):
+def fetch_local(path, limit=3_000_000, timeout=6):
     for _ in range(4):
-        connection = http.client.HTTPConnection('127.0.0.1', 8081, timeout=6)
+        connection = http.client.HTTPConnection('127.0.0.1', 8081, timeout=timeout)
         try:
             connection.request('GET', path, headers={'Accept-Encoding': 'identity'})
             response = connection.getresponse()
@@ -42,49 +46,90 @@ def fetch_local(path, limit=3_000_000):
 
 
 def books():
-    raw, _, _ = fetch_local('/catalog/v2/entries?count=100')
-    try: root = ET.fromstring(raw)
-    except Exception: raise HTTPException(503, 'The reader catalog could not be read.')
-    result = []
-    for entry in root.findall('{http://www.w3.org/2005/Atom}entry'):
-        title = entry.findtext('{http://www.w3.org/2005/Atom}title') or 'Wikipedia'
-        for link in entry.findall('{http://www.w3.org/2005/Atom}link'):
-            if link.get('type') != 'text/html': continue
-            try: path = content_path(link.get('href', ''))
-            except HTTPException: continue
-            name = unquote(path).split('/')[2]
-            if 'wikipedia' not in (name + title).lower(): continue
-            result.append({'name': name, 'title': title, 'path': path})
-            break
-    return result
+    atom = '{http://www.w3.org/2005/Atom}'
+    result, seen, start = [], set(), 0
+    while True:
+        raw, _, _ = fetch_local('/catalog/v2/entries?' + urlencode({'count': 100, 'start': start}))
+        try:
+            root = ET.fromstring(raw)
+            entries = root.findall(atom + 'entry')
+            total = int(root.findtext(atom + 'totalResults') or len(entries))
+        except Exception:
+            raise HTTPException(503, 'The reader catalog could not be read.')
+        if total > 1000:
+            raise HTTPException(503, 'This reader supports up to 1,000 installed archives.')
+        added = 0
+        for entry in entries:
+            title = entry.findtext(atom + 'title') or 'Offline archive'
+            for link in entry.findall(atom + 'link'):
+                if link.get('type') != 'text/html': continue
+                try: path = content_path(link.get('href', ''))
+                except HTTPException: continue
+                name = unquote(path).split('/')[2]
+                if not name or name in seen: continue
+                seen.add(name)
+                result.append({'name': name, 'title': title, 'path': path})
+                added += 1
+                break
+        start += len(entries)
+        if start >= total: return result
+        if not entries or not added:
+            raise HTTPException(503, 'The reader returned an incomplete archive catalog.')
 
 
-def search(query, book=None, limit=12):
-    available = books()
-    if book is None and len(available) > 1:
-        # Query each local archive separately; older Kiwix versions do not accept a comma list.
-        groups = []
-        for archive in available[:4]:
-            try: groups.append(search(query, archive['name'], limit))
-            except HTTPException: continue
-        combined = [result for group in groups for result in group]
-        terms = re.findall(r'[^\W_]{3,}', query.lower())
-        combined.sort(key=lambda result: -sum(term in result['title'].lower() for term in terms))
-        return combined[:limit]
-    selected = next((b for b in available if b['name'] == book), None) if book else next(iter(available), None)
-    if not selected: return []
-    raw, _, _ = fetch_local('/search?' + urlencode({'books.name': selected['name'], 'pattern': query, 'format': 'xml', 'pageLength': min(limit, 12)}))
+def _search_book(query, selected, limit):
+    raw, _, _ = fetch_local('/search?' + urlencode({'books.name': selected['name'], 'pattern': query, 'format': 'xml', 'pageLength': limit}), timeout=10)
     try: root = ET.fromstring(raw)
     except Exception: raise HTTPException(503, 'Search is unavailable for this archive.')
     results = []
     for item in root.findall('.//item')[:limit]:
         try: path = content_path(item.findtext('link') or '')
         except HTTPException: continue
+        # A result belongs to the archive we queried, even if another archive
+        # returns a malformed or cross-archive link in its search feed.
+        if unquote(path).split('/')[2] != selected['name']: continue
         description = item.find('description')
         text = ''.join(description.itertext()) if description is not None else ''
         results.append({'title': item.findtext('title') or 'Article', 'path': path,
-                        'snippet': BeautifulSoup(text, 'html.parser').get_text(' ', strip=True)[:500]})
+                        'snippet': BeautifulSoup(text, 'html.parser').get_text(' ', strip=True)[:500],
+                        'book': selected['name'], 'bookTitle': selected['title']})
     return results
+
+
+def search_catalog(query, book=None, limit=12):
+    available = books()
+    selected = [archive for archive in available if not book or archive['name'] == book]
+    limit = max(1, min(limit, 40))
+    if not selected: return {'results': [], 'unavailable': []}
+
+    def run(archive):
+        try: return _search_book(query, archive, limit), None
+        except HTTPException: return [], archive['title']
+
+    groups = list(SEARCH_WORKERS.map(run, selected))
+    unavailable = [failure for _, failure in groups if failure]
+    if len(unavailable) == len(selected):
+        raise HTTPException(503, 'Search is unavailable in the installed Kiwix archives.')
+    combined = [(rank, result) for group, _ in groups for rank, result in enumerate(group)]
+    terms = re.findall(r'[^\W_]{3,}', query.lower())
+    combined.sort(key=lambda pair: (
+        -sum(term in pair[1]['title'].lower() for term in terms),
+        'maxi' not in pair[1]['book'], pair[0], pair[1]['book'], pair[1]['path']))
+    # Avoid filling the result budget with the same Wikipedia article from
+    # starter, medical and larger editions; keep other publishers distinct.
+    results, seen = [], set()
+    for _, result in combined:
+        key = ('wikipedia', result['title'].casefold()) if result['book'].startswith('wikipedia_') else ('path', result['path'])
+        if key in seen: continue
+        seen.add(key)
+        results.append(result)
+        if len(results) == limit: break
+    return {'results': results, 'unavailable': unavailable}
+
+
+def search(query, book=None, limit=12):
+    # Preserve the list interface used by Shackleton retrieval.
+    return search_catalog(query, book, limit)['results']
 
 
 def article(path):
@@ -146,7 +191,7 @@ def list_books(response: Response):
 
 @router.get('/search')
 def search_route(q: str = Query(min_length=1, max_length=200), book: str | None = None):
-    return {'results': search(q, book)}
+    return search_catalog(q, book)
 
 
 @router.get('/article')

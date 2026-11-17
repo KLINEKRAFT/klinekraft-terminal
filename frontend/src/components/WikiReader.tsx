@@ -1,3 +1,4 @@
+import { DetailsPanel } from "./DetailsPanel";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowUpRight, X, Search, Maximize2 } from "lucide-react";
 import { isHostedDemo } from "../runtime";
@@ -137,7 +138,11 @@ export function ArticleDialog({
     <dialog
       ref={dialog}
       className="knowledge-dialog"
-      aria-label="Wikipedia article"
+      aria-label={
+        current.path.startsWith("/content/wikipedia_")
+          ? "Wikipedia article"
+          : "Offline article"
+      }
       onCancel={(e) => {
         e.preventDefault();
         onClose();
@@ -145,7 +150,12 @@ export function ArticleDialog({
     >
       <div ref={surface} className="knowledge-surface">
         <header className="knowledge-toolbar">
-          <span className="eyebrow">WIKIPEDIA · READING VIEW</span>
+          <span className="eyebrow">
+            {current.path.startsWith("/content/wikipedia_")
+              ? "WIKIPEDIA"
+              : "KIWIX"}{" "}
+            · READING VIEW
+          </span>
           <div>
             {back.length > 0 && (
               <button
@@ -180,7 +190,7 @@ export function ArticleDialog({
                     className="browser-button"
                     onClick={() => onAsk(article)}
                   >
-                    Ask AI about this
+                    Ask Shackleton
                   </button>
                 )}
                 <a
@@ -192,25 +202,36 @@ export function ArticleDialog({
                   Original layout <ArrowUpRight size={13} />
                 </a>
               </div>
-              <p className="wiki-credit">
-                Wikipedia contributors ·{" "}
-                <a
-                  href="https://en.wikipedia.org/wiki/Wikipedia:Copyrights"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Reuse and licensing
-                </a>
-                {article.original && (
-                  <>
-                    {" "}
-                    ·{" "}
-                    <a href={article.original} target="_blank" rel="noreferrer">
-                      Online original
-                    </a>
-                  </>
-                )}
-              </p>
+              {article.path.startsWith("/content/wikipedia_") ? (
+                <p className="wiki-credit">
+                  Wikipedia contributors ·{" "}
+                  <a
+                    href="https://en.wikipedia.org/wiki/Wikipedia:Copyrights"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Reuse and licensing
+                  </a>
+                  {article.original && (
+                    <>
+                      {" "}
+                      ·{" "}
+                      <a
+                        href={article.original}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Online original
+                      </a>
+                    </>
+                  )}
+                </p>
+              ) : (
+                <p className="wiki-credit">
+                  Source credits and licensing are available in the original
+                  layout.
+                </p>
+              )}
               {article.images[0] && <WikiImage {...article.images[0]} />}
               <div className="wiki-prose">
                 {article.blocks.map((b, i) =>
@@ -278,7 +299,7 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
   const [book, setBook] = useState("");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<
-    (WikiReference & { snippet: string })[]
+    (WikiReference & { snippet: string; bookTitle?: string })[]
   >([]);
   const [selected, setSelected] = useState<WikiReference | null>(null);
   const [error, setError] = useState("");
@@ -295,7 +316,11 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
       .then((data) => {
         if (!controller.signal.aborted) {
           setBooks(data.books);
-          setBook(data.books[0]?.name || "");
+          setBook((current) =>
+            data.books.some((b: { name: string }) => b.name === current)
+              ? current
+              : "",
+          );
         }
       })
       .catch((e) => {
@@ -314,6 +339,10 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
         { signal: AbortSignal.timeout(20000) },
       );
       setResults(data.results);
+      if (data.unavailable?.length)
+        setError(
+          `Some archives are unavailable: ${data.unavailable.join(", ")}.`,
+        );
       setSearched(true);
     } catch (e) {
       setError((e as Error).message);
@@ -344,7 +373,7 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
             />
             <button
               className="browser-button"
-              disabled={busy || !book || !query.trim()}
+              disabled={busy || !books.length || !query.trim()}
             >
               <Search size={15} />
               {busy ? "Searching…" : "Search"}
@@ -361,6 +390,7 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
                   setSearched(false);
                 }}
               >
+                <option value="">All archives</option>
                 {books.map((b) => (
                   <option key={b.name} value={b.name}>
                     {b.title}
@@ -395,8 +425,7 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
           </div>
           {searched && !results.length && (
             <p className="browser-help">
-              No matching articles in this archive. Try a shorter topic; the
-              starter archive is only a small selection.
+              No matching articles. Try a shorter topic or a different archive.
             </p>
           )}
           <ul className="wiki-results">
@@ -406,12 +435,12 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
                   {r.title}
                   <ArrowUpRight size={14} />
                 </button>
+                {r.bookTitle && <small>{r.bookTitle}</small>}
                 <p>{r.snippet}</p>
               </li>
             ))}
           </ul>
-          <details className="content-details">
-            <summary>About the archive</summary>
+          <DetailsPanel title="About the archives" className="content-details">
             <p>
               Reading view simplifies the original layout. Equations, complex
               tables and some image formats may need the original reader.
@@ -425,7 +454,7 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
                 scripts/setup-local-content.sh
               </pre>
             )}
-          </details>
+          </DetailsPanel>
         </>
       )}
       {selected && (

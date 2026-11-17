@@ -95,7 +95,7 @@ test("local article flows into cloud answer with verified source and image", asy
     page.getByText("The Moon orbits Earth.", { exact: true }),
   ).toBeVisible();
   await page.screenshot({ path: "/tmp/wiki-reader.png" });
-  await page.getByRole("button", { name: "Ask AI about this" }).click();
+  await page.getByRole("button", { name: "Ask Shackleton" }).click();
   await expect(page.getByText("Article: Moon")).toBeVisible();
   await page.getByLabel("Your question").fill("Explain the Moon");
   await page.getByRole("button", { name: "Send message", exact: true }).click();

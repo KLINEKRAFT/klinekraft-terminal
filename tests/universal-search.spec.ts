@@ -54,6 +54,9 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/maps/catalog", (r) =>
     r.fulfill({ json: { places: [], groups: [] } }),
   );
+  await page.route("**/api/wiki/search?*", (r) =>
+    r.fulfill({ json: { results: [], unavailable: [] } }),
+  );
   await page.goto("/");
 });
 
@@ -114,15 +117,127 @@ test("secondary panels start closed and share one-open behavior", async ({
   const filters = library
     .locator("details")
     .filter({ has: page.locator("summary", { hasText: /^Filters$/ }) });
-  const importing = library
-    .locator("details")
-    .filter({
-      has: page.locator("summary", { hasText: /^Import documents$/ }),
-    });
+  const importing = library.locator("details").filter({
+    has: page.locator("summary", { hasText: /^Import documents$/ }),
+  });
   await expect(filters).not.toHaveAttribute("open", "");
   await filters.locator("summary").click();
   await expect(library.getByLabel("Document format")).toBeVisible();
   await importing.locator("summary").click();
   await expect(filters).not.toHaveAttribute("open", "");
   await expect(importing).toHaveAttribute("open", "");
+});
+
+test("Kiwix articles open with local illustrations and source context", async ({
+  page,
+}) => {
+  await page.route("**/api/wiki/search?*", (r) =>
+    r.fulfill({
+      json: {
+        results: [
+          {
+            title: "Ernest Shackleton",
+            path: "/content/wikipedia_en_top_maxi/Shackleton",
+            snippet: "Antarctic explorer",
+            bookTitle: "Wikipedia illustrated",
+          },
+        ],
+        unavailable: [],
+      },
+    }),
+  );
+  await page.route("**/api/wiki/article?*", (r) =>
+    r.fulfill({
+      json: {
+        title: "Ernest Shackleton",
+        path: "/content/wikipedia_en_top_maxi/Shackleton",
+        original: null,
+        blocks: [{ kind: "p", text: "An Antarctic expedition." }],
+        images: [
+          {
+            path: "/content/wikipedia_en_top_maxi/portrait.png",
+            caption: "Expedition portrait",
+          },
+        ],
+        links: [],
+        truncated: false,
+      },
+    }),
+  );
+  await page.route("**/api/wiki/image?*", (r) =>
+    r.fulfill({
+      contentType: "image/png",
+      body: Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jctQAAAAASUVORK5CYII=",
+        "base64",
+      ),
+    }),
+  );
+  await page.keyboard.press("Control+k");
+  await page
+    .getByRole("searchbox", { name: "Search Terminal" })
+    .fill("shackleton");
+  await page
+    .getByRole("button", {
+      name: /Kiwix · Wikipedia illustrated Ernest Shackleton/,
+    })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "An Antarctic expedition.",
+  );
+  await expect(
+    page.getByRole("img", { name: "Expedition portrait" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /Ask Shackleton/ }).click();
+  await expect(page.locator('main[data-page="AI assistant"]')).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("slow Kiwix does not block notes and late searches cannot replace a new query", async ({
+  page,
+}) => {
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/wiki/search?*", async (r) => {
+    if (new URL(r.request().url()).searchParams.get("q") === "field") {
+      await held;
+      await r
+        .fulfill({
+          json: {
+            results: [
+              {
+                title: "Stale wiki result",
+                path: "/content/old/Stale",
+                snippet: "",
+                bookTitle: "Old",
+              },
+            ],
+            unavailable: [],
+          },
+        })
+        .catch(() => {});
+    } else await r.fulfill({ json: { results: [], unavailable: [] } });
+  });
+  await page.keyboard.press("Control+k");
+  const input = page.getByRole("searchbox", { name: "Search Terminal" });
+  await input.fill("field");
+  await expect(
+    page.getByRole("button", { name: /Notes Field checklist/ }),
+  ).toBeVisible();
+  await expect(page.locator(".universal-results")).toHaveAttribute(
+    "aria-busy",
+    "true",
+  );
+  await input.fill("calculator");
+  release();
+  await expect(page.locator(".universal-results")).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
+  await expect(
+    page.getByRole("button", { name: /Apps Calculator/ }),
+  ).toBeVisible();
+  await expect(page.getByText("Stale wiki result")).toHaveCount(0);
 });

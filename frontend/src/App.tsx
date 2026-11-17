@@ -68,7 +68,11 @@ import { Organizer } from "./components/Organizer";
 import { Calculator } from "./components/Calculator";
 import { Notebook } from "./components/Notebook";
 import { AssistantPanel } from "./components/AssistantPanel";
-import { WikiBrowser, type WikiReference } from "./components/WikiReader";
+import {
+  WikiBrowser,
+  ArticleDialog,
+  type WikiReference,
+} from "./components/WikiReader";
 import { FilesPanel } from "./components/LocalContent";
 import { HomeTools, useQuickNote } from "./components/HomeTools";
 import { useBrowserPreferences } from "./bookmarks";
@@ -437,11 +441,13 @@ export default function App() {
   const [searchDocument, setSearchDocument] = useState<DocumentSource | null>(
     null,
   );
+  const [searchWiki, setSearchWiki] = useState<WikiReference | null>(null);
   const [searchNote, setSearchNote] = useState<string | undefined>();
   const [searchPlace, setSearchPlace] = useState<MapLocation | undefined>();
   function selectSearch(result: SearchResult) {
     setSearchOpen(false);
-    if (result.document) setSearchDocument(result.document);
+    if (result.wiki) setSearchWiki(result.wiki);
+    else if (result.document) setSearchDocument(result.document);
     else if (result.noteId) {
       setSearchNote(result.noteId);
       navigate("Notes");
@@ -505,6 +511,17 @@ export default function App() {
         <UniversalSearch
           onClose={() => setSearchOpen(false)}
           onSelect={selectSearch}
+        />
+      )}
+      {searchWiki && (
+        <ArticleDialog
+          reference={searchWiki}
+          onClose={() => setSearchWiki(null)}
+          onAsk={(article) => {
+            setSearchWiki(null);
+            setWikiContext(article);
+            navigate("AI assistant");
+          }}
         />
       )}
       {searchDocument && (

@@ -132,3 +132,59 @@ def test_small_image_is_enlarged_without_changing_color():
     with Image.open(io.BytesIO(base64.b64decode(url.split(",", 1)[1]))) as image:
         assert image.size == (512, 256)
         assert image.getpixel((256, 128)) == (255, 0, 0)
+
+
+def test_search_queries_every_archive_once_and_includes_non_wikipedia(monkeypatch):
+    from urllib.parse import parse_qs, urlsplit
+    calls = []
+    names = ['wikipedia_en_100', 'wikipedia_en_top_maxi', 'wikipedia_en_medicine_maxi', 'ifixit_en', 'appropedia_en', 'outdoors_en']
+    def fetch(path, **kwargs):
+        calls.append(path)
+        if path.startswith('/catalog'):
+            entries = ''.join(f'<entry><title>{name}</title><link type="text/html" href="/content/{name}"/></entry>' for name in names)
+            return f'<feed xmlns="http://www.w3.org/2005/Atom">{entries}</feed>'.encode(), 'text/xml', path
+        name = parse_qs(urlsplit(path).query)['books.name'][0]
+        return f'<rss><channel><item><title>Shelter {name}</title><link>/content/{name}/Shelter</link></item></channel></rss>'.encode(), 'text/xml', path
+    monkeypatch.setattr(wiki, 'fetch_local', fetch)
+    report = wiki.search_catalog('shelter')
+    assert {r['book'] for r in report['results']} == set(names)
+    assert not report['unavailable']
+    assert sum(p.startswith('/catalog') for p in calls) == 1
+    assert sum(p.startswith('/search') for p in calls) == 6
+
+
+def test_archive_failure_is_reported_without_hiding_other_results(monkeypatch):
+    monkeypatch.setattr(wiki, 'books', lambda: [
+        {'name': 'good', 'title': 'Working archive'}, {'name': 'bad', 'title': 'Unavailable archive'}])
+    def search(query, selected, limit):
+        if selected['name'] == 'bad': raise HTTPException(503, 'No index')
+        return [{'title': 'Shelter', 'path': '/content/good/Shelter', 'book': 'good', 'bookTitle': 'Working archive'}]
+    monkeypatch.setattr(wiki, '_search_book', search)
+    response = client.get('/api/wiki/search?q=shelter', headers=HEADERS)
+    assert response.status_code == 200
+    assert response.json()['unavailable'] == ['Unavailable archive']
+    assert response.json()['results'][0]['title'] == 'Shelter'
+    monkeypatch.setattr(wiki, 'books', lambda: [{'name': 'bad', 'title': 'Unavailable archive'}])
+    assert client.get('/api/wiki/search?q=shelter', headers=HEADERS).status_code == 503
+
+
+def test_duplicate_wikipedia_results_prefer_illustrated_archive(monkeypatch):
+    monkeypatch.setattr(wiki, 'books', lambda: [
+        {'name': 'wikipedia_en_100', 'title': 'Starter'},
+        {'name': 'wikipedia_en_top_maxi', 'title': 'Illustrated'}])
+    monkeypatch.setattr(wiki, '_search_book', lambda query, selected, limit: [
+        {'title': 'Moon', 'path': '/content/'+selected['name']+'/Moon', 'book': selected['name'], 'bookTitle': selected['title']}])
+    result = wiki.search('moon')
+    assert len(result) == 1
+    assert result[0]['book'] == 'wikipedia_en_top_maxi'
+
+
+def test_catalog_pagination_and_cross_archive_result_rejection(monkeypatch):
+    def fetch(path, **kwargs):
+        if path.startswith('/catalog'):
+            name = 'second' if 'start=1' in path else 'first'
+            return f'<feed xmlns="http://www.w3.org/2005/Atom"><totalResults>2</totalResults><entry><title>{name}</title><link type="text/html" href="/content/{name}"/></entry></feed>'.encode(), 'text/xml', path
+        return b'<rss><item><title>Wrong archive</title><link>/content/other/Article</link></item></rss>', 'text/xml', path
+    monkeypatch.setattr(wiki, 'fetch_local', fetch)
+    assert [b['name'] for b in wiki.books()] == ['first', 'second']
+    assert wiki.search('article') == []
