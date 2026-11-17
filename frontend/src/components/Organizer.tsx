@@ -19,7 +19,15 @@ function dayString(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-export function Organizer({ kind }: { kind: Item["kind"] }) {
+export function Organizer({
+  kind,
+  initialId,
+  onConsumeInitialId,
+}: {
+  kind: Item["kind"];
+  initialId?: string;
+  onConsumeInitialId?: () => void;
+}) {
   const [items, setItems] = useState<Item[]>([]);
   const blank = (): Item => ({
     id: crypto.randomUUID(),
@@ -46,6 +54,23 @@ export function Organizer({ kind }: { kind: Item["kind"] }) {
   );
   const [day, setDay] = useState(() => dayString(new Date()));
   const draftKey = `klinekraft.organizer.draft.${kind}`;
+  const openedSearch = useRef<string | undefined>(undefined);
+  const openLatest = useRef(open);
+  openLatest.current = open;
+  useEffect(() => {
+    if (!initialId) {
+      openedSearch.current = undefined;
+      return;
+    }
+    if (openedSearch.current === initialId || saving.current) return;
+    const found = items.find((item) => item.id === initialId && !item.archived);
+    if (!found) return;
+    openedSearch.current = initialId;
+    setTrash(false);
+    setQuery("");
+    void openLatest.current(found);
+    onConsumeInitialId?.();
+  }, [initialId, items, busy]);
   useEffect(() => {
     const request = new AbortController();
     if (!isHostedDemo) {

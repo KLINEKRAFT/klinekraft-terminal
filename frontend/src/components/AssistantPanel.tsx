@@ -529,6 +529,13 @@ export function AssistantPanel({
           </div>
         ) : !turns.length && !busy ? (
           <div className="ai-empty">
+            <img
+              className="shackleton-logo"
+              src="/shackleton.svg"
+              alt="Shackleton"
+              width="115"
+              height="120"
+            />
             <p>What would you like to explore?</p>
           </div>
         ) : null}
