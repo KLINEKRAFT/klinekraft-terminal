@@ -89,7 +89,7 @@ const icons: Record<Section, LucideIcon> = {
   Games: Gamepad2,
   "AI assistant": MessageSquare,
   "GPS / Maps": Compass,
-  "Field Briefing": Compass,
+  "Field Briefing": Radio,
   Library,
   Files: Folder,
   Network: Wifi,

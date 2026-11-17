@@ -72,3 +72,27 @@ def test_cached_context_is_readable_and_unavailable_is_not_all_clear():
     rows=b.assistant_context('Any earthquakes?')
     assert 'unknown' in rows[0][2]
     assert not rows[0][2].startswith('{')
+
+def test_radar_manifest_rejects_unknown_hosts_and_empty_frames():
+    now=int(time.time())
+    result=b.radar_manifest({'host':'https://tilecache.rainviewer.com','radar':{'past':[{'time':now,'path':'/v2/radar/e69136dec8d8'},{'time':now,'path':'https://example.com/tiles'}]}})
+    assert len(result['frames'])==1
+    with pytest.raises(ValueError):b.radar_manifest({'host':'https://example.com','radar':{'past':[]}})
+    with pytest.raises(ValueError):b.radar_manifest({'host':'https://tilecache.rainviewer.com','radar':{'past':[]}})
+
+
+def test_radar_failure_keeps_timestamp_and_marks_snapshot_unavailable(monkeypatch):
+    now=int(time.time()); old={'updated':now-400,'attempt':now-400,'data':{'host':'https://tilecache.rainviewer.com','frames':[{'time':now-600,'path':f'/v2/radar/{now-600}'}]}}
+    b.write('radar.json',old)
+    def offline(url):raise OSError('offline')
+    monkeypatch.setattr(b,'fetch',offline)
+    result=b.radar()
+    assert result['stale'] and result['data']==old['data'] and result['updated']==old['updated']
+
+
+def test_tulsa_default_and_paused_radar_does_not_fetch(monkeypatch):
+    assert b.settings().location=='Tulsa, Oklahoma'
+    assert b.settings().latitude==36.154
+    b.save_settings(b.Settings(enabled=False))
+    monkeypatch.setattr(b,'fetch',lambda url:pytest.fail('Paused feeds must not fetch'))
+    assert b.radar()['stale']

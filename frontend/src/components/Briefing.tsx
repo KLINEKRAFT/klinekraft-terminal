@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import { Bell, X } from "lucide-react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { Bell, X, Settings2 } from "lucide-react";
 import { localJSON } from "./WikiReader";
 import { isHostedDemo } from "../runtime";
+import { WeatherOverview } from "./WeatherOverview";
+const WeatherRadar = lazy(() => import("./WeatherRadar"));
+
 export function safeLink(value?: string) {
   return value && /^https?:\/\//i.test(value) ? value : undefined;
 }
@@ -69,6 +72,9 @@ export function Briefing({ page = false }: { page?: boolean }) {
     [paused, setPaused] = useState(false),
     [draft, setDraft] = useState<Settings | null>(null),
     [saving, setSaving] = useState(false);
+  const [tab, setTab] = useState(page ? "Weather" : "Events");
+  const [filter, setFilter] = useState("All"),
+    [unreadOnly, setUnreadOnly] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (isHostedDemo) return;
@@ -89,10 +95,12 @@ export function Briefing({ page = false }: { page?: boolean }) {
     }
     void load();
     const timer = setInterval(load, 30000);
+    window.addEventListener("briefing-updated", load);
     return () => {
       active = false;
       request.abort();
       clearInterval(timer);
+      window.removeEventListener("briefing-updated", load);
     };
   }, []);
   useEffect(() => {
@@ -122,6 +130,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
+      window.dispatchEvent(new window.Event("briefing-updated"));
       setData((v) =>
         v ? { ...v, acknowledged: [...(v.acknowledged || []), id] } : v,
       );
@@ -140,6 +149,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
       });
       setData(await localJSON("/api/briefing"));
       setDraft(null);
+      window.dispatchEvent(new window.Event("briefing-updated"));
       setError("");
     } catch (e) {
       setError((e as Error).message);
@@ -197,208 +207,351 @@ export function Briefing({ page = false }: { page?: boolean }) {
             )}
           </header>
         )}
-        <details>
-          <summary>About these feeds</summary>
-          <p className="briefing-caption">
-            {data?.settings.location} · Last saved readings remain available
-            offline. Internet is required for new alerts; this is not an
-            emergency notification service.
-          </p>
-        </details>
-        {error && <p role="status">{error}</p>}
-        {data && (
-          <>
-            <details open={page || undefined}>
-              <summary>7-day weather · Open-Meteo</summary>
-              <FeedAge feed={data.feeds.forecast} />
-              {data.feeds.forecast?.data?.daily?.time?.map(
-                (day: string, i: number) => (
-                  <p key={day}>
-                    {day} ·{" "}
-                    {data.feeds.forecast.data.daily.temperature_2m_min[i]}–
-                    {data.feeds.forecast.data.daily.temperature_2m_max[i]}°F ·
-                    Rain{" "}
-                    {
-                      data.feeds.forecast.data.daily
-                        .precipitation_probability_max[i]
-                    }
-                    %
-                  </p>
-                ),
+        <nav className="briefing-tabs" aria-label="Field Briefing views">
+          {["Weather", "Radar", "Events", "Science"].map((name) => (
+            <button
+              key={name}
+              aria-pressed={tab === name}
+              onClick={() => setTab(name)}
+            >
+              {name}
+              {name === "Events" && active.length > 0 && (
+                <small>{active.length}</small>
               )}
-              <SourceLink url="https://open-meteo.com/">
-                Open-Meteo · CC BY 4.0
-              </SourceLink>
-            </details>
-            <details>
-              <summary onClick={() => setDraft((v) => v || data.settings)}>
-                Alert settings
-              </summary>
-              {draft && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void save();
-                  }}
-                  className="briefing-settings"
-                >
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={draft.enabled}
-                      onChange={(e) =>
-                        setDraft({ ...draft, enabled: e.target.checked })
-                      }
-                    />
-                    Fetch live feeds
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={draft.ticker}
-                      onChange={(e) =>
-                        setDraft({ ...draft, ticker: e.target.checked })
-                      }
-                    />
-                    Event ticker
-                  </label>
-                  <label>
-                    Location name
-                    <input
-                      value={draft.location}
-                      onChange={(e) =>
-                        setDraft({ ...draft, location: e.target.value })
-                      }
-                    />
-                  </label>
-                  {(
-                    [
-                      "latitude",
-                      "longitude",
-                      "radiusMiles",
-                      "magnitude",
-                      "globalMagnitude",
-                    ] as const
-                  ).map((key) => (
-                    <label key={key}>
-                      {
-                        {
-                          latitude: "Latitude",
-                          longitude: "Longitude",
-                          radiusMiles: "Nearby radius (miles)",
-                          magnitude: "Nearby minimum magnitude",
-                          globalMagnitude: "Worldwide minimum magnitude",
-                        }[key]
-                      }
-                      <input
-                        type="number"
-                        step={key === "radiusMiles" ? "1" : "any"}
-                        value={draft[key]}
-                        onChange={(e) =>
-                          setDraft({ ...draft, [key]: Number(e.target.value) })
-                        }
-                      />
-                    </label>
-                  ))}
-                  <button disabled={saving}>Save settings</button>
-                </form>
-              )}
-            </details>
-            <details>
-              <summary>Source status</summary>
-              {Object.entries(data.feeds).map(([name, f]) => (
-                <p key={name}>
-                  {name}: {f.stale ? "Unavailable / last known" : "Updated"} ·{" "}
-                  {f.updated
-                    ? new Date(f.updated * 1000).toLocaleString()
-                    : "No saved data"}
-                  {f.error ? " · connection failed" : ""}
-                </p>
-              ))}
-            </details>
-            <section aria-label="Event reports">
-              {!data.events.length && (
-                <p>
-                  {Object.values(data.feeds)
-                    .slice(0, 3)
-                    .some((f) => f.stale)
-                    ? "Event coverage incomplete. Check source status."
-                    : "No matching events in the latest feeds."}
+            </button>
+          ))}
+          <button
+            className="briefing-settings-button"
+            aria-label="Briefing settings"
+            aria-pressed={tab === "Settings"}
+            onClick={() => {
+              setTab("Settings");
+              if (data) setDraft(data.settings);
+            }}
+          >
+            <Settings2 size={17} />
+          </button>
+        </nav>
+        <div
+          className={
+            tab === "Radar" ? "briefing-body radar-body" : "briefing-body"
+          }
+        >
+          {error && (
+            <p className="briefing-warning" role="status">
+              {error}. Showing saved readings.
+            </p>
+          )}
+          {!data && (
+            <p role="status">
+              {isHostedDemo
+                ? "Live weather and local feeds are available on the installed deck."
+                : "Loading saved readings…"}
+            </p>
+          )}
+          {data && (
+            <>
+              {!data.settings.enabled && (
+                <p className="briefing-warning">
+                  Feed updates paused in settings. These are saved readings.
                 </p>
               )}
-              {data.events.map((e) => (
-                <article className="event-report" key={e.id}>
-                  <div>
-                    <small>
-                      {e.kind} · {e.stale ? "LAST KNOWN · " : ""}
-                      {new Date(e.issued * 1000).toLocaleString()}
-                    </small>
-                    <h3>{e.title}</h3>
-                  </div>
-                  <details>
-                    <summary>Details</summary>
-                    <p className="event-text">{e.text}</p>
-                    <SourceLink url={e.url}>{e.source}</SourceLink>
-                  </details>
-                  <button
-                    disabled={data.acknowledged?.includes(e.id)}
-                    onClick={() => void acknowledge(e.id)}
-                  >
-                    {data.acknowledged?.includes(e.id)
-                      ? "Acknowledged"
-                      : "Acknowledge"}
-                  </button>
-                </article>
-              ))}
-            </section>
-            <details>
-              <summary>NASA · Earth events</summary>
-              <FeedAge feed={data.feeds.earthEvents} />
-              {data.feeds.earthEvents?.data?.map((v: any) => (
-                <p key={v.id}>
-                  <SourceLink url={v.sources?.[0]?.url}>{v.title}</SourceLink>
-                </p>
-              ))}
-            </details>
-            <details>
-              <summary>NASA · Asteroid approaches</summary>
-              <FeedAge feed={data.feeds.asteroids} />
-              {Object.values(data.feeds.asteroids?.data || {})
-                .flat()
-                .map((v: any) => (
-                  <p key={v.id}>
-                    <SourceLink url={v.nasa_jpl_url}>{v.name}</SourceLink> ·{" "}
-                    {v.close_approach_data?.[0]?.close_approach_date} ·{" "}
-                    {Math.round(
-                      Number(v.close_approach_data?.[0]?.miss_distance?.miles),
-                    ).toLocaleString()}{" "}
-                    miles away
-                  </p>
-                ))}
-              <p className="briefing-caption">
-                Astronomy information, not impact warnings.
-              </p>
-            </details>
-            <details>
-              <summary>NASA · Astronomy</summary>
-              <FeedAge feed={data.feeds.astronomy} />
-              {data.feeds.astronomy?.data ? (
+              {tab === "Weather" && (
                 <>
-                  <h3>{data.feeds.astronomy.data.title}</h3>
-                  <p>{data.feeds.astronomy.data.explanation}</p>
-                  <SourceLink url={data.feeds.astronomy.data.url}>
-                    Open astronomy image / video
-                  </SourceLink>
+                  {data.events
+                    .filter(
+                      (e) =>
+                        !e.stale &&
+                        e.kind === "Weather" &&
+                        (e.severity === "Severe" || e.severity === "Extreme"),
+                    )
+                    .slice(0, 1)
+                    .map((e) => (
+                      <button
+                        className="weather-alert"
+                        key={e.id}
+                        onClick={() => {
+                          setTab("Events");
+                          setFilter("Weather");
+                        }}
+                      >
+                        <span>{e.severity} weather</span>
+                        {e.title} ↗
+                      </button>
+                    ))}
+                  <WeatherOverview
+                    feed={{
+                      ...data.feeds.forecast,
+                      stale: !!error || data.feeds.forecast?.stale,
+                    }}
+                    location={data.settings.location}
+                    onRadar={() => setTab("Radar")}
+                  />
                 </>
-              ) : (
-                <p>
-                  Not available yet. NASA's shared demo allowance may be
-                  exhausted; an optional free NASA_API_KEY raises the allowance.
-                </p>
               )}
-            </details>
-          </>
-        )}
+              {tab === "Radar" && (page || open) && (
+                <Suspense fallback={<p>Loading radar map…</p>}>
+                  <WeatherRadar
+                    latitude={data.settings.latitude}
+                    longitude={data.settings.longitude}
+                    location={data.settings.location}
+                    zone={data.feeds.forecast?.data?.timezone}
+                  />
+                </Suspense>
+              )}
+              {tab === "Events" && (
+                <section className="briefing-events" aria-label="Event reports">
+                  <div className="event-filters">
+                    {["All", "Weather", "Earthquake", "Space weather"].map(
+                      (kind) => (
+                        <button
+                          key={kind}
+                          aria-pressed={filter === kind}
+                          onClick={() => setFilter(kind)}
+                        >
+                          {kind === "Earthquake" ? "Quakes" : kind}
+                        </button>
+                      ),
+                    )}
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={unreadOnly}
+                        onChange={(e) => setUnreadOnly(e.target.checked)}
+                      />
+                      Unread only
+                    </label>
+                  </div>
+                  <p className="briefing-caption">
+                    {data.settings.location} · nearby quakes within{" "}
+                    {data.settings.radiusMiles} mi, M{data.settings.magnitude}+
+                    · worldwide M{data.settings.globalMagnitude}+
+                  </p>
+                  {["weather", "earthquakes", "space"].some(
+                    (name) => !data.feeds[name] || data.feeds[name].stale,
+                  ) && (
+                    <p className="briefing-warning">
+                      Some sources are unavailable or out of date. Coverage is
+                      incomplete.
+                    </p>
+                  )}
+                  {!data.events.filter(
+                    (e) =>
+                      (filter === "All" || e.kind === filter) &&
+                      (!unreadOnly || !data.acknowledged?.includes(e.id)),
+                  ).length && (
+                    <p className="event-empty">No reports match this view.</p>
+                  )}
+                  {data.events
+                    .filter(
+                      (e) =>
+                        (filter === "All" || e.kind === filter) &&
+                        (!unreadOnly || !data.acknowledged?.includes(e.id)),
+                    )
+                    .map((e) => (
+                      <article
+                        className="event-report"
+                        data-severity={e.severity}
+                        data-read={data.acknowledged?.includes(e.id)}
+                        key={e.id}
+                      >
+                        <div className="event-meta">
+                          <span>{e.kind}</span>
+                          <span>
+                            {e.stale ? "LAST KNOWN" : e.severity} ·{" "}
+                            {new Date(e.issued * 1000).toLocaleString()}
+                          </span>
+                        </div>
+                        <h3>{e.title}</h3>
+                        <div className="event-actions">
+                          <details>
+                            <summary>Read report</summary>
+                            <p className="event-text">{e.text}</p>
+                            <SourceLink url={e.url}>{e.source} ↗</SourceLink>
+                          </details>
+                          <button
+                            disabled={data.acknowledged?.includes(e.id)}
+                            onClick={() => void acknowledge(e.id)}
+                          >
+                            {data.acknowledged?.includes(e.id)
+                              ? "Acknowledged"
+                              : "Acknowledge"}
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                </section>
+              )}
+              {tab === "Science" && (
+                <div className="briefing-science">
+                  {" "}
+                  <details>
+                    <summary>NASA · Earth events</summary>
+                    <FeedAge feed={data.feeds.earthEvents} />
+                    {data.feeds.earthEvents?.data?.map((v: any) => (
+                      <p key={v.id}>
+                        <SourceLink url={v.sources?.[0]?.url}>
+                          {v.title}
+                        </SourceLink>
+                      </p>
+                    ))}
+                  </details>
+                  <details>
+                    <summary>NASA · Asteroid approaches</summary>
+                    <FeedAge feed={data.feeds.asteroids} />
+                    {Object.values(data.feeds.asteroids?.data || {})
+                      .flat()
+                      .map((v: any) => (
+                        <p key={v.id}>
+                          <SourceLink url={v.nasa_jpl_url}>{v.name}</SourceLink>{" "}
+                          · {v.close_approach_data?.[0]?.close_approach_date} ·{" "}
+                          {Math.round(
+                            Number(
+                              v.close_approach_data?.[0]?.miss_distance?.miles,
+                            ),
+                          ).toLocaleString()}{" "}
+                          miles away
+                        </p>
+                      ))}
+                    <p className="briefing-caption">
+                      Astronomy information, not impact warnings.
+                    </p>
+                  </details>
+                  <details>
+                    <summary>NASA · Astronomy</summary>
+                    <FeedAge feed={data.feeds.astronomy} />
+                    {data.feeds.astronomy?.data ? (
+                      <>
+                        <h3>{data.feeds.astronomy.data.title}</h3>
+                        <p>{data.feeds.astronomy.data.explanation}</p>
+                        <SourceLink url={data.feeds.astronomy.data.url}>
+                          Open astronomy image / video
+                        </SourceLink>
+                      </>
+                    ) : (
+                      <p>
+                        Not available yet. NASA's shared demo allowance may be
+                        exhausted; an optional free NASA_API_KEY raises the
+                        allowance.
+                      </p>
+                    )}
+                  </details>
+                </div>
+              )}
+              {tab === "Settings" && (
+                <div className="briefing-preferences">
+                  <h2>Location & alerts</h2>
+                  {draft && (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void save();
+                      }}
+                      className="briefing-settings"
+                    >
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={draft.enabled}
+                          onChange={(e) =>
+                            setDraft({ ...draft, enabled: e.target.checked })
+                          }
+                        />
+                        Fetch live feeds
+                      </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={draft.ticker}
+                          onChange={(e) =>
+                            setDraft({ ...draft, ticker: e.target.checked })
+                          }
+                        />
+                        Event ticker
+                      </label>
+                      <label>
+                        Location name
+                        <input
+                          value={draft.location}
+                          onChange={(e) =>
+                            setDraft({ ...draft, location: e.target.value })
+                          }
+                        />
+                      </label>
+                      {(
+                        [
+                          "latitude",
+                          "longitude",
+                          "radiusMiles",
+                          "magnitude",
+                          "globalMagnitude",
+                        ] as const
+                      ).map((key) => (
+                        <label key={key}>
+                          {
+                            {
+                              latitude: "Latitude",
+                              longitude: "Longitude",
+                              radiusMiles: "Nearby radius (miles)",
+                              magnitude: "Nearby minimum magnitude",
+                              globalMagnitude: "Worldwide minimum magnitude",
+                            }[key]
+                          }
+                          <input
+                            type="number"
+                            step={key === "radiusMiles" ? "1" : "any"}
+                            value={draft[key]}
+                            onChange={(e) =>
+                              setDraft({
+                                ...draft,
+                                [key]: Number(e.target.value),
+                              })
+                            }
+                          />
+                        </label>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDraft({
+                            ...draft,
+                            location: "Tulsa, Oklahoma",
+                            latitude: 36.154,
+                            longitude: -95.993,
+                          })
+                        }
+                      >
+                        Use Tulsa
+                      </button>
+                      <button disabled={saving}>Save settings</button>
+                    </form>
+                  )}
+                  <details>
+                    <summary>Source status</summary>
+                    {Object.entries(data.feeds).map(([name, f]) => (
+                      <p key={name}>
+                        {name}:{" "}
+                        {f.stale ? "Unavailable / last known" : "Updated"} ·{" "}
+                        {f.updated
+                          ? new Date(f.updated * 1000).toLocaleString()
+                          : "No saved data"}
+                      </p>
+                    ))}
+                  </details>
+                  <details>
+                    <summary>About these feeds</summary>
+                    <p>
+                      Saved readings remain available offline. Internet is
+                      needed for new forecasts, alerts and radar. This is not a
+                      guaranteed emergency notification service. GPS does not
+                      change your weather location automatically.
+                    </p>
+                  </details>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </Container>
     </>
   );
