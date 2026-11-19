@@ -1,3 +1,4 @@
+import { GpsStatus } from "./components/GpsStatus";
 import { DetailsPanel } from "./components/DetailsPanel";
 import {
   UniversalSearch,
@@ -206,7 +207,9 @@ function Home({
   browser,
   note,
   openBookmarks,
+  openGps,
 }: {
+  openGps: (latitude: number, longitude: number) => void;
   openBookmarks: () => void;
   history: HistoryPoint[];
   browser: ReturnType<typeof useBrowserPreferences>;
@@ -280,6 +283,7 @@ function Home({
         </div>
       </div>
       <nav className="home-device-links" aria-label="Device tools">
+        <GpsStatus openMap={openGps} />
         {homeSections.map((item) => {
           const Icon = icons[item];
           return (
@@ -336,20 +340,6 @@ function Home({
                     ? "No interface data"
                     : detail
                   : `↑ ${rate(reading.networkUpload)} · ${detail.toLowerCase()}`}
-              </em>
-            </strong>
-          </span>
-        </div>
-        <div>
-          <Radio size={17} />
-          <span>
-            <small>GPS POSITION</small>
-            <strong>
-              {reading.source === "simulated" ? "41.8781° N" : "Unavailable"}{" "}
-              <em>
-                {reading.source === "simulated"
-                  ? "Simulated"
-                  : "Not configured"}
               </em>
             </strong>
           </span>
@@ -686,6 +676,10 @@ export default function App() {
                 detail={detail}
                 browser={browser}
                 note={note}
+                openGps={(latitude, longitude) => {
+                  setSearchPlace({ name: "GPS position", latitude, longitude });
+                  navigate("GPS / Maps");
+                }}
                 openBookmarks={() => {
                   setLibraryView("Bookmarks");
                   navigate("Library");

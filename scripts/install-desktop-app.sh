@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set -eu
 repo=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-install -d "$HOME/.local/bin" "$HOME/.local/share/applications" "$HOME/.local/share/icons/hicolor/128x128/apps" "$HOME/.config/autostart"
+install -d "$HOME/.local/bin" "$HOME/.local/share/applications" "$HOME/.local/share/icons/hicolor/128x128/apps" "$HOME/.local/share/icons/hicolor/512x512/apps" "$HOME/.config/autostart"
 if [ -f "$HOME/.local/bin/start-klinekraft" ] && [ ! -f "$HOME/.local/bin/start-klinekraft.pre-app" ]; then
   cp -p "$HOME/.local/bin/start-klinekraft" "$HOME/.local/bin/start-klinekraft.pre-app"
 fi
 install -m 755 "$repo/scripts/start-terminal.sh" "$HOME/.local/bin/start-klinekraft"
 install -m 644 "$repo/frontend/public/brand/logo-128.png" "$HOME/.local/share/icons/hicolor/128x128/apps/klinekraft-terminal.png"
+install -m 644 "$repo/frontend/public/brand/app-icon.png" "$HOME/.local/share/icons/hicolor/512x512/apps/klinekraft-terminal.png"
 cat > "$HOME/.local/share/applications/klinekraft-terminal.desktop" <<EOF
 [Desktop Entry]
 Version=1.0

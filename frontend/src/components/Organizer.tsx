@@ -1,3 +1,4 @@
+import { Trash2, RotateCcw, History } from "lucide-react";
 import { Info } from "./Info";
 import { usHolidays } from "../holidays";
 import { RichNote, noteText } from "./RichNote";
@@ -44,6 +45,10 @@ export function Organizer({
   latest.current = draft;
   const [query, setQuery] = useState("");
   const [trash, setTrash] = useState(false);
+  const [versions, setVersions] = useState<
+    { revision: number; saved_at: string; item: Item }[] | null
+  >(null);
+  const historyRequest = useRef(0);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
@@ -185,7 +190,74 @@ export function Organizer({
     ) {
       if (!(await save())) return;
     }
+    historyRequest.current++;
+    setVersions(null);
     edit(next, false);
+  }
+  async function archive(item: Item) {
+    if (saving.current) return;
+    if (dirty && latest.current && !(await save())) return;
+    const current = latest.current?.id === item.id ? latest.current : item;
+    saving.current = true;
+    setBusy(true);
+    try {
+      const saved: Item = await localJSON(`/api/organizer/${item.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...current, archived: !current.archived }),
+      });
+      setItems((all) => all.map((old) => (old.id === saved.id ? saved : old)));
+      if (latest.current?.id === saved.id) {
+        // Typing can continue while the request is in flight: never discard it.
+        if (latest.current === current) edit(blank(), false);
+        else
+          edit({
+            ...latest.current,
+            revision: saved.revision,
+            archived: saved.archived,
+          });
+        historyRequest.current++;
+        setVersions(null);
+      }
+      setStatus(saved.archived ? "Moved to Trash." : "Restored.");
+    } catch (error) {
+      setSaveError(true);
+      setStatus("Not saved — " + (error as Error).message);
+    } finally {
+      saving.current = false;
+      setBusy(false);
+    }
+  }
+  async function showHistory() {
+    if (!draft || saving.current) return;
+    if (versions) {
+      setVersions(null);
+      return;
+    }
+    const id = draft.id;
+    const request = ++historyRequest.current;
+    try {
+      const rows = await localJSON(`/api/organizer/${id}/history`);
+      if (latest.current?.id === id && request === historyRequest.current)
+        setVersions(rows);
+    } catch (error) {
+      setSaveError(true);
+      setStatus((error as Error).message);
+    }
+  }
+  async function restoreVersion(item: Item) {
+    if (!latest.current || saving.current) return;
+    if (dirty && !(await save())) return;
+    const current = latest.current!;
+    if (current.id !== item.id) return;
+    edit({
+      ...current,
+      title: item.title,
+      body: item.body,
+      day: item.day,
+      time: item.time,
+    });
+    if (await save()) setVersions(null);
   }
   useEffect(() => {
     if (
@@ -378,34 +450,83 @@ export function Organizer({
             </p>
           )}
           {visible.map((item) => (
-            <button
-              className="organizer-item"
-              key={item.id}
-              disabled={busy}
-              aria-pressed={draft?.id === item.id}
-              onClick={() => void open(item)}
-            >
-              <strong>{item.title}</strong>
-              <span>
-                {kind === "event"
-                  ? `${item.day} · ${item.time || "All day"}`
-                  : noteText(item.body).slice(0, 100) || "Empty note"}
-              </span>
-            </button>
+            <div className="organizer-row" key={item.id}>
+              <button
+                className="organizer-item"
+                key={item.id}
+                disabled={busy}
+                aria-pressed={draft?.id === item.id}
+                onClick={() => void open(item)}
+              >
+                <strong>{item.title}</strong>
+                <span>
+                  {kind === "event"
+                    ? `${item.day} · ${item.time || "All day"}`
+                    : noteText(item.body).slice(0, 100) || "Empty note"}
+                </span>
+              </button>
+              <button
+                className="note-trash"
+                disabled={busy}
+                aria-label={`${item.archived ? "Restore" : "Trash"} ${item.title}`}
+                title={item.archived ? "Restore from Trash" : "Move to Trash"}
+                onClick={() => void archive(item)}
+              >
+                {item.archived ? <RotateCcw size={16} /> : <Trash2 size={16} />}
+              </button>
+            </div>
           ))}
         </aside>
         <div className="organizer-editor">
-          <p className="save-state" role="status">
-            {busy
-              ? "Saving…"
-              : saveError
-                ? status
-                : dirty
-                  ? "Edited"
-                  : status
-                    ? "Saved"
-                    : ""}
-          </p>
+          <div className="organizer-savebar">
+            <p className="save-state" role="status">
+              {busy
+                ? "Saving…"
+                : saveError
+                  ? status
+                  : dirty
+                    ? "Edited"
+                    : status
+                      ? "Saved"
+                      : ""}
+            </p>
+            {draft && draft.revision > 0 && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void showHistory()}
+                aria-expanded={versions !== null}
+                title="Saved versions"
+              >
+                <History size={16} /> History
+              </button>
+            )}
+          </div>
+          {versions !== null && (
+            <section className="note-history" aria-label="Saved versions">
+              <h3>Saved versions</h3>
+              {!versions.length && <p>No earlier saved versions yet.</p>}
+              {versions.map((version) => (
+                <details key={version.revision}>
+                  <summary>
+                    Version {version.revision} · backed up{" "}
+                    {new Date(version.saved_at).toLocaleString()}
+                  </summary>
+                  <strong>{version.item.title}</strong>
+                  <p className="note-history-preview">
+                    {noteText(version.item.body) || "Empty note"}
+                  </p>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void restoreVersion(version.item)}
+                  >
+                    Restore this version
+                  </button>
+                </details>
+              ))}
+            </section>
+          )}
           {draft ? (
             <form
               onSubmit={(event) => {
@@ -485,19 +606,6 @@ export function Organizer({
                 >
                   New
                 </button>
-                {draft.revision > 0 && (
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={draft.archived}
-                      disabled={busy}
-                      onChange={(event) =>
-                        edit({ ...draft, archived: event.target.checked })
-                      }
-                    />{" "}
-                    In trash
-                  </label>
-                )}
               </div>
             </form>
           ) : (

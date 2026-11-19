@@ -4,6 +4,8 @@ import { Protocol, PMTiles, FetchSource } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 maplibregl.setWorkerUrl(workerUrl);
+// The deck shares RAM and power with the display, GPS and offline model.
+maplibregl.setWorkerCount(1);
 export type Region = {
   available: boolean;
   title: string;
@@ -206,6 +208,12 @@ export function createLocalMap(
     minZoom: 2,
     maxZoom,
     renderWorldCopies: false,
+    // Bound GPU surfaces and retained tiles on the small Pi display.
+    pixelRatio: Math.min(window.devicePixelRatio || 1, 1),
+    canvasContextAttributes: { antialias: false, powerPreference: "low-power" },
+    maxTileCacheSize: 64,
+    maxTileCacheZoomLevels: 2,
+    fadeDuration: 0,
     transformRequest: (url) => ({
       url,
       headers: url.startsWith(window.location.origin + "/")
@@ -213,15 +221,29 @@ export function createLocalMap(
         : {},
     }),
   });
-  const resize = new ResizeObserver(() => view.resize());
-  resize.observe(container);
   let removed = false;
+  let frame = 0;
+  let width = container.clientWidth;
+  let height = container.clientHeight;
+  const resize = new ResizeObserver(() => {
+    const nextWidth = container.clientWidth;
+    const nextHeight = container.clientHeight;
+    if (removed || (nextWidth === width && nextHeight === height)) return;
+    width = nextWidth;
+    height = nextHeight;
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      if (!removed) view.resize();
+    });
+  });
+  resize.observe(container);
   return {
     view,
     dispose() {
       if (removed) return;
       removed = true;
       resize.disconnect();
+      cancelAnimationFrame(frame);
       view.remove();
       users--;
       if (!users) {

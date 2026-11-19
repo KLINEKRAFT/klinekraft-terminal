@@ -1,3 +1,4 @@
+import { useGps, freshGps } from "../hooks/useGps";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import type * as GeoJSON from "geojson";
@@ -29,8 +30,15 @@ export default function OfflineMaps({
   const [routeEnd, setRouteEnd] = useState<[number, number] | null>(null);
   const [startName, setStartName] = useState(""),
     [endName, setEndName] = useState("");
-  const [gpsStatus, setGpsStatus] = useState("GPS setup pending");
-  const [locating, setLocating] = useState(false);
+  const gps = useGps();
+  const gpsStatus = gps.current
+    ? `${gps.fix!.message}${gps.fix!.accuracyFeet != null ? ` · est. ${Math.round(gps.fix!.accuracyFeet)} ft` : ""}`
+    : `${gps.fix?.message || "Checking GPS…"}${gps.age !== null ? ` · Last fix ${gps.age}s ago` : ""}`;
+  const [followGps, setFollowGps] = useState(false);
+  const gpsMarker = useRef<maplibregl.Marker | null>(null);
+  const [spotName, setSpotName] = useState("");
+  const [spotOpen, setSpotOpen] = useState(false);
+  const [spotSaving, setSpotSaving] = useState(false);
   const [routeStart, setRouteStart] = useState<[number, number] | null>(null);
   const [routeProfile, setRouteProfile] = useState("car-fast");
   const [routing, setRouting] = useState(false);
@@ -180,6 +188,7 @@ export default function OfflineMaps({
         disposeMap = local.dispose;
         const view = local.view;
         map.current = view;
+        view.on("dragstart", () => setFollowGps(false));
         view.addControl(new maplibregl.NavigationControl(), "top-right");
         view.addControl(new maplibregl.ScaleControl({ unit: "imperial" }));
         view.addControl(
@@ -231,6 +240,8 @@ export default function OfflineMaps({
       active = false;
       controller.abort();
       marker.current?.remove();
+      gpsMarker.current?.remove();
+      gpsMarker.current = null;
       disposeMap?.();
       map.current = null;
     };
@@ -242,11 +253,12 @@ export default function OfflineMaps({
       if (p[0] < west || p[0] > east || p[1] < south || p[1] > north) {
         setStatus("Those coordinates are outside the downloaded region.");
       } else setStatus("");
+      setFollowGps(false);
       setName(label?.slice(0, 120) || "");
       setPinInfo(info || null);
       setTool(null);
       setSelected(p);
-      map.current.flyTo({ center: p, zoom: 14 });
+      map.current.jumpTo({ center: p, zoom: 14 });
       marker.current?.remove();
       marker.current = new maplibregl.Marker({ color: "#ff6a00" })
         .setLngLat(p)
@@ -340,7 +352,7 @@ export default function OfflineMaps({
     const coordinates = data.features[0].geometry.coordinates as number[][];
     const bounds = new maplibregl.LngLatBounds();
     coordinates.forEach((p) => bounds.extend([p[0], p[1]]));
-    view.fitBounds(bounds, { padding: 40 });
+    view.fitBounds(bounds, { padding: 40, duration: 0 });
     const props = data.features[0].properties || {};
     setRouteSummary(
       `${(Number(props["track-length"]) / 1609.344).toFixed(1)} mi · saved on Pi; planned offline. Conditions and closures are unknown.`,
@@ -379,19 +391,62 @@ export default function OfflineMaps({
       setRouting(false);
     }
   }
-  async function locate() {
-    if (locating) return;
-    setLocating(true);
+  useEffect(() => {
+    if (!ready || !map.current) return;
+    if (!gps.current) {
+      gpsMarker.current?.remove();
+      gpsMarker.current = null;
+      setFollowGps(false);
+      return;
+    }
+    const fix = gps.fix!;
+    const point: [number, number] = [fix.longitude!, fix.latitude!];
+    if (!gpsMarker.current) {
+      const dot = document.createElement("div");
+      dot.className = "gps-position-dot";
+      dot.setAttribute("aria-label", "Live GPS position");
+      dot.title = "Live GPS position";
+      gpsMarker.current = new maplibregl.Marker({ element: dot })
+        .setLngLat(point)
+        .addTo(map.current);
+    } else gpsMarker.current.setLngLat(point);
+    if (followGps) map.current.jumpTo({ center: point });
+  }, [ready, gps.fix, gps.current, followGps]);
+  function locate() {
+    if (!freshGps(gps.fix)) return;
+    go([gps.fix!.longitude!, gps.fix!.latitude!], "GPS position");
+  }
+  function gpsStart() {
+    if (!freshGps(gps.fix)) return;
+    setRouteStart([gps.fix!.longitude!, gps.fix!.latitude!]);
+    setStartName("GPS position");
+    setRouteSummary("");
+    setTool("route");
+  }
+  async function saveSpot() {
+    if (!freshGps(gps.fix) || !spotName.trim() || spotSaving) return;
+    // Capture one fresh fix at the moment Save is pressed, not a moving target.
+    const fix = gps.fix!;
+    setSpotSaving(true);
     try {
-      const fix = await localJSON("/api/maps/gps", {
-        signal: AbortSignal.timeout(5000),
+      const place: Place = await localJSON("/api/maps/places", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: crypto.randomUUID(),
+          name: spotName.trim(),
+          latitude: fix.latitude,
+          longitude: fix.longitude,
+        }),
       });
-      setGpsStatus(fix.message);
-      if (fix.available) go([fix.longitude, fix.latitude], "GPS position");
-    } catch {
-      setGpsStatus("GPS unavailable");
+      setPlaces((all) => [place, ...all]);
+      setSpotOpen(false);
+      setSpotName("");
+      setStatus("Spot saved on Pi.");
+    } catch (error) {
+      setStatus((error as Error).message);
     } finally {
-      setLocating(false);
+      setSpotSaving(false);
     }
   }
   const pinLabel =
@@ -440,14 +495,61 @@ export default function OfflineMaps({
           Tulsa
         </button>
         <button
-          onClick={() => void locate()}
-          disabled={!ready || locating}
+          onClick={locate}
+          disabled={!ready || !gps.current}
           title={gpsStatus}
         >
           <LocateFixed size={16} />
-          {locating ? "Checking…" : "GPS"}
+          GPS
+        </button>
+        <button
+          disabled={!ready || !gps.current}
+          aria-pressed={followGps}
+          onClick={() => {
+            if (!freshGps(gps.fix)) return;
+            if (!followGps) {
+              locate();
+              setFollowGps(true);
+            } else setFollowGps(false);
+          }}
+        >
+          Follow
+        </button>
+        <button
+          disabled={!gps.current}
+          aria-expanded={spotOpen}
+          onClick={() => setSpotOpen(!spotOpen)}
+        >
+          Save this spot
         </button>
       </div>
+      {spotOpen && (
+        <form
+          className="gps-save-spot"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void saveSpot();
+          }}
+        >
+          <input
+            aria-label="Spot name"
+            placeholder="Car, campsite, trailhead…"
+            value={spotName}
+            maxLength={100}
+            onChange={(e) => setSpotName(e.target.value)}
+            autoFocus
+          />
+          <button disabled={!gps.current || !spotName.trim() || spotSaving}>
+            {spotSaving ? "Saving…" : "Save spot"}
+          </button>
+          <button type="button" onClick={() => setSpotOpen(false)}>
+            Cancel
+          </button>
+          {!gps.current && (
+            <span role="status">Waiting for a fresh GPS fix.</span>
+          )}
+        </form>
+      )}
       <div className="map-layout atlas-stage">
         <div
           ref={container}
@@ -496,6 +598,9 @@ export default function OfflineMaps({
             mode={tool === "find" || tool === "places" ? tool : null}
           />
           <div hidden={tool !== "route"} className="atlas-route">
+            <button disabled={!gps.current || routing} onClick={gpsStart}>
+              Use GPS as start
+            </button>
             <div className="route-endpoint">
               <span>A</span>
               <div>
@@ -631,7 +736,7 @@ export default function OfflineMaps({
                 key={v.name}
                 disabled={!ready}
                 onClick={() =>
-                  map.current?.flyTo({ center: v.center, zoom: v.zoom })
+                  map.current?.jumpTo({ center: v.center, zoom: v.zoom })
                 }
               >
                 {v.name}
@@ -701,7 +806,7 @@ export default function OfflineMaps({
             </button>
           </div>
         )}
-        {gpsStatus !== "GPS setup pending" && (
+        {gpsStatus && (
           <span className="atlas-gps-status" role="status">
             {gpsStatus}
           </span>

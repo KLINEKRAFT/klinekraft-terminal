@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 const marker = "<!--kk-rich-v1-->";
 const allowed = new Set([
   "B",
@@ -51,16 +51,48 @@ export function RichNote({
 }) {
   const editor = useRef<HTMLDivElement>(null),
     last = useRef("");
+  const history = useRef([value]);
+  const cursor = useRef(0);
+  const [, refresh] = useState(0);
+  function remember(next: string) {
+    if (history.current[cursor.current] === next) return;
+    history.current = history.current.slice(0, cursor.current + 1);
+    history.current.push(next);
+    if (history.current.length > 250) history.current.shift();
+    cursor.current = history.current.length - 1;
+    refresh((n) => n + 1);
+  }
+  function undo(direction: number) {
+    const index = cursor.current + direction;
+    if (index < 0 || index >= history.current.length || !editor.current) return;
+    cursor.current = index;
+    const next = history.current[index];
+    if (next.startsWith(marker))
+      editor.current.innerHTML = clean(next.slice(marker.length));
+    else editor.current.textContent = next;
+    last.current = next;
+    editor.current.focus();
+    const range = document.createRange();
+    range.selectNodeContents(editor.current);
+    range.collapse(false);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    onChange(next);
+    refresh((n) => n + 1);
+  }
   useLayoutEffect(() => {
     if (!editor.current || last.current === value) return;
     if (value.startsWith(marker))
       editor.current.innerHTML = clean(value.slice(marker.length));
     else editor.current.textContent = value;
     last.current = value;
+    remember(value);
   }, [value]);
   function changed() {
     const value = marker + clean(editor.current?.innerHTML || "");
     last.current = value;
+    remember(value);
     onChange(value);
   }
   function format(command: string, value?: string) {
@@ -71,6 +103,26 @@ export function RichNote({
   return (
     <div className="rich-note">
       <div className="note-format" role="toolbar" aria-label="Note formatting">
+        <button
+          type="button"
+          aria-label="Undo"
+          title="Undo (Ctrl+Z)"
+          disabled={cursor.current === 0}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => undo(-1)}
+        >
+          ↶
+        </button>
+        <button
+          type="button"
+          aria-label="Redo"
+          title="Redo (Ctrl+Shift+Z)"
+          disabled={cursor.current === history.current.length - 1}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => undo(1)}
+        >
+          ↷
+        </button>
         {(
           [
             ["Bold", "bold", "B"],
@@ -128,6 +180,16 @@ export function RichNote({
         aria-label="Note"
         aria-multiline="true"
         onInput={changed}
+        onKeyDown={(e) => {
+          if (
+            (e.ctrlKey || e.metaKey) &&
+            !e.altKey &&
+            ["z", "y"].includes(e.key.toLowerCase())
+          ) {
+            e.preventDefault();
+            undo(e.shiftKey || e.key.toLowerCase() === "y" ? 1 : -1);
+          }
+        }}
         onPaste={(e) => {
           e.preventDefault();
           format("insertText", e.clipboardData.getData("text/plain"));

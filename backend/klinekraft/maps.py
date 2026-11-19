@@ -121,31 +121,93 @@ def catalog():
     except (OSError, ValueError):
         raise HTTPException(503, 'Map collections are not installed.') from None
 
+def gps_number(value, minimum=0, maximum=float('inf')):
+    import math
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return value if math.isfinite(value) and minimum <= value <= maximum else None
+
+
+def gps_position(value, now):
+    """Only a fresh position can supply navigation, speed or course."""
+    import math
+    from datetime import datetime
+    try:
+        mode = value.get('mode', 0)
+        if mode not in (2, 3): return None
+        at = datetime.fromisoformat(str(value.get('time', '')).replace('Z', '+00:00'))
+        if at.tzinfo is None or not -5 <= (now-at).total_seconds() <= 30: return None
+        lat = gps_number(value.get('lat'), -90, 90)
+        lon = gps_number(value.get('lon'), -180, 180)
+        if lat is None or lon is None: return None
+        speed = gps_number(value.get('speed'))
+        course = gps_number(value.get('track'), 0, 360)
+        speed_error = gps_number(value.get('eps'))
+        course_error = gps_number(value.get('epd'))
+        # Course over ground is not the direction the stationary deck faces.
+        moving = speed is not None and speed >= 1 and (speed_error is None or speed > speed_error)
+        if not moving or (course_error is not None and course_error > 45): course = None
+        accuracy = gps_number(value.get('eph'))
+        x, y = gps_number(value.get('epx')), gps_number(value.get('epy'))
+        if accuracy is None and x is not None and y is not None: accuracy = math.hypot(x, y)
+        return {'latitude':lat, 'longitude':lon, 'fixAt':at.isoformat(), 'mode':mode,
+                'speedMph':speed * 2.2369362921 if speed is not None else None,
+                'courseDegrees':course % 360 if course is not None else None,
+                'accuracyFeet':accuracy * 3.280839895 if accuracy is not None else None}
+    except (ValueError, TypeError, OverflowError):
+        return None
+
+
 @router.get('/gps')
 def gps_fix():
-    """Read a fresh fix from the local gpsd service without changing receiver settings."""
+    """Bounded, read-only receiver snapshot. No location history is written."""
     import socket
     import time
     from datetime import datetime, timezone
+    connected = service = False
+    satellites = used = None
+    position = None
     try:
         with socket.create_connection(('127.0.0.1', 2947), timeout=0.7) as sock:
-            sock.settimeout(0.7)
+            service = True
             sock.sendall(b'?WATCH={"enable":true,"json":true};\n')
             buffer = b''
+            received = 0
             deadline = time.monotonic() + 1.5
-            while time.monotonic() < deadline and len(buffer) < 32768:
-                chunk = sock.recv(8192)
+            while time.monotonic() < deadline and received < 65536:
+                sock.settimeout(max(0.05, deadline - time.monotonic()))
+                try: chunk = sock.recv(8192)
+                except socket.timeout: continue
                 if not chunk: break
+                received += len(chunk)
                 buffer += chunk
                 while b'\n' in buffer:
                     line, buffer = buffer.split(b'\n', 1)
                     try: value = json.loads(line)
                     except ValueError: continue
-                    if value.get('class') != 'TPV' or value.get('mode', 0) < 2: continue
-                    at = datetime.fromisoformat(str(value.get('time', '')).replace('Z', '+00:00'))
-                    if at.tzinfo is None or not -5 <= (datetime.now(timezone.utc)-at).total_seconds() <= 30: continue
-                    fix = Place(id=UUID(int=0), name='GPS position', latitude=value['lat'], longitude=value['lon'])
-                    return {'available': True, 'latitude': fix.latitude, 'longitude': fix.longitude, 'message': 'GPS fix · ' + ('3D' if value['mode']>=3 else '2D')}
-    except (OSError, ValueError, TypeError, KeyError):
-        pass
-    return {'available': False, 'message': 'No fresh GPS fix · check receiver and gpsd'}
+                    if not isinstance(value, dict): continue
+                    kind = value.get('class')
+                    if kind == 'DEVICES':
+                        connected = bool(value.get('devices'))
+                        if not connected: position = None
+                    if kind == 'SKY':
+                        connected = True
+                        sky = value.get('satellites')
+                        if isinstance(sky, list):
+                            satellites = len(sky)
+                            used = sum(1 for sat in sky if isinstance(sat, dict) and sat.get('used') is True)
+                    if kind == 'TPV':
+                        connected = True
+                        # A later loss of fix invalidates an earlier valid report.
+                        position = gps_position(value, datetime.now(timezone.utc))
+    except OSError:
+        position = None
+    result = {'available':position is not None, 'connected':connected, 'service':service,
+              'satellitesVisible':satellites, 'satellitesUsed':used,
+              'sampledAt':datetime.now(timezone.utc).isoformat()}
+    if position:
+        return {**result, **position, 'message':'GPS fix · ' + ('3D' if position['mode'] == 3 else '2D')}
+    if connected:
+        detail = f' · {satellites} satellites visible' if satellites is not None else ''
+        return {**result, 'message':'GPS connected · waiting for a fresh satellite fix' + detail}
+    return {**result, 'message':'GPS receiver not connected' if service else 'GPS service unavailable'}

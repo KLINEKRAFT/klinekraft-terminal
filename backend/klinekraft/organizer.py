@@ -51,6 +51,20 @@ def init(connection):
     connection.execute("""CREATE TABLE IF NOT EXISTS organizer (
         id TEXT PRIMARY KEY, kind TEXT NOT NULL, payload TEXT NOT NULL, revision INTEGER NOT NULL
     )""")
+    connection.execute("""CREATE TABLE IF NOT EXISTS organizer_history (
+        item_id TEXT NOT NULL, revision INTEGER NOT NULL, payload TEXT NOT NULL,
+        saved_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        PRIMARY KEY(item_id, revision)
+    )""")
+
+
+@router.get("/{item_id}/history")
+def history(item_id: UUID):
+    with database() as connection:
+        init(connection)
+        return [{"revision": row["revision"], "saved_at": row["saved_at"], "item": json.loads(row["payload"])} for row in connection.execute(
+            "SELECT revision, payload, saved_at FROM organizer_history WHERE item_id=? ORDER BY revision DESC",
+            (str(item_id),))]
 
 
 @router.get("")
@@ -68,9 +82,16 @@ def save(item_id: UUID, item: Item):
     with database() as connection:
         init(connection)
         connection.execute("BEGIN IMMEDIATE")
-        old = connection.execute("SELECT revision, kind FROM organizer WHERE id=?", (str(item_id),)).fetchone()
+        old = connection.execute("SELECT revision, kind, payload FROM organizer WHERE id=?", (str(item_id),)).fetchone()
         if (old is None and item.revision != 0) or (old is not None and (old["revision"] != item.revision or old["kind"] != item.kind)):
             raise HTTPException(409, "This item changed elsewhere. Reload the saved version before editing.")
+        # Preserve the previous copy in the same transaction as its replacement.
+        # Keep text history indefinitely; drawings have separate PNG storage limits.
+        if old is not None and item.kind != "drawing":
+            connection.execute(
+                "INSERT OR IGNORE INTO organizer_history (item_id, revision, payload) VALUES (?, ?, ?)",
+                (str(item_id), old["revision"], old["payload"]),
+            )
         item.revision += 1
         connection.execute(
             "INSERT INTO organizer VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload, revision=excluded.revision",

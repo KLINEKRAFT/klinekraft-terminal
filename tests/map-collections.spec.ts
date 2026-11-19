@@ -69,7 +69,7 @@ test("map panels collapse after selecting a place, explicit address search and r
   await page
     .getByRole("button", { name: "Street Offline", exact: true })
     .click();
-  await page.getByRole("button", { name: "GPS", exact: true }).click();
+  await expect(page.getByRole("button", { name: "GPS", exact: true })).toBeDisabled();
   await expect(page.locator(".atlas-gps-status")).toContainText(
     "No fresh GPS fix",
   );
@@ -109,4 +109,43 @@ test("offline collection search works without remote services and pin names rese
   await expect(page.locator(".atlas-pinbar strong")).not.toHaveText(
     "Yellowstone National Park",
   );
+});
+
+test.describe("small-screen map resources", () => {
+  test.use({ deviceScaleFactor: 2 });
+  test("map resizes on a dense display and releases its canvas when leaving", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 600 });
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("/");
+    await navigate(page, "GPS / Maps");
+    await expect(
+      page.getByRole("button", { name: "Tulsa", exact: true }),
+    ).toBeEnabled({ timeout: 20000 });
+    const canvas = page.locator(".offline-map-canvas canvas.maplibregl-canvas");
+    await expect(canvas).toHaveCount(1);
+    await expect
+      .poll(() =>
+        canvas.evaluate(
+          (element: HTMLCanvasElement) =>
+            element.width === element.clientWidth &&
+            element.height === element.clientHeight,
+        ),
+      )
+      .toBe(true);
+    await page.setViewportSize({ width: 900, height: 600 });
+    await expect
+      .poll(() =>
+        canvas.evaluate(
+          (element: HTMLCanvasElement) =>
+            element.width === element.clientWidth && element.width <= 900,
+        ),
+      )
+      .toBe(true);
+    await navigate(page, "Home");
+    await expect(page.locator("canvas.maplibregl-canvas")).toHaveCount(0);
+    expect(errors).toEqual([]);
+  });
 });

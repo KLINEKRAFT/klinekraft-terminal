@@ -88,3 +88,69 @@ def test_gps_requires_fresh_real_fix(monkeypatch):
     def absent(*args,**kwargs):raise OSError('No receiver')
     monkeypatch.setattr(socket,'create_connection',absent)
     assert not gps_fix()['available']
+
+
+def test_gps_waiting_receiver_and_service_states(monkeypatch):
+    import socket
+    from klinekraft.maps import gps_fix
+    class GPS:
+        def __init__(self, values):self.data = ('\n'.join(json.dumps(x) for x in values)+'\n').encode()
+        def __enter__(self):return self
+        def __exit__(self,*args):pass
+        def settimeout(self,*args):pass
+        def sendall(self,data):pass
+        def recv(self,n):data,self.data=self.data,b'';return data
+    values=[{'class':'DEVICES','devices':[{'path':'/dev/ttyACM0'}]}, {'class':'TPV','mode':1}, {'class':'SKY','satellites':[{'used':False}]}]
+    monkeypatch.setattr(socket,'create_connection',lambda *a,**kw:GPS(values))
+    result=gps_fix()
+    assert not result['available'] and 'GPS connected' in result['message']
+    assert '1 satellites visible' in result['message']
+    assert 'latitude' not in result
+    monkeypatch.setattr(socket,'create_connection',lambda *a,**kw:GPS([{'class':'DEVICES','devices':[]}]))
+    assert gps_fix()['message']=='GPS receiver not connected'
+    def absent(*a,**kw):raise OSError('service unavailable')
+    monkeypatch.setattr(socket,'create_connection',absent)
+    assert gps_fix()['message']=='GPS service unavailable'
+
+
+def test_gps_course_and_accuracy_units():
+    from datetime import datetime, timezone, timedelta
+    from klinekraft.maps import gps_position
+    now = datetime.now(timezone.utc)
+    value = dict(mode=3, lat=36.15, lon=-96, time=now.isoformat(),
+                 speed=2, track=90, eph=3, eps=0.2, epd=10)
+    result = gps_position(value, now)
+    assert result['courseDegrees'] == 90
+    assert abs(result['speedMph'] - 4.47387) < 0.001
+    assert abs(result['accuracyFeet'] - 9.84252) < 0.001
+    for changes in [dict(speed=0.1), dict(eps=3), dict(epd=60), dict(track=float('nan'))]:
+        assert gps_position({**value, **changes}, now)['courseDegrees'] is None
+    for changes in [dict(mode=1), dict(lat=float('nan')), dict(lon=181),
+                    dict(time=(now-timedelta(seconds=31)).isoformat()),
+                    dict(time=(now+timedelta(seconds=10)).isoformat())]:
+        assert gps_position({**value, **changes}, now) is None
+
+
+def test_gps_sky_after_position_and_lost_fix(monkeypatch):
+    import socket
+    from datetime import datetime, timezone
+    from klinekraft.maps import gps_fix
+    class GPS:
+        def __init__(self, values): self.lines = iter(values)
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def settimeout(self, *args): pass
+        def sendall(self, data): pass
+        def recv(self, n):
+            value = next(self.lines, None)
+            return (json.dumps(value)+'\n').encode() if value else b''
+    values = [
+        dict(class_='TPV', mode=3, lat=36.15, lon=-96, time=datetime.now(timezone.utc).isoformat()),
+        dict(class_='SKY', satellites=[dict(used=True), dict(used=False)])
+    ]
+    values = [{('class' if k == 'class_' else k): v for k, v in item.items()} for item in values]
+    monkeypatch.setattr(socket, 'create_connection', lambda *a, **kw: GPS(values))
+    result = gps_fix()
+    assert result['available'] and result['satellitesVisible'] == 2 and result['satellitesUsed'] == 1
+    values.append({'class':'TPV', 'mode':1})
+    assert not gps_fix()['available']
