@@ -419,7 +419,14 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
                 className="k-field lib-toolbar-grow"
                 type="search"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  // Clearing the box goes back to browsing the archives.
+                  if (!e.target.value.trim()) {
+                    setResults([]);
+                    setSearched("");
+                  }
+                }}
                 placeholder="Find an article"
                 maxLength={200}
               />
@@ -473,9 +480,9 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
           {offline && (
             <div className="k-empty">
               <Globe size={32} aria-hidden="true" />
-              {offline.archives.length && !offline.ready ? (
+              {offline.archives.length ? (
                 <>
-                  <h3>Your archive is saved. The reader is not running.</h3>
+                  <h3>Your archive is saved. The reader is not responding.</h3>
                   <p>
                     Start the offline reader from the Pi’s Terminal, then check
                     again.
@@ -524,7 +531,11 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
             <div className="k-empty">
               <SearchX size={32} aria-hidden="true" />
               <h3>No articles match “{searched}”</h3>
-              <p>Try a shorter topic, or search all archives.</p>
+              <p>
+                {books && books.length > 1 && book
+                  ? "Try a shorter topic, or search all archives."
+                  : "Try a shorter or different topic."}
+              </p>
             </div>
           )}
           {!!results.length && (

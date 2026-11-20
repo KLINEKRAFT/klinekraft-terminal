@@ -40,10 +40,24 @@ test("an empty library explains itself and opens the importer", async ({
     library.getByRole("heading", { name: "Import a folder" }),
   ).toBeVisible();
   await expect(library.getByLabel("Folder inside location")).toBeVisible();
+  // The form takes focus, and closing it hands focus back to the opener.
+  await expect(library.getByLabel("Collection")).toBeFocused();
   await library.getByRole("button", { name: "Cancel" }).click();
   await expect(
     library.getByRole("heading", { name: "Your documents live here" }),
   ).toBeVisible();
+  await expect(
+    library.getByRole("button", { name: "Import a folder" }),
+  ).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(library.getByLabel("Collection")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(
+    library.getByRole("heading", { name: "Import a folder" }),
+  ).toHaveCount(0);
+  await expect(
+    library.getByRole("button", { name: "Import a folder" }),
+  ).toBeFocused();
 });
 
 test("documents toolbar filters in place and tells no-match from empty", async ({
@@ -129,6 +143,67 @@ test("Wikipedia without archives shows the setup command, not a raw error", asyn
   await expect(wiki.getByRole("button", { name: "Check again" })).toBeVisible();
 });
 
+test("Wikipedia with saved archives says the reader is not responding", async ({
+  page,
+}) => {
+  await page.route("**/api/wiki/books", (r) =>
+    r.fulfill({ status: 503, json: { detail: "Reader timed out." } }),
+  );
+  // The API can still report ready while the reader itself times out.
+  await page.route("**/api/wiki", (r) =>
+    r.fulfill({ json: { ready: true, archives: ["wikipedia_en_top"], url: null } }),
+  );
+  await openLibrary(page, "Wikipedia");
+  const wiki = page.getByRole("region", { name: "Offline Wikipedia" });
+  await expect(
+    wiki.getByRole("heading", {
+      name: "Your archive is saved. The reader is not responding.",
+    }),
+  ).toBeVisible();
+  await expect(
+    wiki.getByText("systemctl --user restart klinekraft-wiki.service"),
+  ).toBeVisible();
+  await expect(wiki.getByText("bash scripts/setup-local-content.sh")).toHaveCount(0);
+});
+
+test("clearing a Wikipedia search with no hits returns to the archives", async ({
+  page,
+}) => {
+  await page.route("**/api/wiki/books", (r) =>
+    r.fulfill({
+      json: {
+        books: [
+          {
+            name: "wikipedia_en_top",
+            title: "Wikipedia top articles",
+            path: "/content/wikipedia_en_top/",
+          },
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/wiki/search?*", (r) =>
+    r.fulfill({ json: { results: [], unavailable: [] } }),
+  );
+  await openLibrary(page, "Wikipedia");
+  const wiki = page.getByRole("region", { name: "Offline Wikipedia" });
+  const archives = wiki.getByRole("list", { name: "Installed archives" });
+  await expect(archives).toBeVisible();
+  await wiki.getByRole("searchbox", { name: "Search Wikipedia" }).fill("qwxyz");
+  await wiki.getByRole("button", { name: "Search", exact: true }).click();
+  await expect(
+    wiki.getByRole("heading", { name: "No articles match “qwxyz”" }),
+  ).toBeVisible();
+  // One archive: there is nothing else to "search all".
+  await expect(wiki.getByText("Try a shorter or different topic.")).toBeVisible();
+  await expect(archives).toHaveCount(0);
+  await wiki.getByRole("searchbox", { name: "Search Wikipedia" }).fill("");
+  await expect(archives).toBeVisible();
+  await expect(
+    wiki.getByRole("heading", { name: /No articles match/ }),
+  ).toHaveCount(0);
+});
+
 test("notebook and bookmarks empty states each offer one way forward", async ({
   page,
 }) => {
@@ -146,6 +221,18 @@ test("notebook and bookmarks empty states each offer one way forward", async ({
     bookmarks.getByRole("heading", { name: "Keep your regular stops close" }),
   ).toBeVisible();
   await expect(bookmarks.getByRole("button", { name: "Add bookmark" })).toHaveCount(1);
+  await bookmarks.getByRole("button", { name: "Add bookmark" }).click();
+  await expect(bookmarks.getByLabel("Name")).toBeFocused();
+  await bookmarks.getByRole("button", { name: "Cancel" }).click();
+  await expect(
+    bookmarks.getByRole("button", { name: "Add bookmark" }),
+  ).toBeFocused();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Escape");
+  await expect(bookmarks.getByLabel("Name")).toHaveCount(0);
+  await expect(
+    bookmarks.getByRole("button", { name: "Add bookmark" }),
+  ).toBeFocused();
 });
 
 test("Files explains a missing folder and an empty one", async ({ page }) => {
