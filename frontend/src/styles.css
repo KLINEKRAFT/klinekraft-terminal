@@ -3195,68 +3195,6 @@ main[data-page="AI assistant"] .page-content {
   margin-top: 12px;
 }
 
-.organizer, .calculator {
-  color: var(--ink);
-  margin-top: 20px;
-}
-.organizer button, .calculator button {
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 10px 14px;
-}
-.organizer button:hover, .calculator button:hover {
-  background: var(--panel);
-}
-.organizer button:disabled { opacity: .5; }
-.organizer input, .organizer textarea, .calculator input {
-  background: var(--paper);
-  color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 10px;
-  font: inherit;
-  width: 100%;
-}
-.organizer input[type="checkbox"] { width: auto; }
-.organizer label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
-.organizer-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.organizer-columns { display: grid; grid-template-columns: 260px minmax(0, 1fr); border: 1px solid var(--line); min-height: 450px; }
-.organizer-list { padding: 16px; border-right: 1px solid var(--line); }
-.organizer-list input { margin-block: 14px; }
-.organizer .organizer-item { display: grid; text-align: left; gap: 8px; width: 100%; margin-bottom: 8px; overflow-wrap: anywhere; }
-.organizer-item span { color: var(--muted); font-size: 12px; white-space: pre-wrap; }
-.organizer-editor { padding: 24px; min-width: 0; }
-.organizer-editor form { display: grid; gap: 18px; }
-.organizer-editor textarea { min-height: 260px; resize: vertical; line-height: 1.7; }
-.organizer-empty { margin: 70px auto; text-align: center; color: var(--muted); }
-.organizer-empty p { color: var(--ink); font-size: 24px; }
-.organizer-caption { font: 12px/1.5 var(--mono); color: var(--muted); }
-.calendar { margin-bottom: 24px; }
-.calendar h2 { margin: 0 auto 0 0; font-size: 22px; font-weight: 500; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; margin-top: 20px; }
-.calendar-grid > span { text-align: center; font: 11px var(--mono); padding: 8px; color: var(--muted); }
-.calendar-grid button { min-height: 66px; text-align: left; }
-.calendar-grid small { display: block; margin-top: 6px; font-size: 10px; }
-.calendar-grid .other-month { color: var(--muted); }
-.calendar-grid button[aria-pressed="true"] { border-color: var(--orange); box-shadow: inset 0 -3px var(--orange); }
-.calculator { display: grid; grid-template-columns: minmax(250px,400px) minmax(180px,1fr); gap: 32px; max-width: 900px; }
-.calculator-machine { padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
-.calculator-machine label { font: 11px var(--mono); color: var(--muted); }
-.calculator input { margin-top: 8px; text-align: right; font: 22px var(--mono); }
-.calculator output { display: block; text-align: right; overflow-wrap: anywhere; min-height: 90px; padding-block: 18px; font: 30px var(--mono); }
-.calculator-keys { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
-.calculator-keys button { min-height: 52px; font: 20px var(--mono); }
-.calculator .calculator-equals { grid-column: 1/-1; background: var(--orange); color: #171717; }
-.calculator-history h2 { font-size: 15px; font-weight: 500; }
-.calculator-history p { color: var(--muted); }
-.calculator-history button { width: 100%; display: grid; text-align: right; gap: 8px; margin-bottom: 8px; overflow-wrap: anywhere; font-family: var(--mono); }
-@media(max-width:700px) {
-  .organizer-columns, .calculator { grid-template-columns: 1fr; }
-  .organizer-list { border-right: 0; border-bottom: 1px solid var(--line); }
-  .calendar-grid button { padding: 7px; min-height: 52px; }
-  .calendar-grid small { font-size: 8px; }
-}
 /* Paint follows the classic toolbox / canvas / palette arrangement. */
 .paint { margin-top: 20px; min-width: 0; }
 .paint button, .paint input, .paint select { color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 3px; padding: 8px 10px; font: 12px var(--mono); min-width: 0; }
@@ -3372,33 +3310,6 @@ main[data-page="AI assistant"] .page-content {
   .ai-chat .ai-composer { padding: 8px 10px 5px; }
   .ai-chat .ai-composer textarea { min-height: 36px; max-height: 80px; }
   .ai-chat-footer { margin-top: 4px; }
-  .organizer { margin-top: 0; height: 100%; display: flex; flex-direction: column; }
-  .organizer-columns { flex: 1; min-height: 0; grid-template-columns: 205px minmax(0,1fr); }
-  .organizer-list, .organizer-editor { overflow: auto; padding: 12px; }
-  .organizer-list input { margin-block: 10px; }
-  .organizer button, .organizer input, .organizer textarea { padding: 7px 9px; font-size: 13px; }
-  .organizer-toolbar { gap: 6px; }
-  .organizer-editor form { gap: 10px; }
-  .organizer-editor textarea { min-height: 160px; line-height: 1.5; }
-  .organizer-editor > p { margin-top: 0; font-size: 11px; }
-  .organizer-empty { margin: 35px auto; }
-  main[data-page="Calendar"] .organizer { display: grid; grid-template-columns: minmax(320px, 1.1fr) minmax(310px, 1fr); gap: 12px; }
-  .calendar { margin-bottom: 0; }
-  .calendar h2 { font-size: 16px; }
-  .calendar-grid { margin-top: 10px; gap: 3px; }
-  .calendar-grid > span { font-size: 10px; padding: 6px 0; }
-  .calendar-grid button { min-height: 43px; padding: 6px; }
-  .calendar-grid small { font-size: 9px; margin-top: 3px; }
-  main[data-page="Calendar"] .organizer-columns { display: flex; flex-direction: column; overflow: auto; }
-  main[data-page="Calendar"] .organizer-list { flex: none; max-height: 155px; border-right: 0; border-bottom: 1px solid var(--line); }
-  main[data-page="Calendar"] .organizer-editor { flex: 1; min-height: 0; }
-  main[data-page="Calendar"] .organizer-editor textarea { min-height: 80px; }
-  .calculator { margin-top: 0; gap: 20px; grid-template-columns: minmax(260px,360px) minmax(180px,1fr); }
-  .calculator-machine { padding: 12px; }
-  .calculator input { font-size: 18px; padding: 8px; }
-  .calculator output { min-height: 48px; padding-block: 8px; font-size: 26px; }
-  .calculator-keys { gap: 5px; }
-  .calculator-keys button { min-height: 35px; padding: 6px 10px; font-size: 17px; }
   .paint { height: 100%; margin-top: 0; display: flex; flex-direction: column; }
   .paint > * { flex-shrink: 0; }
   .paint-document-bar { gap: 8px; padding-bottom: 6px; }
@@ -3503,8 +3414,6 @@ main[data-page="AI assistant"] .page-content {
 .research-library li .research-result-title:hover { color: var(--blue); text-decoration: underline; }
 .research-library li span { display: block; margin: 4px 0 0; font-size: 12px; color: var(--muted); }
 .research-snippet { font-size: 12px; line-height: 1.5; margin: 7px 0; }
-.organizer-item[aria-pressed="true"] { border-color: var(--logo-blue); box-shadow: inset 3px 0 var(--logo-blue); }
-.organizer-item span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* Canvas-first Paint layout; expanding keeps app navigation available. */
 .paint-canvas-actions { position: relative; margin-left: auto; }
@@ -3578,15 +3487,6 @@ main:has(.paint-expanded) .page-content { padding-top: 8px; }
 .info-popover>summary { list-style:none; border:1px solid currentColor; border-radius:50%; width:20px; height:20px; display:grid; place-items:center; font:italic 13px Georgia,serif; cursor:pointer; }
 .info-popover>summary::-webkit-details-marker {display:none;}
 .info-content {position:absolute;right:0;top:28px;z-index:100;width:min(340px,80vw);padding:16px;background:var(--paper,#efeee8);color:var(--ink);border:1px solid var(--line);box-shadow:0 8px 30px #0002;font-size:12px;line-height:1.5;}
-.save-state {font-size:10px;min-height:14px;text-align:right;margin:0 0 4px;opacity:.65;}
-.organizer-editor>form>label>input {font-size:24px;border:0!important;background:transparent!important;}
-.note-format {display:flex;gap:3px;padding:6px 0;border-bottom:1px solid var(--line);}
-.note-format button {min-width:30px;height:28px;border:0;background:transparent;color:inherit;}
-.note-paper {min-height:240px;outline:none;padding:16px 2px;line-height:1.6;font-size:15px;overflow-wrap:anywhere;}
-.note-paper h2 {font-size:20px;}
-.note-paper:empty:before {content:'Note';opacity:.35;pointer-events:none;}
-.calendar-grid .holiday {display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2347ff;font-size:9px;}
-.holiday-agenda {font-size:12px;padding:6px 0;color:#2347ff;}
 .library-view-tools {display:flex;justify-content:space-between;align-items:center;}
 .view-switch {display:flex;gap:4px;}
 .view-switch button {text-transform:capitalize;}
@@ -3610,15 +3510,6 @@ main:has(.paint-expanded) .page-content { padding-top: 8px; }
 .chat-history-row {display:flex;gap:8px;align-items:center;}
 .chat-history-row>button {flex:1;text-align:left;}
 .chat-selection {display:flex;gap:8px;margin:12px 0;}
-.calculator {max-width:800px;margin:0 auto;gap:40px;}
-.calculator-machine {border:1px solid var(--line);padding:20px;background:var(--panel,transparent);border-radius:16px;}
-.calculator-machine form label,.calculator-machine .organizer-caption {display:none;}
-.calculator-machine output {font-size:42px;font-family:'IBM Plex Mono';min-height:64px;text-align:right;display:block;}
-.calculator-machine input {text-align:right;border:0;background:transparent;font-size:18px;}
-.calculator-keys button {border-radius:8px;min-height:46px;background:#8881;border:1px solid #8882;font-size:19px;}
-.calculator-keys .calculator-equals {background:#123aff;color:#fff;border-color:#123aff;}
-.calculator-history {border-left:1px solid var(--line);padding-left:24px;}
-.calculator-history h2 {font:11px 'IBM Plex Mono';text-transform:uppercase;letter-spacing:.12em;}
 @media(max-width:700px){.preview-badge{display:none!important;}}
 .paint {position:relative;}
 .paint-document-bar {padding-right:80px;min-height:32px;}
@@ -3765,20 +3656,6 @@ main[data-page="GPS / Maps"] .page-content,main[data-page="Field Briefing"] .pag
 .universal-result small { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .universal-search footer { font-size: 11px; color: var(--muted); }
 
-.organizer-row {display:flex;gap:4px;align-items:stretch;margin-bottom:8px;min-width:0;}
-.organizer .organizer-row .organizer-item {flex:1;min-width:0;margin-bottom:0;}
-.organizer-row .note-trash {flex:0 0 32px;padding:6px;align-self:center;display:grid;place-items:center;color:var(--muted);background:transparent;}
-.organizer-row .note-trash:hover {color:var(--logo-blue);}
-.note-history {border-top:1px solid var(--line);padding-top:10px;}
-.note-history details {padding:8px 0;border-bottom:1px solid var(--line);}
-.note-history summary {cursor:pointer;font-size:12px;}
-.note-history-preview {white-space:pre-wrap;max-height:240px;overflow:auto;overflow-wrap:anywhere;}
-.note-format {flex-wrap:wrap;}
-.note-format button:disabled {opacity:.3;}
-
-.organizer-savebar {display:flex;justify-content:flex-end;align-items:center;gap:10px;min-height:28px;}
-.organizer-savebar .save-state {margin:0;}
-.organizer-savebar button {display:flex;align-items:center;gap:5px;font-size:11px;padding:3px 6px;background:transparent;border:0;color:var(--muted);}
 
 .gps-home {display:flex;align-items:center;gap:16px;padding:9px 0;border-top:1px solid var(--line);min-width:0;}
 .gps-home-position {display:flex;align-items:center;gap:10px;flex:1;min-width:0;background:none;border:0;padding:0;color:var(--ink);text-align:left;cursor:pointer;}
