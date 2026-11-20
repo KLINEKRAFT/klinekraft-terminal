@@ -1,6 +1,13 @@
 import { test, expect } from "@playwright/test";
 import sharp from "sharp";
 import { navigate } from "./navigation";
+// Hermetic: no street region is installed, so radar draws over the built-in
+// US outline instead of reporting a missing basemap.
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/maps", (r) =>
+    r.fulfill({ json: { available: false } }),
+  );
+});
 test("radar displays loaded frame time and keeps it when another frame fails", async ({
   page,
 }) => {
@@ -67,6 +74,7 @@ test("radar displays loaded frame time and keeps it when another frame fails", a
     "Past radar",
     { timeout: 20000 },
   );
+  await expect(page.locator(".radar-error")).toHaveCount(0);
   expect(
     (await page.locator(".radar-canvas").boundingBox())!.height,
   ).toBeGreaterThan(200);
