@@ -153,6 +153,28 @@ test("Paint mirrors strokes and offers context actions", async ({ page }) => {
   await expect(page.getByRole("menu")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu")).toHaveCount(0);
+  // An outside press closes the canvas menu: on a tool button...
+  await canvas.click({ button: "right" });
+  await expect(page.getByRole("menu")).toBeVisible();
+  await page.getByRole("button", { name: "Pencil tool", exact: true }).click();
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await page.getByRole("button", { name: "Brush tool", exact: true }).click();
+  // ...and on the canvas, where the dismissing tap must not paint.
+  await canvas.click({ button: "right" });
+  await expect(page.getByRole("menu")).toBeVisible();
+  await canvas.click({
+    position: { x: box.width * 0.8, y: box.height * 0.15 },
+  });
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  const untouched = await canvas.evaluate((c: HTMLCanvasElement) =>
+    Array.from(
+      c
+        .getContext("2d")!
+        .getImageData(Math.floor(c.width * 0.8), Math.floor(c.height * 0.15), 1, 1)
+        .data,
+    ),
+  );
+  expect(untouched).toEqual([255, 255, 255, 255]);
   // Right-drag paints with the background color instead of opening the menu.
   await page.getByLabel("Mirror drawing").selectOption("off");
   await page.getByLabel("Width").selectOption("20");
@@ -183,6 +205,50 @@ test("Paint mirrors strokes and offers context actions", async ({ page }) => {
   await expect(swatches).toBeInViewport();
   await swatches.click();
   await expect(page.locator('.recent-colors')).toHaveCount(0);
+  await page.getByRole('button', {name: 'Color wheel; hold for recent colors'}).click({button: 'right'});
+  await expect(page.locator('.recent-colors')).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator('.recent-colors')).toHaveCount(0);
+  // File and Canvas menus: Escape and outside presses close them, and opening
+  // one closes the other.
+  const file = page.getByRole("button", { name: "File", exact: true });
+  const canvasButton = page.getByRole("button", { name: "Canvas", exact: true });
+  const fileActions = page.getByRole("group", { name: "File menu" });
+  const canvasActions = page.getByRole("group", { name: "Canvas menu" });
+  await file.click();
+  await expect(fileActions).toBeVisible();
+  await expect(file).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Escape");
+  await expect(fileActions).toBeHidden();
+  await file.click();
+  await expect(fileActions).toBeVisible();
+  await page.getByRole("textbox", { name: "Drawing name" }).click();
+  await expect(fileActions).toBeHidden();
+  await canvasButton.click();
+  await expect(canvasActions).toBeVisible();
+  await file.click();
+  await expect(canvasActions).toBeHidden();
+  await expect(fileActions).toBeVisible();
+  await file.click();
+  await expect(fileActions).toBeHidden();
+  await canvasButton.click();
+  await expect(canvasActions).toBeVisible();
+  await page.getByRole("button", { name: "Pencil tool", exact: true }).click();
+  await expect(canvasActions).toBeHidden();
+  // Opening the canvas menu closes the File menu too.
+  await file.click();
+  await canvas.click({ button: "right" });
+  await expect(page.getByRole("menu")).toBeVisible();
+  await expect(fileActions).toBeHidden();
+  await page.keyboard.press("Escape");
+  // The palette keeps 36px swatches; the rest sit behind "More colors".
+  const first = (await page.getByRole("button", { name: "Color #242424" }).boundingBox())!;
+  expect(first.width).toBeGreaterThanOrEqual(36);
+  expect(first.height).toBeGreaterThanOrEqual(36);
+  await page.getByRole("button", { name: "More colors" }).click();
+  await page.getByRole("button", { name: "Color #167c86" }).click();
+  await expect(page.getByRole("group", { name: "More colors" })).toHaveCount(0);
+  await expect(page.getByLabel("Foreground color")).toHaveValue("#167c86");
 });
 test("Shackleton drawer deletes only selected chats", async ({ page }) => {
   const a = "11111111-1111-4111-8111-111111111111",

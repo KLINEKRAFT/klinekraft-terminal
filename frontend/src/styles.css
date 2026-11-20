@@ -2228,7 +2228,7 @@ main[data-page="AI assistant"] .page-content {
 .shackleton-mark {width:96px;height:96px;object-fit:contain;background:transparent;padding:0;margin-bottom:12px;}
 .emergency-heading {display:flex;align-items:center;justify-content:space-between;}
 .emergency-heading h2 {font-size:18px;}
-[data-theme=dark] .info-content,[data-theme=dark] .minimal-shell .sidebar,[data-theme=dark] .ai-history,[data-theme=dark] .paint-file-menu .paint-command-bar,[data-theme=dark] .paint-context,[data-theme=dark] .recent-colors {background:#202220;}
+[data-theme=dark] .info-content,[data-theme=dark] .minimal-shell .sidebar,[data-theme=dark] .ai-history {background:#202220;}
 .app-shell.minimal-shell,.app-shell.minimal-shell.sidebar-collapsed {grid-template-columns:minmax(0,1fr)!important;}
 .app-shell.minimal-shell>main {grid-column:1!important;width:100%;}
 
