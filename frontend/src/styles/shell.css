@@ -224,7 +224,7 @@ main[data-page="Home"] .page-content {
   min-width: 0;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--panel) 60%, transparent);
+  background: transparent;
 }
 .deck-value {
   align-self: end;
