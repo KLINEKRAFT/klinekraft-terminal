@@ -138,3 +138,66 @@ The 5 remaining failures (`gps`, `map-collections` ×3, `weather-radar` frame ti
 - The exit dialog is a hand-made `role="dialog"` with no focus restore. Every other dialog uses `<dialog>`.
 - The AwayCanvas shader keeps redrawing the same frame at 24 fps while paused, and "Pause" recompiles the shaders. That is GPU work on a battery device for nothing.
 - Vite's dev server allows cross-origin requests from other localhost ports, such as Kiwix on 8081. Set `server.cors: false`. This affects dev only.
+
+## Addendum: the Steve Jobs list, implemented (same day)
+
+The owner approved every item except #1 (Emergency, still undecided; untouched). They chose **option B** for both Briefing and Games.
+
+Six areas were built in parallel, each in its own isolated branch, and each was reviewed by an independent critic. Every area then went through a fix round and a second independent verification.
+
+- **One search, no command bar.**
+  - The command bar is gone. Ctrl/⌘K and `/` open search.
+  - Search understands aliases such as `calc`, `maps`, `radar`, `wifi` and `sos`.
+- **Quiet header.**
+  - Search pill, Briefing bell, one battery/power button (Field mode, Dim and the power info live in its popover), theme, a status dot, and fullscreen.
+  - Any state other than live shows a word next to the dot (Stale, Offline, Simulated).
+  - Paint and Shackleton now show a page title.
+- **Home answers "is my deck OK?"**
+  - Four large readouts: time, battery, CPU °F, connectivity.
+  - One row for CPU, memory and storage, with each shown once.
+  - Then weather and tools, then GPS (reads "disconnected", never hidden) with Files, Network and System, then bookmarks and notes.
+  - No scrolling at 1024×600 or 1024×560.
+- **One design system.**
+  - `ui.css` sets the scale (type 12/14/16/20/28/48, space 4–32, radius 4/8/pill) and the `.k-*` primitives.
+  - `--accent-fg` keeps icons readable in dark mode.
+  - Each area has its own stylesheet, and `styles.css` went from 3,866 to about 2,300 lines.
+  - Text under 11px is gone from every screen except Emergency, and so are controls under 28px tall (inline text links aside).
+- **Maps is never blank.**
+  - A bundled US outline basemap (US Census, public domain) is used when street maps aren't installed.
+  - A one-row, non-dismissible install note gives the exact command.
+  - Radar also draws over the outline.
+- **Library, Files and Games empty states** each say what goes there and give the one action that fills it.
+- **Paint.**
+  - The tool rail fits without scrolling and every tool has its own icon.
+  - Swatches are 36px.
+  - Right-drag paints with the background colour.
+  - Only one menu or popover is open at a time, and each closes on Escape or an outside tap.
+- **Notes and Calendar.**
+  - One New action.
+  - A short, stable save state, with the 409 conflict notice and buttons in their own row.
+  - Five distinct empty states.
+  - The Calendar head fits on one row.
+- **Calculator** gains a unit converter: °F/°C, mi/km, ft/m, in/cm, gal/L, lb/kg, mph/km/h, oz/g.
+- **Briefing (B).**
+  - A failed poll keeps the saved alerts on screen with a "last checked" stamp.
+  - Each alert drops at its own `expires` time.
+  - The ticker hides after 5 minutes with no contact.
+- **Games (B).**
+  - A failed poll keeps the list visible, disables Play and shows "Library offline · reconnecting…".
+  - Play comes back on its own when the service answers.
+  - Launch, the allowlist and exit handling are unchanged.
+
+### Tests
+
+| Suite | Result |
+| --- | --- |
+| Browser (Playwright) | **92/92** |
+| Demo | 1/1 |
+| Chat | 2/2 |
+| Unit | 8/8 |
+| Backend (pytest) | 134/134 |
+
+Fixes in this round:
+- The 5 map tests that could only pass on the Pi now pass hermetically.
+- The stale chat suite was repaired.
+- New tests cover touch targets, the Paint menus, the Library tab hover, the empty states, the converter, Briefing staleness and the Games outage.
