@@ -29,6 +29,7 @@ import {
   Minimize2,
   ChevronDown,
   SquareX,
+  Ellipsis,
 } from "lucide-react";
 import { localJSON } from "./WikiReader";
 import { isHostedDemo } from "../runtime";
@@ -78,24 +79,30 @@ const secondaryTools: readonly Tool[] = [
   "rectangle",
   "ellipse",
 ];
+// Eight everyday colors stay one tap away at full touch size; the lighter
+// and in-between shades live in the "More colors" popover.
 const palette = [
   "#242424",
   "#ffffff",
-  "#ff6a00",
-  "#003da5",
-  "#777777",
-  "#d1d1c8",
   "#b52c36",
-  "#e78086",
-  "#c57b22",
+  "#ff6a00",
   "#f0ca37",
   "#258149",
+  "#003da5",
+  "#7952a3",
+];
+const morePalette = [
+  "#777777",
+  "#d1d1c8",
+  "#e78086",
+  "#c57b22",
   "#8fc47a",
   "#167c86",
   "#73cbd0",
-  "#7952a3",
   "#bb95d9",
 ];
+// Only one Paint popover is open at a time.
+type Popover = "context" | "file" | "canvas" | "recent" | "colors";
 const draftKey = "klinekraft.paint.draft";
 const fresh = (): Drawing => ({
   id: crypto.randomUUID(),
@@ -130,11 +137,56 @@ export function Paint() {
     "#ffffff",
     "#123aff",
   ]);
-  const [contextMenu, setContextMenu] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
+  const [menuAt, setMenuAt] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+  const [popover, setPopoverState] = useState<Popover | null>(null);
+  const openPopover = useRef<Popover | null>(null);
   const root = useRef<HTMLElement>(null);
+  function setPopover(next: Popover | null) {
+    openPopover.current = next;
+    setPopoverState(next);
+    // The shared help popover manages itself; opening anything else closes it.
+    if (next)
+      root.current
+        ?.querySelector(".paint-help details[open]")
+        ?.removeAttribute("open");
+  }
+  const togglePopover = (next: Popover) =>
+    setPopover(openPopover.current === next ? null : next);
+  const contextMenu = popover === "context" ? menuAt : null;
+  useEffect(() => {
+    if (!popover) return;
+    // Escape and any press outside the open popover (and its trigger) close
+    // it. The capture-phase Escape runs before the workspace and expanded
+    // view handlers so one press closes only the popover.
+    const outside = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (!target?.closest?.(`[data-paint-popover="${popover}"]`))
+        setPopover(null);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.stopPropagation();
+      const trigger = root.current?.querySelector<HTMLElement>(
+        `[data-paint-popover="${popover}"] [data-paint-trigger]`,
+      );
+      setPopover(null);
+      if (
+        trigger &&
+        root.current?.contains(window.document.activeElement) &&
+        popover !== "context"
+      )
+        trigger.focus();
+    };
+    window.document.addEventListener("pointerdown", outside);
+    window.addEventListener("keydown", escape, true);
+    return () => {
+      window.document.removeEventListener("pointerdown", outside);
+      window.removeEventListener("keydown", escape, true);
+    };
+  }, [popover]);
   const [expanded, setExpanded] = useState(false);
   const [brush, setBrush] = useState<BrushKind>("round");
   useEffect(() => {
@@ -204,6 +256,15 @@ export function Paint() {
 
   const [text, setText] = useState(""),
     [fontSize, setFontSize] = useState(28);
+  // A one-off prompt shown in the hint row in place of the tool hint; it
+  // belongs to the current tool and text, so changing either clears it
+  // (see chooseTool and the Text field).
+  const [notice, setNotice] = useState("");
+  function chooseTool(next: Tool) {
+    setTool(next);
+    setSelection(null);
+    setNotice("");
+  }
   const [status, setStatus] = useState("Ready"),
     [dirty, setDirty] = useState(false),
     [saving, setSaving] = useState(false),
@@ -445,14 +506,19 @@ export function Paint() {
     };
   }
   function openMenu(x: number, y: number) {
-    setContextMenu({
-      x: Math.max(4, Math.min(x, window.innerWidth - 200)),
+    setMenuAt({
+      x: Math.max(4, Math.min(x, window.innerWidth - 220)),
       y: Math.max(4, Math.min(y, window.innerHeight - 240)),
     });
+    setPopover("context");
   }
   function start(event: React.PointerEvent<HTMLCanvasElement>) {
-    setContextMenu(null);
     const secondary = event.button === 2;
+    if (openPopover.current) {
+      setPopover(null);
+      // A tap that dismisses a menu must not also paint a dot.
+      if (!secondary) return;
+    }
     if (secondary) {
       rightPress.current = { x: event.clientX, y: event.clientY };
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -502,7 +568,7 @@ export function Paint() {
     }
     if (tool === "text") {
       if (!text.trim()) {
-        setStatus("Enter your text above, then click where it should appear.");
+        setNotice("Type your text in the Text field first, then click where it should appear.");
         return;
       }
       context.fillStyle = color;
@@ -517,7 +583,7 @@ export function Paint() {
       return;
     }
     if (tool === "textpath" && !text.trim()) {
-      setStatus("Enter your text above, then drag its baseline.");
+      setNotice("Type your text in the Text field first, then drag its baseline.");
       return;
     }
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -883,7 +949,6 @@ export function Paint() {
     }, "image/png");
   }
   function keyDown(event: React.KeyboardEvent) {
-    if (event.key === "Escape") setContextMenu(null);
     if ((event.target as HTMLElement).closest("input, textarea, select"))
       return;
     const key = event.key.toLowerCase(),
@@ -903,8 +968,7 @@ export function Paint() {
       const next = tools.find((value) => value.key.toLowerCase() === key);
       if (next) {
         event.preventDefault();
-        setTool(next.id);
-        setSelection(null);
+        chooseTool(next.id);
       }
     }
   }
@@ -914,8 +978,51 @@ export function Paint() {
     tool,
   );
   const mirrors = ["pencil", "brush", "eraser"].includes(tool);
-  const closeMenu = (event: React.SyntheticEvent) =>
-    event.currentTarget.closest("details")?.removeAttribute("open");
+  const closeMenu = (_event?: React.SyntheticEvent) => setPopover(null);
+  const menu = (id: "file" | "canvas", label: string) => ({
+    wrapper: { className: "paint-menu", "data-paint-popover": id },
+    trigger: {
+      type: "button" as const,
+      className: "k-btn paint-menu-trigger",
+      "data-paint-trigger": "",
+      "aria-expanded": popover === id,
+      "aria-controls": `paint-${id}-menu`,
+      onClick: () => togglePopover(id),
+      children: (
+        <>
+          {label} <ChevronDown size={16} aria-hidden />
+        </>
+      ),
+    },
+    panel: {
+      id: `paint-${id}-menu`,
+      className: "paint-menu-panel",
+      role: "group",
+      "aria-label": `${label} menu`,
+    },
+  });
+  const swatch = (value: string, close = false) => (
+    <button
+      key={value}
+      type="button"
+      className="paint-color"
+      aria-label={`Color ${value}`}
+      aria-pressed={foreground === value}
+      title={`${value} · click: foreground · right-click: background`}
+      style={{ background: value }}
+      onClick={() => {
+        setForeground(value);
+        if (close) closeMenu();
+      }}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        setBackground(value);
+        if (close) closeMenu();
+      }}
+    />
+  );
+  const fileMenu = menu("file", "File"),
+    canvasMenu = menu("canvas", "Canvas");
   return (
     <section
       ref={root}
@@ -974,11 +1081,10 @@ export function Paint() {
             <Redo2 size={18} />
           </button>
         </div>
-        <details className="paint-menu">
-          <summary className="k-btn">
-            File <ChevronDown size={16} aria-hidden />
-          </summary>
-          <div className="paint-menu-panel">
+        <div {...fileMenu.wrapper}>
+          <button {...fileMenu.trigger} />
+          {/* Kept mounted (hidden) so the file input survives closing. */}
+          <div {...fileMenu.panel} hidden={popover !== "file"}>
             <button
               type="button"
               className="k-btn k-btn--quiet"
@@ -1086,7 +1192,7 @@ export function Paint() {
               Export PNG
             </button>
           </div>
-        </details>
+        </div>
       </div>
       <div className="paint-options">
         {tool === "brush" && (
@@ -1164,7 +1270,10 @@ export function Paint() {
                     ? "Type, then click the canvas"
                     : "Type, then drag a baseline"
                 }
-                onChange={(event) => setText(event.target.value)}
+                onChange={(event) => {
+                  setText(event.target.value);
+                  setNotice("");
+                }}
               />
             </label>
             <label>
@@ -1181,12 +1290,12 @@ export function Paint() {
             </label>
           </>
         )}
-        <p className="paint-hint">{hints[tool]}</p>
-        <details className="paint-menu">
-          <summary className="k-btn">
-            Canvas <ChevronDown size={16} aria-hidden />
-          </summary>
-          <div className="paint-menu-panel">
+        <p className={`paint-hint${notice ? " paint-hint--notice" : ""}`}>
+          {notice || hints[tool]}
+        </p>
+        <div {...canvasMenu.wrapper}>
+          <button {...canvasMenu.trigger} />
+          <div {...canvasMenu.panel} hidden={popover !== "canvas"}>
             <button
               type="button"
               className="k-btn k-btn--quiet"
@@ -1261,7 +1370,7 @@ export function Paint() {
               Clear canvas
             </button>
           </div>
-        </details>
+        </div>
       </div>
       <div className="paint-editor">
         <div
@@ -1279,14 +1388,16 @@ export function Paint() {
               aria-pressed={tool === id}
               disabled={!ready}
               onClick={() => {
-                setTool(id);
-                setSelection(null);
+                chooseTool(id);
               }}
             >
               <Icon size={18} aria-hidden />
             </button>
           ))}
-          <div className="paint-help">
+          <div
+            className="paint-help"
+            onClickCapture={() => setPopover(null)}
+          >
             <Info label="Paint help">
               <p>
                 <strong>
@@ -1295,9 +1406,9 @@ export function Paint() {
                 {hints[tool]}
               </p>
               <p>
-                Right-click the canvas without dragging for canvas actions. In
+                Right-click or long-press the canvas for canvas actions. In
                 the palette, click sets the foreground and right-click the
-                background.
+                background; ⋯ shows more colors.
               </p>
               <p>
                 Ctrl+Z undo · Ctrl+Y redo · Ctrl+S save · Delete clears the
@@ -1360,6 +1471,7 @@ export function Paint() {
       {contextMenu && (
         <div
           className="paint-context"
+          data-paint-popover="context"
           role="menu"
           aria-label="Canvas actions"
           style={{ left: contextMenu.x, top: contextMenu.y }}
@@ -1370,7 +1482,7 @@ export function Paint() {
             disabled={!selection}
             onClick={() => {
               transform("crop");
-              setContextMenu(null);
+              setPopover(null);
             }}
           >
             <Crop size={16} />
@@ -1382,7 +1494,7 @@ export function Paint() {
             disabled={!selection}
             onClick={() => {
               transform("delete");
-              setContextMenu(null);
+              setPopover(null);
             }}
           >
             <Trash2 size={16} />
@@ -1394,7 +1506,7 @@ export function Paint() {
             disabled={!selection}
             onClick={() => {
               duplicateSelection();
-              setContextMenu(null);
+              setPopover(null);
             }}
           >
             <Copy size={16} />
@@ -1405,7 +1517,7 @@ export function Paint() {
             className="k-btn k-btn--quiet"
             onClick={() => {
               transform("flip");
-              setContextMenu(null);
+              setPopover(null);
             }}
           >
             <FlipHorizontal2 size={16} />
@@ -1416,7 +1528,7 @@ export function Paint() {
             className="k-btn k-btn--quiet"
             onClick={() => {
               transform("rotate");
-              setContextMenu(null);
+              setPopover(null);
             }}
           >
             <RotateCw size={16} />
@@ -1428,7 +1540,7 @@ export function Paint() {
             disabled={!undo.current.length}
             onClick={() => {
               history(true);
-              setContextMenu(null);
+              setPopover(null);
             }}
           >
             <Undo2 size={16} />
@@ -1471,26 +1583,39 @@ export function Paint() {
             role="group"
             aria-label="Palette: click for foreground, right-click for background"
           >
-            {palette.map((value) => (
+            {palette.map((value) => swatch(value))}
+            <div className="paint-more-colors" data-paint-popover="colors">
               <button
-                key={value}
                 type="button"
-                aria-label={`Color ${value}`}
-                aria-pressed={foreground === value}
-                title={`${value} · click: foreground · right-click: background`}
-                style={{ background: value }}
-                onClick={() => setForeground(value)}
-                onContextMenu={(event) => {
-                  event.preventDefault();
-                  setBackground(value);
-                }}
-              />
-            ))}
+                className="k-btn k-btn--icon k-btn--quiet"
+                data-paint-trigger=""
+                aria-label="More colors"
+                title="More colors"
+                aria-expanded={popover === "colors"}
+                aria-pressed={morePalette.includes(foreground)}
+                onClick={() => togglePopover("colors")}
+              >
+                <Ellipsis size={18} aria-hidden />
+              </button>
+              {popover === "colors" && (
+                <div
+                  className="paint-more-panel"
+                  role="group"
+                  aria-label="More colors"
+                >
+                  {morePalette.map((value) => swatch(value, true))}
+                </div>
+              )}
+            </div>
           </div>
           <ColorWheel
             color={foreground}
             onChange={setForeground}
             recent={recent}
+            open={popover === "recent"}
+            onOpenChange={(open) =>
+              open ? setPopover("recent") : closeMenu()
+            }
           />
         </div>
         <span className="paint-readout">

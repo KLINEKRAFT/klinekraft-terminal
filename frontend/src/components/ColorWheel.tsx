@@ -4,12 +4,17 @@ export function ColorWheel({
   color,
   onChange,
   recent,
+  open: history,
+  onOpenChange: setHistory,
 }: {
   color: string;
   onChange: (color: string) => void;
   recent: string[];
+  // The owner controls the recent-colors popover so it can close it on
+  // Escape and outside presses, and keep only one popover open at a time.
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const [history, setHistory] = useState(false);
   const wheel = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState({left: 0, top: 0});
   function showHistory(open: boolean) {
@@ -64,9 +69,11 @@ export function ColorWheel({
     );
   }
   return (
-    <div className="color-wheel-control">
+    <div className="color-wheel-control" data-paint-popover="recent">
       <button
         ref={wheel}
+        data-paint-trigger=""
+        aria-expanded={history}
         type="button"
         className="color-wheel"
         aria-label="Color wheel; hold for recent colors"

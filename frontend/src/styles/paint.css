@@ -17,7 +17,8 @@
 .paint > * {
   flex: none;
 }
-.paint :is(button, summary, select, input):focus-visible {
+.paint :is(button, summary, select, input):focus-visible,
+.recent-colors button:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
@@ -54,26 +55,27 @@
   position: relative;
   flex: none;
 }
-.paint-menu > summary {
-  list-style: none;
+.paint-menu-trigger {
   gap: var(--space-1);
   padding: 0 var(--space-3);
 }
-.paint-menu > summary::-webkit-details-marker {
-  display: none;
-}
-.paint-menu > summary svg {
+.paint-menu-trigger svg {
   color: var(--muted);
   transition: transform 120ms ease;
 }
-.paint-menu[open] > summary {
-  border-color: var(--logo-blue);
+.paint-menu-trigger[aria-expanded="true"] {
+  border-color: var(--accent-fg);
 }
-.paint-menu[open] > summary svg {
+.paint-menu-trigger[aria-expanded="true"] svg {
+  color: var(--accent-fg);
   transform: rotate(180deg);
+}
+.paint-menu-panel[hidden] {
+  display: none;
 }
 .paint-menu-panel,
 .paint .paint-context,
+.paint-more-panel,
 .recent-colors {
   z-index: 150;
   border: 1px solid var(--line);
@@ -82,7 +84,8 @@
   color: var(--ink);
   box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 18%, transparent);
 }
-:root[data-theme="dark"] :is(.paint .paint-context, .recent-colors) {
+:root[data-theme="dark"]
+  :is(.paint .paint-context, .paint-more-panel, .recent-colors) {
   background: var(--panel);
 }
 :root[data-theme="dark"] .paint-menu-panel,
@@ -95,7 +98,7 @@
   top: calc(100% + var(--space-1));
   display: grid;
   width: 230px;
-  gap: 2px;
+  gap: var(--space-1);
   padding: var(--space-1);
 }
 .paint-menu-panel > .k-btn,
@@ -111,7 +114,6 @@
 }
 .paint-menu-panel > .k-select {
   width: 100%;
-  margin: 2px 0;
 }
 .paint-menu-panel > hr {
   width: 100%;
@@ -154,6 +156,10 @@
   flex: 1;
   min-width: 0;
 }
+.paint-hint--notice {
+  color: var(--ink);
+  font-weight: 500;
+}
 .paint-hint {
   flex: 1 1 0;
   min-width: 0;
@@ -176,6 +182,8 @@
   border-radius: var(--radius-md);
 }
 .paint-toolbox {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: repeat(2, var(--control-h));
   grid-auto-rows: var(--control-h);
@@ -196,6 +204,7 @@
 .paint-toolbox > .k-btn[aria-pressed="true"] {
   border-color: var(--logo-blue);
   background: var(--logo-blue);
+  /* White on the logo-blue fill, as .k-btn--primary (no on-accent token). */
   color: #fff;
 }
 .paint-help {
@@ -218,11 +227,17 @@
   background: color-mix(in srgb, var(--ink) 6%, transparent);
   color: var(--ink);
 }
+/* The help panel opens beside the whole rail, not over its right column:
+   the wrapper and popover are static so it anchors to .paint-toolbox. */
+.paint-help,
+.paint-help .info-popover {
+  position: static;
+}
 .paint-help .info-content {
   left: calc(100% + var(--space-2));
   right: auto;
   top: auto;
-  bottom: 0;
+  bottom: var(--space-2);
   border-radius: var(--radius-md);
   font: var(--text-sm) / 1.5 var(--sans);
 }
@@ -251,7 +266,7 @@
   scrollbar-width: thin;
 }
 .paint-surface:focus-visible {
-  outline: 2px solid var(--logo-blue);
+  outline: 2px solid var(--accent-fg);
   outline-offset: -2px;
 }
 .paint-canvas-wrap {
@@ -283,7 +298,7 @@
   position: fixed;
   display: grid;
   width: 210px;
-  gap: 2px;
+  gap: var(--space-1);
   padding: var(--space-1);
 }
 
@@ -305,7 +320,7 @@
 .paint-swatch {
   width: var(--control-h);
   height: var(--control-h);
-  padding: 3px;
+  padding: var(--space-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--field);
@@ -316,34 +331,54 @@
 }
 .paint-swatch::-webkit-color-swatch {
   border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 .paint-swatch::-moz-color-swatch {
   border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
-  border-radius: 2px;
-}
-.paint-palette {
-  display: flex;
-  gap: 2px;
-  margin-left: var(--space-2);
-  padding: 2px;
-  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
 }
-.paint-palette > button {
-  width: 24px;
-  height: 30px;
+/* Palette: eight full-size (36px) swatches plus a "More colors" popover. */
+.paint-palette {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: var(--space-2);
+}
+.paint .paint-color {
+  position: relative;
+  width: var(--control-h);
+  height: var(--control-h);
   padding: 0;
   border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
-.paint-palette > button:hover {
-  transform: translateY(-1px);
+.paint .paint-color[aria-pressed="true"] {
+  z-index: 1;
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent-fg);
 }
-.paint-palette > button[aria-pressed="true"] {
-  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--logo-blue);
+.paint-more-colors {
   position: relative;
+  display: grid;
+}
+.paint-more-colors > .k-btn {
+  color: var(--muted);
+}
+.paint-more-colors > .k-btn[aria-expanded="true"],
+.paint-more-colors > .k-btn[aria-pressed="true"] {
+  border-color: var(--accent-fg);
+  background: transparent;
+  color: var(--accent-fg);
+}
+.paint-more-panel {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  display: grid;
+  grid-template-columns: repeat(4, var(--control-h));
+  gap: var(--space-2);
+  padding: var(--space-2);
+  transform: translateX(-50%);
 }
 .color-wheel-control {
   position: relative;
