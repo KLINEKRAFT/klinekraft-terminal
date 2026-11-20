@@ -50,9 +50,6 @@
   z-index: 1;
 }
 
-a.k-btn {
-  text-decoration: none;
-}
 .lib-actions {
   display: flex;
   flex-wrap: wrap;
@@ -230,7 +227,7 @@ a.k-btn {
   box-sizing: border-box;
   padding: var(--space-4) var(--space-3) var(--space-6) var(--space-4);
   border-left: var(--space-1) solid
-    color-mix(in srgb, var(--logo-blue) 65%, var(--panel));
+    color-mix(in srgb, var(--accent-fg) 65%, var(--panel));
   background: linear-gradient(
     160deg,
     color-mix(in srgb, var(--panel) 45%, var(--paper)),
@@ -332,7 +329,7 @@ a.k-btn {
 }
 .lib-archives button > svg {
   grid-row: span 2;
-  color: var(--logo-blue);
+  color: var(--accent-fg);
 }
 .lib-archives strong {
   font: 600 var(--text-md) var(--sans);
@@ -342,7 +339,7 @@ a.k-btn {
   font-size: var(--text-xs);
 }
 .lib-archives button:hover {
-  border-color: var(--logo-blue);
+  border-color: var(--accent-fg);
 }
 .lib-archives button:focus-visible {
   outline: none;
@@ -579,7 +576,7 @@ a.k-btn {
 }
 .lib-entry-note {
   padding: var(--space-2) var(--space-3);
-  border-left: 3px solid var(--logo-blue);
+  border-left: 3px solid var(--accent-fg);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: color-mix(in srgb, var(--panel) 50%, transparent);
   color: var(--ink);
@@ -595,7 +592,7 @@ a.k-btn {
 .lib-sources .k-btn {
   max-width: 100%;
   padding: 0 var(--space-2);
-  color: var(--blue);
+  color: var(--accent-fg);
   font-size: var(--text-xs);
   white-space: normal;
   text-align: left;
@@ -612,7 +609,7 @@ a.k-btn {
   background: color-mix(in srgb, var(--panel) 35%, transparent);
 }
 .lib-launch > svg {
-  color: var(--logo-blue);
+  color: var(--accent-fg);
 }
 .lib-launch > .lib-launch-text {
   display: grid;
@@ -645,7 +642,7 @@ a.k-btn {
 }
 .bookmark-list > li > svg {
   flex: none;
-  color: var(--logo-blue);
+  color: var(--accent-fg);
 }
 .bookmark-list a {
   display: grid;
@@ -722,7 +719,7 @@ a.k-btn {
   color: var(--muted);
 }
 .lib-file-list > li > svg.lucide-folder {
-  color: var(--logo-blue);
+  color: var(--accent-fg);
 }
 .lib-file-name {
   overflow: hidden;
@@ -842,8 +839,8 @@ button.lib-file-name:focus-visible {
   flex: none;
   width: 6px;
   height: 6px;
-  border-right: 2px solid var(--logo-blue);
-  border-bottom: 2px solid var(--logo-blue);
+  border-right: 2px solid var(--accent-fg);
+  border-bottom: 2px solid var(--accent-fg);
   transform: rotate(-45deg);
   transition: transform 120ms ease;
 }
@@ -860,6 +857,14 @@ button.lib-file-name:focus-visible {
 }
 .details-panel-content {
   padding: var(--space-3);
+}
+/* Older briefing rules pad and re-round bare <details>; a DetailsPanel
+   brings its own 36px header and inset, so undo them to keep every
+   disclosure the same height on every page. */
+:is(.briefing-science, .briefing-page) > details.details-panel {
+  padding: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -888,4 +893,21 @@ button.lib-file-name:focus-visible {
   .lib-docs .lib-segmented {
     display: none;
   }
+}
+
+/* Shelf overflow: fade the edge that hides more covers (set from JS). */
+.document-gallery.shelf[data-more="end"] {
+  mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent);
+}
+.document-gallery.shelf[data-more="start"] {
+  mask-image: linear-gradient(to left, #000 calc(100% - 56px), transparent);
+}
+.document-gallery.shelf[data-more="both"] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 56px,
+    #000 calc(100% - 56px),
+    transparent
+  );
 }

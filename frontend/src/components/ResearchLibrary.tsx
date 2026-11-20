@@ -1,6 +1,12 @@
 import { LocalImage } from "./LocalImage";
 import { DocumentReader, type DocumentSource } from "./DocumentReader";
-import { useEffect, useId, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { FolderInput, Library, SearchX } from "lucide-react";
 import { isHostedDemo } from "../runtime";
 import { localJSON } from "./WikiReader";
@@ -50,6 +56,55 @@ export function ResearchLibrary({
   const [importing, setImporting] = useState(false);
   const [preview, setPreview] = useState<DocumentSource | null>(null);
   const importId = useId();
+  // Opening the import form hides the empty-state button that opened it, so
+  // closing the form must hand focus back to whichever Import button is
+  // on screen again instead of dropping it on <body>.
+  const toolbarImport = useRef<HTMLButtonElement>(null);
+  const emptyImport = useRef<HTMLButtonElement>(null);
+  // "" = nothing to restore; "now" = Cancel/Escape; "after-import" = wait
+  // for the refreshed results, which decide which Import button is shown.
+  const restoreFocus = useRef<"" | "now" | "after-import">("");
+  const resultsAtClose = useRef<Results | null>(null);
+  const shelf = useRef<HTMLUListElement>(null);
+  const [shelfEdges, setShelfEdges] = useState("");
+  useEffect(() => {
+    if (importing || !restoreFocus.current) return;
+    if (
+      restoreFocus.current === "after-import" &&
+      results === resultsAtClose.current
+    )
+      return;
+    restoreFocus.current = "";
+    (toolbarImport.current ?? emptyImport.current)?.focus();
+  }, [importing, results]);
+  // The shelf scrolls sideways. Fade whichever edge hides more covers so a
+  // touchscreen user can see there is more to swipe to.
+  useEffect(() => {
+    const element = shelf.current;
+    if (!element || layout !== "shelf") {
+      setShelfEdges("");
+      return;
+    }
+    const measure = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = element;
+      const start = scrollLeft > 1;
+      const end = scrollLeft + clientWidth < scrollWidth - 1;
+      setShelfEdges(start && end ? "both" : start ? "start" : end ? "end" : "");
+    };
+    measure();
+    element.addEventListener("scroll", measure, { passive: true });
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => {
+      element.removeEventListener("scroll", measure);
+      observer.disconnect();
+    };
+  }, [layout, results]);
+  function closeImport(imported = false) {
+    restoreFocus.current = imported ? "after-import" : "now";
+    resultsAtClose.current = results;
+    setImporting(false);
+  }
 
   useEffect(() => {
     const refresh = () => setRevision((value) => value + 1);
@@ -93,7 +148,7 @@ export function ResearchLibrary({
       );
       setFilter("");
       setQuery("");
-      setImporting(false);
+      closeImport(true);
       setRevision((value) => value + 1);
     } catch (failure) {
       setError((failure as Error).message);
@@ -180,16 +235,27 @@ export function ResearchLibrary({
           <button
             type="button"
             className="k-btn"
+            ref={toolbarImport}
             aria-expanded={importing}
             aria-controls={importId}
-            onClick={() => setImporting((value) => !value)}
+            onClick={() => (importing ? closeImport() : setImporting(true))}
           >
             <FolderInput size={16} aria-hidden="true" /> Import
           </button>
         </div>
       )}
       {importing && (
-        <form id={importId} className="k-card lib-import" onSubmit={importFolder}>
+        <form
+          id={importId}
+          className="k-card lib-import"
+          onSubmit={importFolder}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              closeImport();
+            }
+          }}
+        >
           <div className="lib-import-head">
             <h3>Import a folder</h3>
             <p>
@@ -203,6 +269,7 @@ export function ResearchLibrary({
               Collection
               <input
                 className="k-field"
+                autoFocus
                 value={collection}
                 required
                 maxLength={80}
@@ -244,7 +311,7 @@ export function ResearchLibrary({
             <button
               type="button"
               className="k-btn k-btn--quiet"
-              onClick={() => setImporting(false)}
+              onClick={() => closeImport()}
             >
               Cancel
             </button>
@@ -270,6 +337,7 @@ export function ResearchLibrary({
             the Pi, searchable offline, and Shackleton can cite them.
           </p>
           <button
+            ref={emptyImport}
             type="button"
             className="k-btn k-btn--primary"
             onClick={() => setImporting(true)}
@@ -295,7 +363,11 @@ export function ResearchLibrary({
         </div>
       )}
       {!!results?.files.length && (
-        <ul className={`document-gallery ${layout}`}>
+        <ul
+          ref={shelf}
+          className={`document-gallery ${layout}`}
+          data-more={shelfEdges || undefined}
+        >
           {results.files.map((file) => (
             <li key={file.id}>
               <button

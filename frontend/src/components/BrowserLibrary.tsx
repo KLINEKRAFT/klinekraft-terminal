@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowUpRight, Bookmark as BookmarkIcon, Globe, Plus } from "lucide-react";
 import { browserUrl, type Bookmark, type BrowserStore } from "../bookmarks";
 
@@ -16,7 +16,31 @@ export function BrowserLibrary({
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  // Closing the form returns focus to the button that opened it. The
+  // empty-state Add button unmounts while the form is open, so fall back to
+  // whichever Add button is on screen again.
+  const opener = useRef<HTMLElement | null>(null);
+  const toolbarAdd = useRef<HTMLButtonElement>(null);
+  const emptyAdd = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
+  useEffect(() => {
+    if (adding || !restoreFocus.current) return;
+    restoreFocus.current = false;
+    const target = opener.current?.isConnected
+      ? opener.current
+      : (toolbarAdd.current ?? emptyAdd.current);
+    target?.focus();
+  }, [adding, data.bookmarks]);
+  function close() {
+    restoreFocus.current = true;
+    setAdding(false);
+    setEditing(null);
+  }
   function edit(item?: Bookmark) {
+    opener.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     setEditing(item ?? null);
     setAdding(true);
     setTitle(item?.title ?? "");
@@ -44,8 +68,7 @@ export function BrowserLibrary({
           ? data.bookmarks.map((b) => (b.id === editing.id ? item : b))
           : [...data.bookmarks, item],
       });
-      setAdding(false);
-      setEditing(null);
+      close();
       setMessage("Bookmark saved.");
     } catch (cause) {
       setError((cause as Error).message);
@@ -79,6 +102,7 @@ export function BrowserLibrary({
         )}
         {!empty && (
           <button
+            ref={toolbarAdd}
             className="k-btn k-btn--primary"
             onClick={() => edit()}
             disabled={adding || data.bookmarks.length >= 100}
@@ -93,7 +117,16 @@ export function BrowserLibrary({
         </p>
       )}
       {adding && (
-        <form className="k-card lib-form" onSubmit={submit}>
+        <form
+          className="k-card lib-form"
+          onSubmit={submit}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              close();
+            }
+          }}
+        >
           <h3>{editing ? "Edit bookmark" : "New bookmark"}</h3>
           <div className="lib-form-row">
             <label className="k-label">
@@ -133,10 +166,7 @@ export function BrowserLibrary({
             <button
               className="k-btn k-btn--quiet"
               type="button"
-              onClick={() => {
-                setAdding(false);
-                setEditing(null);
-              }}
+              onClick={close}
             >
               Cancel
             </button>
@@ -157,7 +187,11 @@ export function BrowserLibrary({
               Save the websites you visit often and pin the best ones to Home.
               They open in a new tab when you are online.
             </p>
-            <button className="k-btn k-btn--primary" onClick={() => edit()}>
+            <button
+              ref={emptyAdd}
+              className="k-btn k-btn--primary"
+              onClick={() => edit()}
+            >
               <Plus size={16} aria-hidden="true" /> Add bookmark
             </button>
           </div>
