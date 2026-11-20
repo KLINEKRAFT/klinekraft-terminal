@@ -1,6 +1,6 @@
 import { LocalImage } from "./LocalImage";
 import { useEffect, useState } from "react";
-import { Play, Star, Shuffle } from "lucide-react";
+import { Gamepad2, Play, RefreshCw, Star, Shuffle } from "lucide-react";
 import { isHostedDemo } from "../runtime";
 
 type Game = { id: string; title: string; system: string };
@@ -17,6 +17,8 @@ const names: Record<string, string> = {
   megadrive: "Genesis / Mega Drive",
 };
 const headers = { "X-Klinekraft-Client": "local-ui" };
+const setupCommand =
+  'cd ~/klinekraft-terminal\nbash scripts/setup-games.sh "/path/to/retropie/roms"';
 export function GamesPanel() {
   const [data, setData] = useState<Catalog | null>(null);
   const [error, setError] = useState("");
@@ -214,72 +216,83 @@ export function GamesPanel() {
         </p>
       ) : (
         <>
-          <div className="game-toolbar">
-            <label className="sr-only" htmlFor="game-search">
-              Search games
-            </label>
-            <input
-              id="game-search"
-              type="search"
-              placeholder="Search your games"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setLimit(60);
-                setRandomIds(null);
-              }}
-            />
-            <select
-              aria-label="Game system"
-              value={system}
-              onChange={(e) => {
-                setSystem(e.target.value);
-                setLimit(60);
-                setRandomIds(null);
-              }}
-            >
-              <option value="all">All systems</option>
-              {Object.entries(names).map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
-            <button
-              className="browser-button"
-              aria-pressed={onlyFavorites}
-              onClick={() => {
-                setOnlyFavorites(!onlyFavorites);
-                setLimit(60);
-                setRandomIds(null);
-              }}
-            >
-              Favorites
-            </button>
-            <button
-              className="browser-button"
-              onClick={randomize}
-              disabled={!filtered.length}
-              aria-pressed={randomIds !== null}
-              title="Show up to 12 random games from these filters"
-            >
-              <Shuffle size={14} /> Random
-            </button>
-            {randomIds !== null && (
-              <button
-                className="browser-button"
-                onClick={() => setRandomIds(null)}
+          {!!data?.games.length && (
+            <div className="games-toolbar">
+              <label className="sr-only" htmlFor="game-search">
+                Search games
+              </label>
+              <input
+                id="game-search"
+                className="k-field games-search"
+                type="search"
+                placeholder="Search your games"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setLimit(60);
+                  setRandomIds(null);
+                }}
+              />
+              <select
+                className="k-select"
+                aria-label="Game system"
+                value={system}
+                onChange={(e) => {
+                  setSystem(e.target.value);
+                  setLimit(60);
+                  setRandomIds(null);
+                }}
               >
-                Show all
+                <option value="all">All systems</option>
+                {Object.entries(names).map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="k-btn"
+                aria-pressed={onlyFavorites}
+                onClick={() => {
+                  setOnlyFavorites(!onlyFavorites);
+                  setLimit(60);
+                  setRandomIds(null);
+                }}
+              >
+                <Star
+                  size={14}
+                  aria-hidden="true"
+                  fill={onlyFavorites ? "currentColor" : "none"}
+                />
+                Favorites
               </button>
-            )}
-            <button
-              className="browser-button"
-              onClick={() => setRevision((value) => value + 1)}
-            >
-              Refresh games
-            </button>
-          </div>
+              <button
+                className="k-btn"
+                onClick={randomize}
+                disabled={!filtered.length}
+                aria-pressed={randomIds !== null}
+                title="Show up to 12 random games from these filters"
+              >
+                <Shuffle size={14} aria-hidden="true" /> Random
+              </button>
+              {randomIds !== null && (
+                <button
+                  className="k-btn k-btn--quiet"
+                  onClick={() => setRandomIds(null)}
+                >
+                  Show all
+                </button>
+              )}
+              <button
+                className="k-btn k-btn--quiet k-btn--icon"
+                aria-label="Refresh games"
+                title="Refresh games"
+                onClick={() => setRevision((value) => value + 1)}
+              >
+                <RefreshCw size={16} aria-hidden="true" />
+              </button>
+            </div>
+          )}
           {error && (
             <p role="alert" className="browser-warning">
               {error}
@@ -317,13 +330,19 @@ export function GamesPanel() {
                   </p>
                 )}
               {!data.games.length ? (
-                <p className="browser-help">
-                  Your library is ready for its first games. Import your USB
-                  collection using the setup instructions below.
-                </p>
+                <div className="k-empty games-empty">
+                  <Gamepad2 size={32} aria-hidden="true" />
+                  <h3>No games yet</h3>
+                  <p>
+                    Connect the USB drive, then run the Games installer from a
+                    Terminal on the Pi desktop. Your games appear here
+                    automatically.
+                  </p>
+                  <code>{setupCommand}</code>
+                </div>
               ) : (
                 <>
-                  <p className="browser-help">
+                  <p className="games-count">
                     {randomIds !== null
                       ? `${shown.length} random picks · `
                       : ""}
@@ -331,9 +350,21 @@ export function GamesPanel() {
                     {onlyFavorites ? " in favorites" : ""}
                   </p>
                   {!filtered.length && (
-                    <p className="browser-help">
-                      No games match. Try another title or system.
-                    </p>
+                    <div className="k-empty">
+                      <h3>No games match</h3>
+                      <p>Try another title or system.</p>
+                      <button
+                        className="k-btn"
+                        onClick={() => {
+                          setSearch("");
+                          setSystem("all");
+                          setOnlyFavorites(false);
+                          setRandomIds(null);
+                        }}
+                      >
+                        Clear filters
+                      </button>
+                    </div>
                   )}
                   <ul className="game-list">
                     {shown.slice(0, limit).map((game) => (
@@ -375,7 +406,7 @@ export function GamesPanel() {
                           </span>
                         </div>
                         <button
-                          className="browser-button"
+                          className="k-btn"
                           disabled={
                             launching ||
                             !!data.running ||
@@ -384,14 +415,14 @@ export function GamesPanel() {
                           aria-label={`Play ${game.title}`}
                           onClick={() => void play(game)}
                         >
-                          <Play size={14} /> Play
+                          <Play size={14} aria-hidden="true" /> Play
                         </button>
                       </li>
                     ))}
                   </ul>
                   {randomIds === null && filtered.length > limit && (
                     <button
-                      className="browser-button"
+                      className="k-btn games-more"
                       onClick={() => setLimit((value) => value + 60)}
                     >
                       Show more games
@@ -401,30 +432,37 @@ export function GamesPanel() {
               )}
             </>
           )}
-          <details className="content-details">
-            <summary>Set up games on the Pi</summary>
-            <p>
-              Connect the USB drive and run the Games installer from your Pi’s
-              desktop Terminal. Use your drive’s roms folder as the source.
-              Originals and save backups are preserved.
-            </p>
-            <pre>
-              cd ~/klinekraft-terminal{"\n"}bash scripts/setup-games.sh
-              "/path/to/retropie/roms"
-            </pre>
-            <p>
-              NES, SNES and Genesis / Mega Drive are supported. The importer
-              reads ROM types inside ZIPs, so misplaced Genesis files are routed
-              correctly. Actual 32X ROMs are left on the source for a future
-              core.
-            </p>
-            <p>
-              Plug in the SAFFUN receiver and turn on the controller. If buttons
-              are not mapped, use RetroArch Settings → Input → RetroPad Binds →
-              Port 1 Controls. Keep a keyboard handy for the first test; F1
-              opens the RetroArch menu. Choose Quit RetroArch to return to the
-              dashboard.
-            </p>
+          <details className="details-panel games-help">
+            <summary>
+              {data && !data.games.length
+                ? "Supported systems & controller"
+                : "Import more games & controller"}
+            </summary>
+            <div className="details-panel-content">
+              {!!data?.games.length && (
+                <>
+                  <p>
+                    Connect the USB drive and run the Games installer again from
+                    a Terminal on the Pi desktop. Originals and save backups are
+                    preserved.
+                  </p>
+                  <code>{setupCommand}</code>
+                </>
+              )}
+              <p>
+                NES, SNES and Genesis / Mega Drive are supported. The importer
+                reads ROM types inside ZIPs, so misplaced Genesis files are
+                routed correctly. Actual 32X ROMs are left on the source for a
+                future core.
+              </p>
+              <p>
+                Plug in the SAFFUN receiver and turn on the controller. If
+                buttons are not mapped, use RetroArch Settings → Input →
+                RetroPad Binds → Port 1 Controls. Keep a keyboard handy for the
+                first test; F1 opens the RetroArch menu. Choose Quit RetroArch
+                to return to the dashboard.
+              </p>
+            </div>
           </details>
         </>
       )}

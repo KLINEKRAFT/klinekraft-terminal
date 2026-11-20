@@ -6,7 +6,7 @@ test("chat persists across reload and browser profiles, renames, exports and del
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.goto("/");
   await page.getByRole("button", { name: /03 AI assistant/ }).click();
-  await page.getByRole("button", { name: "Wikipedia on" }).click();
+  await page.getByRole("switch", { name: "Wikipedia", exact: true }).click();
   await page.getByLabel("Your question").fill("A persistent astronomy chat");
   await page.getByLabel("Your question").press("Enter");
   await expect(page.getByText("Saved on Pi", { exact: false })).toBeVisible();
@@ -57,7 +57,7 @@ test("failed save keeps answer and retry does not ask cloud AI again", async ({
   );
   await page.goto("/");
   await page.getByRole("button", { name: /03 AI assistant/ }).click();
-  await page.getByRole("button", { name: "Wikipedia on" }).click();
+  await page.getByRole("switch", { name: "Wikipedia", exact: true }).click();
   await page.getByLabel("Your question").fill("Keep this answer");
   await page.getByLabel("Your question").press("Enter");
   await expect(page.getByText("Storage unavailable")).toBeVisible();

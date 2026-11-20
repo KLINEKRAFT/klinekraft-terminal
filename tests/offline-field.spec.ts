@@ -108,8 +108,12 @@ test("emergency topics search references and radio send stays disabled without h
   await page
     .getByText("Off-grid messages · No radio connected", { exact: true })
     .click();
+  // Without a radio there is nothing to send from: the composer stays hidden.
   await expect(
     page.getByRole("button", { name: "Send over radio" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Connect radio" }),
   ).toBeDisabled();
   await expect(
     page.getByText(/built-in Wi-Fi and Bluetooth cannot/),
