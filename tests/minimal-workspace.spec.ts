@@ -151,6 +151,31 @@ test("Paint mirrors strokes and offers context actions", async ({ page }) => {
   await expect(page.getByRole("menu")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu")).toHaveCount(0);
+  // Right-drag paints with the background color instead of opening the menu.
+  await page.getByLabel("Mirror drawing").selectOption("off");
+  await page.getByLabel("Width").selectOption("20");
+  await page.mouse.move(box.x + box.width * 0.1, box.y + box.height * 0.7);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.7, {
+    steps: 6,
+  });
+  await page.mouse.up();
+  await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.6);
+  await page.mouse.down({ button: "right" });
+  await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.8, {
+    steps: 6,
+  });
+  await page.mouse.up({ button: "right" });
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  const erased = await canvas.evaluate((c: HTMLCanvasElement) =>
+    Array.from(
+      c
+        .getContext("2d")!
+        .getImageData(Math.floor(c.width * 0.3), Math.floor(c.height * 0.7), 1, 1)
+        .data,
+    ),
+  );
+  expect(erased).toEqual([255, 255, 255, 255]);
   await page.getByRole('button', {name: 'Color wheel; hold for recent colors'}).click({button: 'right'});
   const swatches = page.locator('.recent-colors button').last();
   await expect(swatches).toBeInViewport();

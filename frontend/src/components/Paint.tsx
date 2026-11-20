@@ -7,11 +7,12 @@ import {
   Eraser,
   PaintBucket,
   Pipette,
-  Minus,
-  Square,
+  Slash,
+  RectangleHorizontal,
   Circle,
   Type,
-  Scan,
+  Baseline,
+  SquareDashed,
   Undo2,
   Redo2,
   Download,
@@ -23,6 +24,11 @@ import {
   RotateCw,
   ArrowLeftRight,
   Trash2,
+  Copy,
+  Maximize2,
+  Minimize2,
+  ChevronDown,
+  SquareX,
 } from "lucide-react";
 import { localJSON } from "./WikiReader";
 import { isHostedDemo } from "../runtime";
@@ -52,18 +58,26 @@ type Tool =
   | "select"
   | "textpath";
 const tools = [
-  { id: "select", label: "Select", key: "S", icon: Scan },
+  { id: "select", label: "Select", key: "S", icon: SquareDashed },
   { id: "pencil", label: "Pencil", key: "P", icon: Pencil },
   { id: "brush", label: "Brush", key: "B", icon: Paintbrush },
   { id: "eraser", label: "Eraser", key: "E", icon: Eraser },
   { id: "fill", label: "Fill", key: "F", icon: PaintBucket },
   { id: "picker", label: "Pick color", key: "I", icon: Pipette },
-  { id: "line", label: "Line", key: "L", icon: Minus },
-  { id: "rectangle", label: "Rectangle", key: "R", icon: Square },
+  { id: "line", label: "Line", key: "L", icon: Slash },
+  { id: "rectangle", label: "Rectangle", key: "R", icon: RectangleHorizontal },
   { id: "ellipse", label: "Ellipse", key: "O", icon: Circle },
-  { id: "textpath", label: "Text on line", key: "A", icon: Type },
   { id: "text", label: "Text", key: "T", icon: Type },
+  { id: "textpath", label: "Text on line", key: "A", icon: Baseline },
 ] as const;
+// Tools whose right-drag paints with the background color, as in classic Paint.
+const secondaryTools: readonly Tool[] = [
+  "pencil",
+  "brush",
+  "line",
+  "rectangle",
+  "ellipse",
+];
 const palette = [
   "#242424",
   "#ffffff",
@@ -96,14 +110,16 @@ const hints: Record<Tool, string> = {
     "Enter text, then drag its baseline. Text is painted into the image.",
   select:
     "Drag to select. Drag inside to move. Crop or Delete to edit the selection.",
-  pencil: "Draw a fine line. Right-click uses the background color.",
-  brush: "Draw freehand. Choose a brush width above.",
+  pencil: "Draw a fine line. Right-drag draws in the background color.",
+  brush: "Draw freehand. Right-drag paints in the background color.",
   eraser: "Erase to the background color.",
   fill: "Click to fill a connected area with the selected color.",
   picker: "Click the canvas to sample a color.",
-  line: "Drag a line. Hold Shift to constrain its angle.",
-  rectangle: "Drag a rectangle. Hold Shift for a square.",
-  ellipse: "Drag an ellipse. Hold Shift for a circle.",
+  line: "Drag a line. Shift snaps the angle; right-drag uses the background color.",
+  rectangle:
+    "Drag a rectangle. Shift makes a square; right-drag swaps the two colors.",
+  ellipse:
+    "Drag an ellipse. Shift makes a circle; right-drag swaps the two colors.",
   text: "Enter text above, then click the canvas to place it.",
 };
 
@@ -203,9 +219,14 @@ export function Paint() {
     base: ImageData;
     pointer: number;
     color: string;
+    fill: string;
+    moved: boolean;
     moving?: Box;
     pixels?: HTMLCanvasElement;
   } | null>(null);
+  // A right press that has not moved yet: released in place it opens the menu.
+  const rightPress = useRef<Point | null>(null),
+    contextHandledUntil = useRef(0);
   const loadSequence = useRef(0);
   const generation = useRef(0),
     inFlight = useRef(false),
@@ -423,18 +444,30 @@ export function Paint() {
       ),
     };
   }
+  function openMenu(x: number, y: number) {
+    setContextMenu({
+      x: Math.max(4, Math.min(x, window.innerWidth - 200)),
+      y: Math.max(4, Math.min(y, window.innerHeight - 240)),
+    });
+  }
   function start(event: React.PointerEvent<HTMLCanvasElement>) {
-    if (event.button === 2) return;
     setContextMenu(null);
-    setRecent((old) =>
-      [foreground, ...old.filter((c) => c !== foreground)].slice(0, 6),
-    );
-    if (!ready || stroke.current || event.button !== 0) return;
+    const secondary = event.button === 2;
+    if (secondary) {
+      rightPress.current = { x: event.clientX, y: event.clientY };
+      event.currentTarget.setPointerCapture(event.pointerId);
+      // Other tools keep right-click for the canvas menu only.
+      if (!secondaryTools.includes(tool)) return;
+    } else if (event.button !== 0) return;
+    if (!ready || stroke.current) return;
     event.preventDefault();
     workspace.current?.focus({ preventScroll: true });
     const p = point(event),
       context = ctx(),
-      color = foreground;
+      color = secondary ? background : foreground,
+      fill = secondary ? foreground : background;
+    if (!secondary && tool !== "eraser" && tool !== "select")
+      setRecent((old) => [color, ...old.filter((c) => c !== color)].slice(0, 6));
     if (tool === "picker") {
       const pixel = context.getImageData(
         Math.floor(p.x),
@@ -483,6 +516,10 @@ export function Paint() {
       checkpoint(base);
       return;
     }
+    if (tool === "textpath" && !text.trim()) {
+      setStatus("Enter your text above, then drag its baseline.");
+      return;
+    }
     event.currentTarget.setPointerCapture(event.pointerId);
     stroke.current = {
       start: p,
@@ -490,6 +527,8 @@ export function Paint() {
       base,
       pointer: event.pointerId,
       color,
+      fill,
+      moved: false,
     };
     if (tool === "select") {
       if (
@@ -558,6 +597,7 @@ export function Paint() {
     if (!active || active.pointer !== event.pointerId) return;
     const context = ctx(),
       start = active.start;
+    if (Math.hypot(p.x - start.x, p.y - start.y) >= 1) active.moved = true;
     if (["pencil", "brush", "eraser"].includes(tool)) {
       drawSegment(active.last, p, active.color);
       active.last = p;
@@ -620,7 +660,7 @@ export function Paint() {
       return;
     }
     context.strokeStyle = active.color;
-    context.fillStyle = fillStyle === "both" ? background : active.color;
+    context.fillStyle = fillStyle === "both" ? active.fill : active.color;
     context.lineWidth = size;
     context.lineCap = "round";
     context.beginPath();
@@ -644,6 +684,7 @@ export function Paint() {
     if (tool === "line" || fillStyle !== "solid") context.stroke();
   }
   function finish(cancel = false) {
+    if (cancel) rightPress.current = null;
     const active = stroke.current;
     if (!active) return;
     stroke.current = null;
@@ -653,7 +694,34 @@ export function Paint() {
       if (dirty) changed();
       return;
     }
-    if (tool !== "select" || active.moving) checkpoint(active.base);
+    // A click that drew nothing (no drag for a shape, a selection left in
+    // place) must not cost an undo step or an autosave.
+    if (tool === "select" && !active.moving) return;
+    if (
+      ["select", "line", "rectangle", "ellipse", "textpath"].includes(tool) &&
+      !active.moved
+    ) {
+      ctx().putImageData(active.base, 0, 0);
+      if (active.moving) setSelection(active.moving);
+      return;
+    }
+    checkpoint(active.base);
+  }
+  function release(event: React.PointerEvent<HTMLCanvasElement>) {
+    const press = rightPress.current;
+    if (event.button === 2 && press) {
+      rightPress.current = null;
+      contextHandledUntil.current = performance.now() + 600;
+      if (Math.hypot(event.clientX - press.x, event.clientY - press.y) < 4) {
+        // A right-click, not a right-drag: undo the dot and open the menu.
+        const active = stroke.current;
+        stroke.current = null;
+        if (active) ctx().putImageData(active.base, 0, 0);
+        openMenu(event.clientX, event.clientY);
+        return;
+      }
+    }
+    finish();
   }
   function history(back: boolean) {
     if (stroke.current || !ready) return;
@@ -842,6 +910,12 @@ export function Paint() {
   }
   if (isHostedDemo) return <p>Open the local Pi app to paint.</p>;
   const busy = saving || dirty || !ready;
+  const hasWidth = ["brush", "eraser", "line", "rectangle", "ellipse"].includes(
+    tool,
+  );
+  const mirrors = ["pencil", "brush", "eraser"].includes(tool);
+  const closeMenu = (event: React.SyntheticEvent) =>
+    event.currentTarget.closest("details")?.removeAttribute("open");
   return (
     <section
       ref={root}
@@ -849,130 +923,179 @@ export function Paint() {
       aria-label="Paint workspace"
       onKeyDown={keyDown}
     >
-      <div className="paint-document-bar">
+      <div className="paint-bar">
         <button
+          type="button"
+          className="k-btn k-btn--icon"
           onClick={() => void toggleFullscreen()}
           aria-label={
             expanded ? "Exit expanded Paint" : "Expand Paint workspace"
           }
+          title={expanded ? "Exit expanded Paint (Esc)" : "Expand Paint"}
         >
-          {expanded ? "Exit expanded" : "Expand"}
+          {expanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
         </button>
-        <label className="paint-name">
-          DRAWING{" "}
-          <input
-            aria-label="Drawing name"
-            value={drawing.title}
-            maxLength={200}
-            onChange={(event) => {
-              updateDocument({
-                ...document.current,
-                title: event.target.value,
-              });
-              changed();
-            }}
-            disabled={!ready}
-          />
-        </label>
+        <input
+          className="k-field paint-title"
+          aria-label="Drawing name"
+          value={drawing.title}
+          maxLength={200}
+          onChange={(event) => {
+            updateDocument({
+              ...document.current,
+              title: event.target.value,
+            });
+            changed();
+          }}
+          disabled={!ready}
+        />
         <span className="paint-save-status" role="status">
           {saving ? "Saving on Pi…" : status}
         </span>
-      </div>
-      <details className="paint-file-menu">
-        <summary>File ▾</summary>
-        <div className="paint-command-bar">
-          <button disabled={busy} onClick={() => void load(fresh())}>
-            <Plus size={15} />
-            New
-          </button>
-          <button disabled={busy} onClick={() => fileInput.current?.click()}>
-            <FolderOpen size={15} />
-            Import image
-          </button>
-          <input
-            ref={fileInput}
-            hidden
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/bmp"
-            onChange={(event) => {
-              void importImage(event.target.files?.[0]);
-              event.target.value = "";
-            }}
-          />
-          <select
-            aria-label="Open saved drawing"
-            value=""
-            disabled={busy}
-            onChange={(event) => {
-              const item = saved.find(
-                (value) => value.id === event.target.value,
-              );
-              if (item) void load(item);
-            }}
-          >
-            <option value="">Open saved…</option>
-            {saved.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.title}
-              </option>
-            ))}
-          </select>
+        <div className="paint-group" role="group" aria-label="History">
           <button
-            disabled={saving || !ready || !drawing.title.trim()}
-            onClick={() => void save()}
-          >
-            <Save size={15} />
-            Save
-          </button>
-          {dirty && failed.current && (
-            <button
-              disabled={saving}
-              onClick={() => {
-                updateDocument({
-                  ...document.current,
-                  id: crypto.randomUUID(),
-                  revision: 0,
-                });
-                changed();
-                void save();
-              }}
-            >
-              Save a copy
-            </button>
-          )}
-          <button disabled={!ready} onClick={exportPNG}>
-            <Download size={15} />
-            Export PNG
-          </button>
-          <span className="paint-divider" />
-          <button
+            type="button"
+            className="k-btn k-btn--icon k-btn--quiet"
             aria-label="Undo"
             title="Undo (Ctrl+Z)"
             disabled={!ready || !undo.current.length}
             onClick={() => history(true)}
           >
-            <Undo2 size={17} />
+            <Undo2 size={18} />
           </button>
           <button
+            type="button"
+            className="k-btn k-btn--icon k-btn--quiet"
             aria-label="Redo"
             title="Redo (Ctrl+Y)"
             disabled={!ready || !redo.current.length}
             onClick={() => history(false)}
           >
-            <Redo2 size={17} />
+            <Redo2 size={18} />
           </button>
         </div>
-      </details>
+        <details className="paint-menu">
+          <summary className="k-btn">
+            File <ChevronDown size={16} aria-hidden />
+          </summary>
+          <div className="paint-menu-panel">
+            <button
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={busy}
+              onClick={(event) => {
+                closeMenu(event);
+                void load(fresh());
+              }}
+            >
+              <Plus size={16} />
+              New drawing
+            </button>
+            <button
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={busy}
+              onClick={(event) => {
+                closeMenu(event);
+                fileInput.current?.click();
+              }}
+            >
+              <FolderOpen size={16} />
+              Import image…
+            </button>
+            <input
+              ref={fileInput}
+              hidden
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/bmp"
+              onChange={(event) => {
+                void importImage(event.target.files?.[0]);
+                event.target.value = "";
+              }}
+            />
+            <select
+              className="k-select"
+              aria-label="Open saved drawing"
+              value=""
+              disabled={busy || !saved.length}
+              onChange={(event) => {
+                const item = saved.find(
+                  (value) => value.id === event.target.value,
+                );
+                closeMenu(event);
+                if (item) void load(item);
+              }}
+            >
+              <option value="">
+                {saved.length ? "Open saved…" : "No saved drawings yet"}
+              </option>
+              {saved.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.title}
+                </option>
+              ))}
+            </select>
+            {ready && dirty && (
+              <p className="paint-menu-note">
+                New, Import and Open unlock once this drawing is saved.
+              </p>
+            )}
+            <hr />
+            <button
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={saving || !ready || !drawing.title.trim()}
+              onClick={(event) => {
+                closeMenu(event);
+                void save();
+              }}
+            >
+              <Save size={16} />
+              Save now
+            </button>
+            {dirty && failed.current && (
+              <button
+                type="button"
+                className="k-btn k-btn--quiet"
+                disabled={saving}
+                onClick={(event) => {
+                  closeMenu(event);
+                  updateDocument({
+                    ...document.current,
+                    id: crypto.randomUUID(),
+                    revision: 0,
+                  });
+                  changed();
+                  void save();
+                }}
+              >
+                <Copy size={16} />
+                Save a copy
+              </button>
+            )}
+            <button
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={!ready}
+              onClick={(event) => {
+                closeMenu(event);
+                exportPNG();
+              }}
+            >
+              <Download size={16} />
+              Export PNG
+            </button>
+          </div>
+        </details>
+      </div>
       <div className="paint-options">
         {tool === "brush" && (
           <label>
-            Brush{" "}
+            Brush
             <select
+              className="k-select"
               value={brush}
-              onChange={(event) => {
-                setBrush(event.target.value as BrushKind);
-                setTool("brush");
-              }}
+              onChange={(event) => setBrush(event.target.value as BrushKind)}
             >
               <option value="round">Round</option>
               <option value="square">Square</option>
@@ -982,36 +1105,43 @@ export function Paint() {
             </select>
           </label>
         )}
-        <label>
-          Mirror{" "}
-          <select
-            aria-label="Mirror drawing"
-            value={mirror}
-            onChange={(e) => setMirror(e.target.value)}
-          >
-            <option value="off">Off</option>
-            <option value="vertical">Left / right</option>
-            <option value="horizontal">Top / bottom</option>
-            <option value="both">Four way</option>
-          </select>
-        </label>
-        <label>
-          Width{" "}
-          <select
-            value={size}
-            onChange={(event) => setSize(Number(event.target.value))}
-          >
-            {[1, 2, 4, 8, 12, 20, 32, 48].map((value) => (
-              <option key={value} value={value}>
-                {value} px
-              </option>
-            ))}
-          </select>
-        </label>
+        {hasWidth && (
+          <label>
+            Width
+            <select
+              className="k-select"
+              value={size}
+              onChange={(event) => setSize(Number(event.target.value))}
+            >
+              {[1, 2, 4, 8, 12, 20, 32, 48].map((value) => (
+                <option key={value} value={value}>
+                  {value} px
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {mirrors && (
+          <label>
+            Mirror
+            <select
+              className="k-select"
+              aria-label="Mirror drawing"
+              value={mirror}
+              onChange={(e) => setMirror(e.target.value)}
+            >
+              <option value="off">Off</option>
+              <option value="vertical">Left / right</option>
+              <option value="horizontal">Top / bottom</option>
+              <option value="both">Four way</option>
+            </select>
+          </label>
+        )}
         {["rectangle", "ellipse"].includes(tool) && (
           <label>
-            Shape{" "}
+            Shape
             <select
+              className="k-select"
               value={fillStyle}
               onChange={(event) => setFillStyle(event.target.value)}
             >
@@ -1023,18 +1153,24 @@ export function Paint() {
         )}
         {["text", "textpath"].includes(tool) && (
           <>
-            <label>
-              Text{" "}
+            <label className="paint-text-option">
+              Text
               <input
+                className="k-field"
                 value={text}
                 maxLength={500}
-                placeholder="Type, then click canvas"
+                placeholder={
+                  tool === "text"
+                    ? "Type, then click the canvas"
+                    : "Type, then drag a baseline"
+                }
                 onChange={(event) => setText(event.target.value)}
               />
             </label>
             <label>
-              Size{" "}
+              Size
               <select
+                className="k-select"
                 value={fontSize}
                 onChange={(event) => setFontSize(Number(event.target.value))}
               >
@@ -1045,31 +1181,84 @@ export function Paint() {
             </label>
           </>
         )}
-        <details className="paint-canvas-actions">
-          <summary>Canvas actions</summary>
-          <div>
-            <button disabled={!selection} onClick={() => transform("crop")}>
-              <Crop size={15} />
-              Crop
+        <p className="paint-hint">{hints[tool]}</p>
+        <details className="paint-menu">
+          <summary className="k-btn">
+            Canvas <ChevronDown size={16} aria-hidden />
+          </summary>
+          <div className="paint-menu-panel">
+            <button
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={!selection}
+              onClick={(event) => {
+                closeMenu(event);
+                transform("crop");
+              }}
+            >
+              <Crop size={16} />
+              Crop to selection
             </button>
-            <button disabled={!selection} onClick={() => transform("delete")}>
-              <Trash2 size={15} />
+            <button
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={!selection}
+              onClick={(event) => {
+                closeMenu(event);
+                transform("delete");
+              }}
+            >
+              <Trash2 size={16} />
               Delete selection
             </button>
             <button
-              disabled={!ready}
-              onClick={() => transform("flip")}
-              title="Flip canvas horizontally"
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={!selection}
+              onClick={(event) => {
+                closeMenu(event);
+                duplicateSelection();
+              }}
             >
-              <FlipHorizontal2 size={15} />
-              Flip
+              <Copy size={16} />
+              Duplicate selection
             </button>
-            <button disabled={!ready} onClick={() => transform("rotate")}>
-              <RotateCw size={15} />
-              Rotate
+            <hr />
+            <button
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={!ready}
+              onClick={(event) => {
+                closeMenu(event);
+                transform("flip");
+              }}
+            >
+              <FlipHorizontal2 size={16} />
+              {selection ? "Flip selection" : "Flip canvas"}
             </button>
-            <button disabled={!ready} onClick={() => transform("clear")}>
-              Clear
+            <button
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={!ready}
+              onClick={(event) => {
+                closeMenu(event);
+                transform("rotate");
+              }}
+            >
+              <RotateCw size={16} />
+              {selection ? "Rotate selection" : "Rotate canvas"}
+            </button>
+            <button
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={!ready}
+              onClick={(event) => {
+                closeMenu(event);
+                transform("clear");
+              }}
+            >
+              <SquareX size={16} />
+              Clear canvas
             </button>
           </div>
         </details>
@@ -1083,6 +1272,8 @@ export function Paint() {
           {tools.map(({ id, label, key, icon: Icon }) => (
             <button
               key={id}
+              type="button"
+              className="k-btn k-btn--icon"
               title={`${label} (${key})`}
               aria-label={`${label} tool`}
               aria-pressed={tool === id}
@@ -1092,30 +1283,29 @@ export function Paint() {
                 setSelection(null);
               }}
             >
-              <Icon size={20} />
-              <span>{label}</span>
+              <Icon size={18} aria-hidden />
             </button>
           ))}
-          <ColorWheel
-            color={foreground}
-            onChange={setForeground}
-            recent={recent}
-          />
-          <Info label="Paint help">
-            <p>{hints[tool]}</p>
-            <p>
-              Ctrl+Z undo · Ctrl+Y redo · Ctrl+S save. Right-click for selection
-              actions. PNG drawings flatten text and shapes.
-            </p>
-            <label>
-              Background{" "}
-              <input
-                type="color"
-                value={background}
-                onChange={(e) => setBackground(e.target.value)}
-              />
-            </label>
-          </Info>
+          <div className="paint-help">
+            <Info label="Paint help">
+              <p>
+                <strong>
+                  {tools.find((value) => value.id === tool)?.label}:
+                </strong>{" "}
+                {hints[tool]}
+              </p>
+              <p>
+                Right-click the canvas without dragging for canvas actions. In
+                the palette, click sets the foreground and right-click the
+                background.
+              </p>
+              <p>
+                Ctrl+Z undo · Ctrl+Y redo · Ctrl+S save · Delete clears the
+                selection. The letter in each tool tip selects that tool. PNG
+                drawings flatten text and shapes.
+              </p>
+            </Info>
+          </div>
         </div>
         <div
           ref={workspace}
@@ -1137,14 +1327,18 @@ export function Paint() {
               aria-label="Drawing canvas"
               onContextMenu={(event) => {
                 event.preventDefault();
-                setContextMenu({
-                  x: Math.min(event.clientX, window.innerWidth - 190),
-                  y: Math.min(event.clientY, window.innerHeight - 180),
-                });
+                // Mouse right-clicks are handled on release; this path serves
+                // touch long-press and keyboard menu keys.
+                if (
+                  rightPress.current ||
+                  performance.now() < contextHandledUntil.current
+                )
+                  return;
+                openMenu(event.clientX, event.clientY);
               }}
               onPointerDown={start}
               onPointerMove={move}
-              onPointerUp={() => finish()}
+              onPointerUp={release}
               onPointerCancel={() => finish(true)}
               onLostPointerCapture={() => finish(true)}
               onPointerLeave={() => setPosition(null)}
@@ -1167,81 +1361,149 @@ export function Paint() {
         <div
           className="paint-context"
           role="menu"
+          aria-label="Canvas actions"
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
           <button
             role="menuitem"
+            className="k-btn k-btn--quiet"
             disabled={!selection}
             onClick={() => {
               transform("crop");
               setContextMenu(null);
             }}
           >
+            <Crop size={16} />
             Crop selection
           </button>
           <button
             role="menuitem"
+            className="k-btn k-btn--quiet"
             disabled={!selection}
             onClick={() => {
               transform("delete");
               setContextMenu(null);
             }}
           >
+            <Trash2 size={16} />
             Delete selection
           </button>
           <button
             role="menuitem"
+            className="k-btn k-btn--quiet"
             disabled={!selection}
             onClick={() => {
               duplicateSelection();
               setContextMenu(null);
             }}
           >
+            <Copy size={16} />
             Duplicate selection
           </button>
           <button
             role="menuitem"
+            className="k-btn k-btn--quiet"
             onClick={() => {
               transform("flip");
               setContextMenu(null);
             }}
           >
+            <FlipHorizontal2 size={16} />
             {selection ? "Flip selection" : "Flip canvas"}
           </button>
           <button
             role="menuitem"
+            className="k-btn k-btn--quiet"
             onClick={() => {
               transform("rotate");
               setContextMenu(null);
             }}
           >
+            <RotateCw size={16} />
             {selection ? "Rotate selection" : "Rotate canvas"}
           </button>
           <button
             role="menuitem"
+            className="k-btn k-btn--quiet"
+            disabled={!undo.current.length}
             onClick={() => {
               history(true);
               setContextMenu(null);
             }}
           >
+            <Undo2 size={16} />
             Undo
-          </button>
-          <button role="menuitem" onClick={() => setContextMenu(null)}>
-            Close
           </button>
         </div>
       )}
       <div className="paint-footer">
-        <span>
-          {dimensions.w} × {dimensions.h} px
+        <div className="paint-colors" role="group" aria-label="Colors">
+          <input
+            className="paint-swatch"
+            aria-label="Foreground color"
+            title="Foreground color (left click and drag)"
+            type="color"
+            value={foreground}
+            onChange={(e) => setForeground(e.target.value)}
+          />
+          <button
+            type="button"
+            className="k-btn k-btn--icon k-btn--quiet"
+            aria-label="Swap foreground and background colors"
+            title="Swap colors"
+            onClick={() => {
+              setForeground(background);
+              setBackground(foreground);
+            }}
+          >
+            <ArrowLeftRight size={16} />
+          </button>
+          <input
+            className="paint-swatch"
+            aria-label="Background color"
+            title="Background color (right drag, eraser, cleared areas)"
+            type="color"
+            value={background}
+            onChange={(e) => setBackground(e.target.value)}
+          />
+          <div
+            className="paint-palette"
+            role="group"
+            aria-label="Palette: click for foreground, right-click for background"
+          >
+            {palette.map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-label={`Color ${value}`}
+                aria-pressed={foreground === value}
+                title={`${value} · click: foreground · right-click: background`}
+                style={{ background: value }}
+                onClick={() => setForeground(value)}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  setBackground(value);
+                }}
+              />
+            ))}
+          </div>
+          <ColorWheel
+            color={foreground}
+            onChange={setForeground}
+            recent={recent}
+          />
+        </div>
+        <span className="paint-readout">
+          {dimensions.w} × {dimensions.h}
           {position
             ? ` · ${Math.floor(position.x)}, ${Math.floor(position.y)}`
             : ""}
-          {selection ? ` · Selection ${selection.w} × ${selection.h}` : ""}
+          {selection ? ` · selection ${selection.w} × ${selection.h}` : ""}
         </span>
-        <label>
-          Zoom{" "}
+        <label className="paint-zoom">
+          Zoom
           <select
+            className="k-select"
             value={zoom}
             onChange={(event) => setZoom(Number(event.target.value))}
           >
