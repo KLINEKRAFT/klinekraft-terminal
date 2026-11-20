@@ -70,7 +70,7 @@ test("blank note can save from body and formatting survives a reload", async ({
     "Bold field note",
   );
 });
-test("drawer gives every workspace full width and Field is a compact switch", async ({
+test("drawer gives every workspace full width and power is one header button", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1024, height: 560 });
@@ -100,9 +100,11 @@ test("drawer gives every workspace full width and Field is a compact switch", as
       page.getByRole("button", { name: "Go Home", exact: true }),
     ).toBeInViewport();
   }
+  await expect(page.getByRole("button", { name: /^Power · / })).toBeVisible();
+  // Field mode lives in the power popover, not loose in every header.
   await expect(
     page.getByRole("switch", { name: "Field mode", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
 });
 test("Calendar includes federal observed dates", async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-07-02T12:00:00"));

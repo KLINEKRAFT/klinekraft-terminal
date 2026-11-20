@@ -25,9 +25,13 @@ for (const height of [600, 560])
       "Emergency",
     ]) {
       await navigate(page, name);
-      await expect(
-        page.getByRole("button", { name: "Go Home", exact: true }),
-      ).toBeInViewport();
+      const home = page.getByRole("button", { name: "Go Home", exact: true });
+      // Home needs no way home; every other workspace keeps one in view.
+      if (name === "Home") await expect(home).toHaveCount(0);
+      else await expect(home).toBeInViewport();
+      // The header never wraps: its actions share one row with the title.
+      const header = await page.locator(".page-header").boundingBox();
+      expect(header!.height).toBeLessThanOrEqual(56);
       expect(
         await page
           .locator("main")

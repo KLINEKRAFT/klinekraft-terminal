@@ -30,10 +30,9 @@ test("GPS home compass, saved spots, route start and lost fix", async ({ page })
   await page.screenshot({path:"test-results/gps-home.png"});
   expect(await page.locator("main").evaluate(e => e.scrollHeight <= e.clientHeight)).toBe(true);
   const tools = await page.locator(".home-tools").boundingBox();
-  const command = await page.locator(".command-area").boundingBox();
-  expect(tools!.y + tools!.height).toBeLessThanOrEqual(command!.y);
+  expect(tools!.y + tools!.height).toBeLessThanOrEqual(600);
 
-  await page.getByRole("button", {name:/GPS · 3D FIX/}).click();
+  await page.getByRole("button", {name:/GPS · 3D fix/}).click();
   await expect(page.locator(".gps-position-dot")).toBeVisible({timeout:20000});
   await page.getByRole("button", {name:"Follow", exact:true}).click();
   await expect(page.getByRole("button", {name:"Follow", exact:true})).toHaveAttribute("aria-pressed","true");

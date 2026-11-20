@@ -64,9 +64,9 @@ export const navigationSections = sections.filter(
 );
 export const sectionLabel = (section: Section) =>
   section === "AI assistant" ? "Shackleton" : section;
-export type CommandResult = { section?: Section; message: string };
-// Every section is reachable by its own name; aliases cover common words.
-const commandAliases: Record<string, Section> = {
+// Everyday words people type for an app. Universal Search matches these as
+// well as each app's own name, so "calc", "radar" or "sos" finds the app.
+export const sectionAliases: Readonly<Record<string, Section>> = {
   shackleton: "AI assistant",
   ai: "AI assistant",
   ask: "AI assistant",
@@ -76,7 +76,7 @@ const commandAliases: Record<string, Section> = {
   maps: "GPS / Maps",
   map: "GPS / Maps",
   gps: "GPS / Maps",
-  "gps status": "GPS / Maps",
+  navigation: "GPS / Maps",
   weather: "Field Briefing",
   radar: "Field Briefing",
   feeds: "Field Briefing",
@@ -84,12 +84,15 @@ const commandAliases: Record<string, Section> = {
   note: "Notes",
   draw: "Paint",
   events: "Calendar",
+  schedule: "Calendar",
   calc: "Calculator",
+  math: "Calculator",
   status: "System",
   "system status": "System",
   processes: "System",
   wifi: "Network",
   hotspot: "Network",
+  airplay: "Network",
   wiki: "Library",
   wikipedia: "Library",
   bookmarks: "Library",
@@ -97,36 +100,25 @@ const commandAliases: Record<string, Section> = {
   documents: "Library",
   sos: "Emergency",
   "first aid": "Emergency",
+  preferences: "Settings",
 };
-const commandRoutes: Record<string, Section> = {
-  ...Object.fromEntries(sections.map((s) => [s.toLowerCase(), s])),
-  ...commandAliases,
-};
-export const commandHelp =
-  "Try: home, shackleton, maps, weather, library, notes, paint, games, calendar, calc, files, network, system, settings, emergency. This is not a shell.";
-export function resolveCommand(value: string): CommandResult {
-  const command = value.trim().toLowerCase().replace(/\s+/g, " ");
-  if (Object.hasOwn(commandRoutes, command))
-    return {
-      section: commandRoutes[command],
-      message: `Opened ${sectionLabel(commandRoutes[command])}.`,
-    };
-  if (command.startsWith("play "))
-    return {
-      section: "Games",
-      message:
-        "Choose a game in the library and press Play. Typed commands never launch an emulator.",
-    };
-  if (command.startsWith("wiki "))
-    return {
-      section: "Library",
-      message:
-        "Open the Wikipedia reader in Library to search your installed archives.",
-    };
-  if (command.startsWith("ask "))
-    return {
-      section: "AI assistant",
-      message: "Opened Shackleton. Type your question there.",
-    };
-  return { message: `Unknown command. ${commandHelp}` };
+/** Apps whose name or alias matches a query, best match first. */
+export function matchSections(query: string): Section[] {
+  const q = query.trim().toLocaleLowerCase().replace(/\s+/g, " ");
+  const scores = new Map<Section, number>();
+  const offer = (section: Section, score: number) =>
+    scores.set(section, Math.min(scores.get(section) ?? 9, score));
+  for (const section of sections) {
+    const name = sectionLabel(section).toLocaleLowerCase();
+    if (!q || name.includes(q))
+      offer(section, name === q ? 0 : name.startsWith(q) ? 1 : 3);
+  }
+  if (q.length >= 2)
+    for (const [alias, section] of Object.entries(sectionAliases))
+      if (alias.startsWith(q)) offer(section, alias === q ? 0 : 2);
+  return [...scores.entries()]
+    .sort(
+      (a, b) => a[1] - b[1] || sections.indexOf(a[0]) - sections.indexOf(b[0]),
+    )
+    .map(([section]) => section);
 }

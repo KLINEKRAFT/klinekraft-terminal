@@ -220,23 +220,6 @@ h1 {
   gap: 10px;
   padding-top: 1px;
 }
-.preview-badge {
-  font: 8px var(--mono);
-  letter-spacing: 0.6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  border: 1px solid var(--line);
-  padding: 7px 8px;
-  border-radius: 2px;
-}
-.preview-badge > span {
-  width: 5px;
-  height: 5px;
-  background: var(--orange);
-  border-radius: 50%;
-}
 .icon-button {
   background: none;
   border: 0;
@@ -248,112 +231,6 @@ h1 {
 }
 .page-content {
   flex: 1;
-}
-.overview {
-  display: grid;
-  grid-template-columns: 1fr 1.65fr;
-  border-top: 1px solid var(--ink);
-  border-bottom: 1px solid var(--line);
-  padding: 20px 0 19px;
-}
-.clock-panel {
-  display: flex;
-  flex-direction: column;
-}
-.time {
-  font-size: 54px;
-  letter-spacing: -3px;
-  line-height: 1;
-  margin: 9px 0;
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
-}
-.time > span {
-  font: 15px var(--mono);
-  letter-spacing: -0.5px;
-  color: var(--muted);
-  margin-left: 8px;
-}
-.date {
-  font-size: 11px;
-}
-.device-label {
-  font: 8px var(--mono);
-  margin-top: 19px;
-  letter-spacing: 0.3px;
-}
-.device-label > span:last-child {
-  color: var(--muted);
-}
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: center;
-  gap: 20px;
-  border-left: 1px solid var(--line);
-  padding-left: 22px;
-}
-.metric-value {
-  font-size: 32px;
-  letter-spacing: -1.5px;
-  margin: 14px 0 13px;
-  font-variant-numeric: tabular-nums;
-}
-.metric-value > span {
-  font: 11px var(--mono);
-  margin-left: 4px;
-  letter-spacing: 0;
-  color: var(--muted);
-}
-.meter {
-  height: 3px;
-  background: #dcd8ce;
-  margin-bottom: 9px;
-}
-.meter i {
-  display: block;
-  height: 100%;
-  background: var(--logo-blue);
-}
-.metric-detail {
-  font: 8px var(--mono);
-  color: var(--muted);
-  white-space: nowrap;
-}
-.connections {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-bottom: 1px solid var(--line);
-  padding: 16px 0;
-  gap: 12px;
-}
-.connections > div {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-.connections > div > svg {
-  flex-shrink: 0;
-  color: var(--muted);
-}
-.connections small {
-  font: 7px var(--mono);
-  letter-spacing: 0.5px;
-  display: block;
-  color: var(--muted);
-  margin-bottom: 5px;
-}
-.connections strong {
-  font-weight: 500;
-  font-size: 11px;
-  display: block;
-  white-space: nowrap;
-}
-.connections em {
-  display: block;
-  font: 8px var(--mono);
-  color: var(--muted);
-  margin-top: 4px;
 }
 .section-heading {
   display: flex;
@@ -370,43 +247,6 @@ h1 {
   font: 7px var(--mono);
   letter-spacing: 1px;
   color: var(--muted);
-}
-.quick-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-.quick-card {
-  background: transparent;
-  border: 1px solid var(--line);
-  padding: 13px;
-  text-align: left;
-  min-height: 96px;
-  border-radius: 2px;
-}
-.quick-card > div {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-.quick-card > div > svg:last-child {
-  color: var(--muted);
-}
-.quick-card strong {
-  display: block;
-  font-size: 11px;
-  font-weight: 500;
-}
-.quick-card > span {
-  display: block;
-  font-size: 9px;
-  color: var(--muted);
-  margin-top: 5px;
-}
-.activity .section-heading {
-  margin-top: 18px;
-  margin-bottom: 9px;
 }
 .activity-row {
   display: flex;
@@ -432,105 +272,10 @@ h1 {
   font: 7px var(--mono);
   color: var(--muted);
 }
-.command-area {
-  margin-top: 18px;
-  position: relative;
-}
-.command-area form {
-  display: flex;
-  align-items: center;
-  border: 1px solid #c6c2b8;
-  border-radius: 3px;
-  min-height: 44px;
-  padding-left: 12px;
-  gap: 12px;
-  background: #eae7df;
-}
-.command-area form > svg {
-  color: var(--muted);
-  flex-shrink: 0;
-}
-.command-area input {
-  border: 0;
-  min-width: 0;
-  width: 100%;
-  background: none;
-  font-size: 10px;
-  height: 38px;
-  color: var(--ink);
-}
-.command-area input::placeholder {
-  color: var(--muted);
-}
 kbd {
   font: 8px var(--mono);
   white-space: nowrap;
   color: var(--muted);
-}
-.command-area form > button {
-  border: 0;
-  border-left: 1px solid var(--line);
-  background: none;
-  min-width: 44px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-}
-.command-feedback {
-  position: absolute;
-  bottom: 56px;
-  left: 0;
-  right: 0;
-  padding: 12px 10px 12px 15px;
-  background: var(--ink);
-  color: var(--paper);
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  line-height: 1.5;
-  z-index: 2;
-}
-.command-feedback button {
-  margin-left: auto;
-  background: none;
-  border: 0;
-  color: inherit;
-  min-width: 44px;
-  height: 44px;
-}
-.feature {
-  border-top: 1px solid var(--ink);
-  padding: 28px 0;
-  max-width: 900px;
-}
-.feature-symbol {
-  margin-bottom: 20px;
-  color: var(--blue);
-}
-.feature h2 {
-  font-size: 27px;
-  font-weight: 500;
-  letter-spacing: -0.8px;
-  margin: 12px 0;
-}
-.feature p {
-  max-width: 550px;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.8;
-}
-.feature ul {
-  list-style: none;
-  padding: 10px 0;
-  margin: 0;
-}
-.feature li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  margin: 15px 0;
 }
 .feature-note {
   border-top: 1px solid var(--line);
@@ -653,44 +398,11 @@ kbd {
   h1 {
     font-size: 38px;
   }
-  .overview {
-    padding: 30px 0;
-  }
-  .time {
-    font-size: 76px;
-  }
-  .metrics {
-    gap: 30px;
-    padding-left: 32px;
-  }
-  .metric-value {
-    font-size: 44px;
-  }
-  .connections {
-    padding: 22px 0;
-  }
-  .connections em {
-    display: inline;
-    margin-left: 6px;
-  }
-  .quick-card {
-    padding: 18px;
-    min-height: 118px;
-  }
-  .quick-card strong {
-    font-size: 14px;
-  }
-  .quick-card > span {
-    font-size: 11px;
-  }
   .section-heading {
     margin-top: 26px;
   }
   .section-heading h2 {
     font-size: 14px;
-  }
-  .activity .section-heading {
-    margin-top: 24px;
   }
   .page-header p {
     font-size: 13px;
@@ -700,34 +412,7 @@ kbd {
   main {
     padding: 48px 64px 28px;
   }
-  .overview {
-    padding: 44px 0;
-  }
-  .time {
-    font-size: 96px;
-  }
-  .metric-value {
-    font-size: 60px;
-  }
-  .quick-card {
-    min-height: 150px;
-  }
-  .quick-card > div {
-    margin-bottom: 30px;
-  }
-  .connections {
-    padding: 28px 0;
-  }
-  .connections small {
-    font-size: 10px;
-  }
-  .connections strong {
-    font-size: 14px;
-  }
   .eyebrow {
-    font-size: 11px;
-  }
-  .metric-detail {
     font-size: 11px;
   }
   .activity-row {
@@ -759,22 +444,9 @@ kbd {
   .sidebar-caption {
     font-size: 6px;
   }
-  .overview {
-    grid-template-columns: 1fr;
-  }
-  .metrics {
-    border-left: 0;
-    padding: 20px 0 0;
-  }
   .header-actions {
     flex-direction: column;
     align-items: flex-end;
-  }
-  .connections {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .quick-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .activity-row small {
     display: block;
@@ -826,60 +498,11 @@ kbd {
   .sidebar-bottom > button {
     margin-top: 8px;
   }
-  .overview {
-    padding: 14px 0;
-  }
-  .time {
-    font-size: 48px;
-  }
-  .device-label {
-    margin-top: 12px;
-  }
-  .metrics {
-    gap: 20px;
-    padding-left: 22px;
-  }
-  .metric-value {
-    font-size: 32px;
-  }
-  .connections {
-    padding: 12px 0;
-  }
-  .connections em {
-    display: block;
-    margin: 4px 0 0;
-  }
-  .connections small {
-    font-size: 8px;
-  }
-  .connections strong {
-    font-size: 11px;
-  }
   .section-heading {
     margin: 14px 0 9px;
   }
   .section-heading h2 {
     font-size: 12px;
-  }
-  .quick-card {
-    min-height: 90px;
-    padding: 11px;
-  }
-  .quick-card > div {
-    margin-bottom: 12px;
-  }
-  .quick-card strong {
-    font-size: 11px;
-  }
-  .quick-card > span {
-    font-size: 9px;
-  }
-  .activity .section-heading {
-    margin-top: 12px;
-    margin-bottom: 7px;
-  }
-  .command-area {
-    margin-top: 14px;
   }
 }
 
@@ -909,9 +532,6 @@ select:focus-visible {
 }
 .network-list dt {
   overflow-wrap: anywhere;
-}
-.metric-detail {
-  letter-spacing: -0.2px;
 }
 
 /* A short arrival cue; it runs once when the app opens. */
@@ -1105,19 +725,9 @@ textarea:focus-visible {
   border-color: var(--blue);
 }
 @media (min-width: 850px) and (max-height: 650px) {
-  .quick-card {
-    min-height: 76px;
-    padding: 8px 11px;
-  }
-  .quick-card > div {
-    margin-bottom: 7px;
-  }
   .home-tools {
     margin-top: 10px;
     padding-top: 8px;
-  }
-  .command-area {
-    margin-top: 10px;
   }
 }
 @media (max-width: 850px) {
@@ -1149,12 +759,6 @@ textarea:focus-visible {
 [data-theme="dark"] button:hover,
 [data-theme="dark"] nav button[aria-current] {
   background: var(--panel);
-}
-[data-theme="dark"] .command-area form {
-  border-color: var(--line);
-}
-[data-theme="dark"] .meter {
-  background: var(--line);
 }
 [data-theme="dark"] .eyebrow > span {
   color: var(--muted);
@@ -1404,14 +1008,6 @@ textarea:focus-visible {
 }
 
 /* Home ambient tools share the terminal's typography and quiet rules. */
-.home-ambient {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  border-bottom: 1px solid var(--line);
-  padding: 13px 0;
-}
 .outside-weather {
   display: flex;
   align-items: center;
@@ -1429,19 +1025,6 @@ textarea:focus-visible {
 }
 .outside-weather a {
   text-underline-offset: 3px;
-}
-.away-launch {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  border: 0;
-  background: transparent;
-  padding: 7px 0 7px 12px;
-  font: 11px var(--mono);
-}
-.away-launch span {
-  margin-left: 14px;
-  color: var(--muted);
 }
 .away-dialog {
   padding: 0;
@@ -1734,21 +1317,6 @@ textarea:focus-visible {
   height: 100%;
 }
 @media (min-width: 850px) and (max-height: 650px) {
-  .home-ambient {
-    padding: 6px 0;
-  }
-  .overview {
-    padding: 8px 0;
-  }
-  .device-label {
-    margin-top: 8px;
-  }
-  .connections {
-    padding: 8px 0;
-  }
-  .quick-section .section-heading {
-    margin: 10px 0 7px;
-  }
   .home-note textarea {
     height: 48px;
     min-height: 48px;
@@ -1855,74 +1423,11 @@ textarea:focus-visible {
   height: 36px;
   margin: 0;
 }
-.preview-badge {
-  border: 0;
-  padding: 6px;
-  font-size: 8px;
-  letter-spacing: 0.2px;
-}
-.preview-badge[data-live="true"] > span {
-  background: #678b70;
-}
 main[data-page="Home"] .page-header {
   margin-bottom: 4px;
 }
-.overview {
-  border-top: 0;
-  border-bottom: 0;
-  padding-top: 8px;
-}
-.home-ambient {
-  border-top: 0;
-  border-bottom: 0;
-}
-.connections {
-  border-top: 1px solid var(--line);
-  border-bottom: 0;
-}
-.quick-section .section-heading {
-  margin-top: 16px;
-  margin-bottom: 6px;
-}
-.quick-grid {
-  gap: 12px;
-}
-.quick-card {
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  padding: 10px 4px;
-  min-height: 74px;
-}
-.quick-card > div {
-  margin-bottom: 8px;
-}
-.quick-card > div > svg:first-child {
-  width: 18px;
-  height: 18px;
-}
-.quick-card > div > svg:last-child {
-  width: 13px;
-  height: 13px;
-}
-.quick-card strong {
-  font-size: 12px;
-}
-.quick-card > span {
-  font-size: 10px;
-  line-height: 1.4;
-}
 .home-tools {
   border-top: 0;
-}
-.command-area form {
-  border: 0;
-  border-top: 1px solid var(--line);
-  border-radius: 0;
-  background: transparent;
-}
-[data-theme="dark"] .command-area form {
-  background: transparent;
 }
 .browser-panel,
 .settings-panel,
@@ -1968,32 +1473,6 @@ main[data-page="Home"] .page-header {
 .system-list > div {
   padding: 12px 0;
 }
-.feature {
-  max-width: 600px;
-  padding: 12px 0;
-}
-.feature h2 {
-  font-size: 20px;
-  font-weight: 400;
-  margin: 12px 0;
-}
-.feature p {
-  font-size: 13px;
-  line-height: 1.6;
-}
-.feature-plans {
-  margin-top: 24px;
-  font-size: 12px;
-  color: var(--muted);
-}
-.feature-plans summary {
-  cursor: pointer;
-  min-height: 32px;
-}
-.feature-plans li {
-  padding: 6px 0;
-  line-height: 1.5;
-}
 button:focus-visible,
 a:focus-visible,
 summary:focus-visible,
@@ -2012,13 +1491,6 @@ textarea:focus-visible {
   main[data-page="Home"] .page-header {
     margin-bottom: 0;
   }
-  .quick-section .section-heading {
-    margin-top: 10px;
-  }
-  .quick-card {
-    min-height: 70px;
-    padding: 8px 4px;
-  }
   .home-tools {
     margin-top: 12px;
   }
@@ -2030,21 +1502,6 @@ textarea:focus-visible {
   }
   .page-header {
     flex-wrap: wrap;
-  }
-  .header-actions .preview-badge {
-    font-size: 7px;
-  }
-  .home-ambient {
-    flex-wrap: wrap;
-  }
-  .metrics {
-    gap: 12px;
-  }
-  .metric-value {
-    font-size: 28px;
-  }
-  .connections strong {
-    white-space: normal;
   }
 }
 @media (max-width: 600px) {
@@ -2095,9 +1552,6 @@ textarea:focus-visible {
   }
   .home-actions {
     gap: 16px;
-  }
-  .quick-grid {
-    gap: 12px;
   }
   .setting-row {
     flex-wrap: wrap;
@@ -2187,13 +1641,6 @@ textarea:focus-visible {
 .resource-graph circle {
   fill: currentColor;
 }
-.metric .resource-graph {
-  height: 24px;
-  margin: 0 0 6px;
-}
-.metric:has(.resource-graph) .metric-value {
-  margin: 8px 0;
-}
 .resource-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2257,16 +1704,6 @@ textarea:focus-visible {
   .resource-grid {
     grid-template-columns: 1fr;
   }
-}
-.metrics {
-  align-items: start;
-}
-.metric .metric-value {
-  margin: 8px 0;
-}
-.metric-graph-space {
-  height: 24px;
-  margin-bottom: 6px;
 }
 .process-scroll {
   max-height: 320px;
@@ -2675,10 +2112,6 @@ main[data-page="AI assistant"] .page-content {
   .header-actions { gap: 6px; }
   .header-actions .icon-button { width: 32px; height: 32px; margin: 0; }
   .page-content { min-height: 0; overflow: auto; scrollbar-width: thin; padding-right: 3px; }
-  .command-area { flex: none; margin-top: 6px; }
-  .command-area form { padding-block: 4px; min-height: 34px; }
-  .command-area input { height: 26px; }
-  .command-area button { width: 30px; height: 28px; }
   .browser-panel, .settings-panel { padding-block: 10px; }
   .browser-panel + .browser-panel, .settings-panel + .settings-panel, .settings-panel + .browser-panel { margin-top: 12px; }
   .browser-panel h2:not(.sr-only), .settings-panel h2 { font-size: 17px; margin-block: 4px 10px; }
@@ -2725,30 +2158,13 @@ main[data-page="AI assistant"] .page-content {
 
 /* Visual dimming only: this HDMI panel has no exposed backlight interface. */
 .field-mode::after { content: ""; position: fixed; inset: 0; pointer-events: none; background: rgba(0,0,0,.22); z-index: 100000; }
-.power-controls { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; padding:5px 12px; border-bottom:1px solid var(--border); font-size:11px; flex-shrink:0; }
-.power-controls details { position:relative; }
-.power-controls details[open] { flex-basis:100%; }
-.power-controls p[role="alert"] { flex-basis:100%; color:#ffb26b; margin:3px 0; }
 /* Contain offscreen accessible labels inside the scrolling workspace. */
 .page-content { position: relative; }
-.power-controls details[open] { max-height: 150px; overflow: auto; }
 
 /* Compact global display switch, independent of Field mode. */
-.dim-toggle-slot { display: inline-flex; }
-.dim-toggle { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 4px 7px; border: 1px solid var(--line); border-radius: 5px; background: transparent; color: var(--ink); font: 10px var(--mono); letter-spacing: .06em; cursor: pointer; }
-.dim-toggle-track { display: inline-flex; align-items: center; width: 25px; height: 14px; padding: 2px; border: 1px solid var(--muted); border-radius: 10px; }
-.dim-toggle-track > span { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: transform .15s; }
-.dim-toggle[aria-checked="true"] .dim-toggle-track { border-color: var(--logo-blue); background: var(--logo-blue); }
-.dim-toggle[aria-checked="true"] .dim-toggle-track > span { background: white; transform: translateX(11px); }
-.dim-toggle:focus-visible { outline: 2px solid var(--logo-blue); outline-offset: 3px; }
-.dim-toggle:disabled { opacity: .5; cursor: wait; }
-@media (prefers-reduced-motion: reduce) { .dim-toggle-track > span { transition: none; } }
 
 /* Focused library views and consistent local-document controls. */
 .library-workspace [hidden] { display: none !important; }
-.library-navigation { display: flex; flex-wrap: wrap; gap: 6px; position: sticky; top: 0; background: var(--paper); z-index: 2; padding: 0 0 12px; border-bottom: 1px solid var(--line); }
-.library-workspace .library-navigation button { width: auto; height: 34px; flex: 0 0 auto; }
-.library-navigation button[aria-pressed="true"] { border-color: var(--logo-blue); box-shadow: inset 0 -2px var(--logo-blue); }
 
 
 /* A contained, slow drift keeps the original mark fully on-screen. */
@@ -2790,7 +2206,6 @@ main[data-page="AI assistant"] .page-content {
 .minimal-shell .page-header h1 { font-size: 20px; margin: 0; }
 .navigation-controls { display: flex; gap: 4px; }
 .minimal-shell .header-actions { margin-left: auto; }
-.minimal-shell .power-controls { display:flex; border:0; padding:0; margin:0; gap:8px; min-height:0; position:static; }
 .info-popover { position:relative; display:inline-block; }
 .info-popover>summary { list-style:none; border:1px solid currentColor; border-radius:50%; width:20px; height:20px; display:grid; place-items:center; font:italic 13px Georgia,serif; cursor:pointer; }
 .info-popover>summary::-webkit-details-marker {display:none;}
@@ -2802,7 +2217,6 @@ main[data-page="AI assistant"] .page-content {
 .chat-history-row {display:flex;gap:8px;align-items:center;}
 .chat-history-row>button {flex:1;text-align:left;}
 .chat-selection {display:flex;gap:8px;margin:12px 0;}
-@media(max-width:700px){.preview-badge{display:none!important;}}
 .game-list {display:grid!important;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:20px!important;}
 .game-list>li {position:relative;display:flex!important;flex-direction:column;align-items:stretch!important;padding:0!important;border:0!important;gap:8px;}
 .game-cover {height:205px;background:#111827;overflow:hidden;border-radius:4px;}
@@ -2814,7 +2228,6 @@ main[data-page="AI assistant"] .page-content {
 .shackleton-mark {width:96px;height:96px;object-fit:contain;background:transparent;padding:0;margin-bottom:12px;}
 .emergency-heading {display:flex;align-items:center;justify-content:space-between;}
 .emergency-heading h2 {font-size:18px;}
-.power-controls>p[role=alert] {position:fixed;left:50%;top:60px;transform:translateX(-50%);z-index:120;max-width:85vw;background:#fff3df;color:#631d00;padding:10px 16px;border:1px solid #d68a34;}
 [data-theme=dark] .info-content,[data-theme=dark] .minimal-shell .sidebar,[data-theme=dark] .ai-history,[data-theme=dark] .paint-file-menu .paint-command-bar,[data-theme=dark] .paint-context,[data-theme=dark] .recent-colors {background:#202220;}
 .app-shell.minimal-shell,.app-shell.minimal-shell.sidebar-collapsed {grid-template-columns:minmax(0,1fr)!important;}
 .app-shell.minimal-shell>main {grid-column:1!important;width:100%;}
@@ -2822,7 +2235,6 @@ main[data-page="AI assistant"] .page-content {
 .header-brand {width:145px;}
 .header-brand .brand {min-height:32px;padding:0;}
 .header-brand svg,.header-brand img {max-height:38px;width:100%;object-fit:contain;}
-main:not([data-page="Home"])>.command-area {display:none;}
 .emergency-dashboard {height:100%;display:flex;flex-direction:column;min-height:0;}
 .emergency-workbench {display:grid;grid-template-columns:minmax(240px,30%) minmax(0,1fr);gap:16px;flex:1;min-height:0;}
 .emergency-reference,.emergency-library {overflow:auto;min-width:0;scrollbar-width:thin;}
@@ -2836,11 +2248,6 @@ main:not([data-page="Home"])>.command-area {display:none;}
 .emergency-workbench .document-gallery.shelf>li {flex-basis:155px;}
 @media(max-width:700px){.emergency-workbench{display:block;overflow:auto;}.emergency-reference,.emergency-library{overflow:visible;}}
 
-main>.command-feedback {position:fixed;bottom:12px;right:16px;z-index:120;max-width:min(480px,90vw);padding:12px;background:var(--paper);border:1px solid var(--line);box-shadow:0 8px 24px #0002;}
-
-/* Home stays a dashboard; app navigation lives in the collapsible drawer. */
-main[data-page="Home"] .overview {padding-top:24px;padding-bottom:24px;}
-main[data-page="Home"] .home-tools {margin-top:20px;}
 /* Cached field briefings and readable Shackleton responses. */
 .ai-answer {white-space:normal;overflow-wrap:anywhere;line-height:1.65;}
 .ai-answer p {margin:0 0 .8em;}.ai-answer h1,.ai-answer h2,.ai-answer h3 {font-size:1.1em;margin:1em 0 .5em;}.ai-answer ul,.ai-answer ol {padding-left:1.5em;margin:.6em 0;}.ai-answer li {margin:.3em 0;}.ai-answer pre {overflow:auto;white-space:pre;padding:12px;background:#8881;border:1px solid var(--line);}.ai-answer code {font: .9em var(--mono);}.ai-answer blockquote {border-left:2px solid var(--logo-blue);padding-left:12px;margin-left:0;}.answer-table {overflow:auto;max-width:100%;}.answer-table table {border-collapse:collapse;}.answer-table th,.answer-table td {border:1px solid var(--line);padding:6px 10px;}.ai-answer a {color:var(--logo-blue);text-decoration:underline;}
@@ -2881,9 +2288,6 @@ main[data-page="GPS / Maps"] .page-content,main[data-page="Field Briefing"] .pag
 @media(max-width:700px){.weather-main{grid-template-columns:1fr;}.weather-current{border-right:0;border-bottom:1px solid var(--line);padding-bottom:18px;}.weather-days{grid-template-columns:repeat(3,minmax(0,1fr));}.weather-topline{align-items:flex-start;flex-direction:column;gap:7px;}.briefing-page{height:calc(100dvh - 100px);}.event-meta{flex-direction:column;gap:5px;}}
 
 /* Device utilities live on Home; the application drawer stays short. */
-.home-device-links {display:flex;align-items:center;gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:8px 0;}
-.home-device-links > button {flex:1;display:flex;align-items:center;gap:9px;min-height:38px;padding:8px 12px;background:none;border:0;border-right:1px solid var(--line);color:var(--ink);font:12px var(--sans);cursor:pointer;}
-.home-device-links > button:last-child{border-right:0;}.home-device-links > button span{flex:1;text-align:left;}.home-device-links > button>svg:first-child{color:var(--logo-blue,#123aff);}.home-device-links > button:hover{background:color-mix(in srgb,#123aff 5%,transparent);}.home-device-links > button:focus-visible{outline:2px solid #123aff;outline-offset:-3px;}
 
 /* Shared secondary controls: closed by default, one panel open at a time. */
 
@@ -2919,22 +2323,10 @@ main[data-page="GPS / Maps"] .page-content,main[data-page="Field Briefing"] .pag
 .gps-course>span:last-child {display:grid;gap:3px;min-width:48px;}
 .gps-compass {position:relative;width:36px;height:36px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--logo-blue);}
 .gps-compass small {position:absolute;top:-6px;font-size:8px;background:var(--paper,var(--panel));padding:0 2px;}
-main[data-page="Home"] .connections {grid-template-columns:repeat(3,minmax(0,1fr));}
 @media(max-width:650px){.gps-home-position>span {display:grid;gap:3px;}.gps-home{gap:8px;}}
 
 /* GPS shares the device-tools row; detailed readings stay in its info popover. */
-.home-device-links .gps-home {flex:1.35;gap:10px;padding:0 12px 0 0;border-top:0;border-right:1px solid var(--line);min-height:38px;}
-.home-device-links .gps-home-position {flex:1;gap:7px;min-height:38px;justify-content:flex-start;}
-.home-device-links .gps-home-position > span {display:block;white-space:nowrap;}
-.home-device-links .gps-home-position small {font:11px var(--sans);letter-spacing:0;color:var(--ink);}
-.home-device-links .gps-compass {width:25px;height:25px;}
-.home-device-links .gps-compass > svg {width:14px;height:14px;}
-.home-device-links .gps-course > span:last-child {display:none;}
 .gps-details {display:grid;gap:6px;}
-@media(max-width:650px) {
-  .home-device-links .gps-home {gap:5px;padding-right:6px;}
-  .home-device-links > button {padding:8px 6px;gap:5px;}
-}
 
 /* ── Cohesion pass (2026-11-20) ─────────────────────────────────────────
    One tab treatment for every in-page view switcher (Library, Field
@@ -2980,18 +2372,3 @@ main[data-page="Home"] .connections {grid-template-columns:repeat(3,minmax(0,1fr
 
 /* Command result toast: one definition. The older rules set paper-coloured
    text on a paper background (invisible) and pinned it bottom-left. */
-main > .command-feedback {
-  position: fixed;
-  left: auto;
-  right: 16px;
-  bottom: 16px;
-  z-index: 120;
-  max-width: min(480px, calc(100vw - 32px));
-  padding: 6px 6px 6px 14px;
-  border: 0;
-  border-radius: 6px;
-  background: var(--ink);
-  color: var(--paper);
-  box-shadow: 0 8px 24px #0003;
-  font: 13px/1.4 var(--sans);
-}

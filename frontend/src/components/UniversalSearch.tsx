@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
-import { sections, sectionLabel, type Section } from "../preview";
+import { matchSections, sectionLabel, type Section } from "../preview";
 import { isHostedDemo } from "../runtime";
 import { localJSON, type WikiReference } from "./WikiReader";
 import { noteText } from "./RichNote";
@@ -27,6 +27,12 @@ type Research = {
   snippet?: string;
   page?: number;
 };
+const appResult = (s: Section): SearchResult => ({
+  id: `app:${s}`,
+  title: sectionLabel(s),
+  group: "Apps",
+  section: s,
+});
 export function UniversalSearch({
   onClose,
   onSelect,
@@ -51,14 +57,8 @@ export function UniversalSearch({
   useEffect(() => {
     const request = new AbortController();
     const q = query.trim().toLocaleLowerCase();
-    const apps: SearchResult[] = sections
-      .filter((s) => sectionLabel(s).toLocaleLowerCase().includes(q))
-      .map((s) => ({
-        id: `app:${s}`,
-        title: sectionLabel(s),
-        group: "Apps",
-        section: s,
-      }));
+    // Apps match by name or everyday alias ("calc", "radar", "wifi", "sos").
+    const apps: SearchResult[] = matchSections(q).map(appResult);
     // Bundled field guides are always local and instant — never wait on the
     // network or the service to find "water" or "bleeding" in an emergency.
     if (q.length >= 2)
@@ -262,7 +262,7 @@ export function UniversalSearch({
         <input
           type="search"
           aria-label="Search Terminal"
-          placeholder="Notes, library, Wikipedia, places…"
+          placeholder="Apps, notes, library, Wikipedia, places…"
           maxLength={200}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -273,9 +273,18 @@ export function UniversalSearch({
                 ?.querySelector<HTMLButtonElement>(".universal-result")
                 ?.focus();
             }
-            if (event.key === "Enter" && results[0]) {
+            if (event.key === "Enter") {
+              // Apps always lead the list; recompute them so a fast
+              // type-and-Enter never opens a match for the previous query.
+              const app = matchSections(query)[0];
+              const top = app
+                ? appResult(app)
+                : results[0]?.group === "Apps"
+                  ? undefined
+                  : results[0];
+              if (!top) return;
               event.preventDefault();
-              onSelect(results[0]);
+              onSelect(top);
             }
           }}
         />
