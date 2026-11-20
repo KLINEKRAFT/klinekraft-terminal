@@ -33,12 +33,17 @@
   --control-h-lg: 44px;
 
   --field: #faf9f5;
+  /* Accent for icons, links and accent text. --logo-blue stays the fill for
+     primary buttons/active tabs (white text on it). On dark surfaces the
+     logo blue is ~2:1, so icons/text use this lighter tint instead. */
+  --accent-fg: var(--logo-blue);
   --danger: #b3261e;
   --ok: #1f7a3a;
   --focus-ring: 0 0 0 2px var(--paper), 0 0 0 4px var(--logo-blue);
 }
 :root[data-theme="dark"] {
   --field: #1d232b;
+  --accent-fg: #8ea2ff;
   --danger: #ff8a80;
   --ok: #7bd88f;
 }
@@ -98,6 +103,10 @@
   border-color: var(--logo-blue);
   background: color-mix(in srgb, var(--logo-blue) 12%, transparent);
   color: var(--ink);
+}
+
+a.k-btn {
+  text-decoration: none;
 }
 
 /* ── Fields ──────────────────────────────────────────────────────────── */
@@ -231,7 +240,7 @@ textarea.k-field {
   font: var(--text-sm) / 1.5 var(--sans);
 }
 .k-empty > svg {
-  color: var(--logo-blue);
+  color: var(--accent-fg);
   margin-bottom: var(--space-1);
 }
 .k-empty > h3 {
