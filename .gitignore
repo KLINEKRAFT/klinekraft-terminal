@@ -20,3 +20,6 @@ backend/build/
 
 # Generated from pdfjs-dist by Vite configuration
 frontend/public/pdfjs/
+
+# Agent worktrees (temporary, never commit)
+.claude/worktrees/
