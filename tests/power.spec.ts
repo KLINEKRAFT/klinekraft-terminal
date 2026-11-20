@@ -62,7 +62,14 @@ for (const height of [600, 560])
     await expect(
       panel.getByRole("switch", { name: "Dim screen", exact: true }),
     ).toHaveAttribute("aria-checked", "true");
-    await page.keyboard.press("Escape");
+    // "/" does not open Search over the open popover.
+    await page.keyboard.press("/");
+    await expect(page.locator(".universal-search")).toHaveCount(0);
+    // Tabbing out of the popover closes it.
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: "Dark mode" })).toBeFocused();
+    await expect(panel).toHaveCount(0);
     for (const section of ["Home", "Shackleton", "Paint", "System"]) {
       await navigate(page, section);
       expect(

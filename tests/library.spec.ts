@@ -233,6 +233,15 @@ test("notebook and bookmarks empty states each offer one way forward", async ({
   await expect(
     bookmarks.getByRole("button", { name: "Add bookmark" }),
   ).toBeFocused();
+  // The empty notebook's one action opens Shackleton, titled in the header.
+  await page
+    .getByRole("navigation", { name: "Library sections" })
+    .getByRole("button", { name: "Notebook", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Ask Shackleton", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Shackleton" }),
+  ).toBeVisible();
 });
 
 test("Files explains a missing folder and an empty one", async ({ page }) => {
@@ -256,3 +265,24 @@ test("Files explains a missing folder and an empty one", async ({ page }) => {
     page.getByRole("heading", { name: "Downloads is empty" }),
   ).toBeVisible();
 });
+
+for (const dark of [false, true])
+  test(`the active library tab stays filled on hover (${dark ? "dark" : "light"})`, async ({
+    page,
+  }) => {
+    await page.addInitScript(
+      (value) => localStorage.setItem("klinekraft.darkMode", String(value)),
+      dark,
+    );
+    await openLibrary(page, "Research");
+    const active = page
+      .getByRole("navigation", { name: "Library sections" })
+      .getByRole("button", { name: "Research", exact: true });
+    await expect(active).toHaveAttribute("aria-pressed", "true");
+    await active.hover();
+    // Filled logo blue behind white text, hovered or not.
+    await expect
+      .poll(() => active.evaluate((e) => getComputedStyle(e).backgroundColor))
+      .toBe("rgb(2, 39, 255)");
+    await expect(active).toHaveCSS("color", "rgb(255, 255, 255)");
+  });

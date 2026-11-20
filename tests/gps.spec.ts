@@ -23,6 +23,13 @@ test("GPS home compass, saved spots, route start and lost fix", async ({ page })
   await navigate(page, "Home");
   await page.getByLabel("GPS and compass information").click();
   await expect(page.locator(".gps-details")).toContainText("11/15 satellites");
+  // The popover opens rightward and upward from the GPS cell, fully on screen.
+  await expect(page.locator(".gps-home .info-content")).toBeInViewport({ ratio: 1 });
+  const info = await page.locator(".gps-home .info-content").boundingBox();
+  expect(info!.x).toBeGreaterThanOrEqual(0);
+  expect(info!.y).toBeGreaterThanOrEqual(0);
+  expect(info!.x + info!.width).toBeLessThanOrEqual(1024);
+  expect(info!.y + info!.height).toBeLessThanOrEqual(600);
   await page.keyboard.press("Escape");
   await expect(page.getByLabel("Travel direction unavailable")).toBeVisible();
   course = 90;

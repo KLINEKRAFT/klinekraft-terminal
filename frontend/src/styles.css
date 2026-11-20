@@ -44,8 +44,10 @@ input:focus-visible {
 button {
   transition: background 0.12s;
 }
-button:hover {
-  background: #e6e2d9;
+/* Primitives (.k-btn, .k-tabs, .k-switch) own their hover. This is only for
+   legacy buttons that carry no class at all. */
+:where(button:not([class]):hover:not(:disabled)) {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 button:disabled {
   cursor: default;
@@ -103,11 +105,11 @@ button:disabled {
   margin: 22px 10px 15px;
   color: var(--muted);
 }
-nav {
+.sidebar nav {
   border-top: 1px solid var(--line);
   padding-top: 10px;
 }
-nav button {
+.sidebar nav button {
   border: 0;
   background: transparent;
   width: 100%;
@@ -122,7 +124,7 @@ nav button {
   font-weight: 500;
   border-radius: 2px;
 }
-nav button svg {
+.sidebar nav button svg {
   display: none;
 }
 .nav-number {
@@ -131,13 +133,13 @@ nav button svg {
   color: var(--muted);
   width: 18px;
 }
-nav button[aria-current] {
+.sidebar nav button[aria-current] {
   background: #ddd9cf;
 }
-nav button[aria-current] .nav-number {
+.sidebar nav button[aria-current] .nav-number {
   color: #a64100;
 }
-nav button i {
+.sidebar nav button i {
   width: 6px;
   height: 6px;
   background: var(--orange);
@@ -688,10 +690,10 @@ select:focus-visible {
 }
 .home-pins a svg {
   flex-shrink: 0;
-  color: var(--blue);
+  color: var(--accent-fg);
 }
 .home-pins a:hover {
-  color: var(--blue);
+  color: var(--accent-fg);
 }
 .home-note textarea {
   display: block;
@@ -751,19 +753,16 @@ textarea:focus-visible {
   color-scheme: light;
 }
 [data-theme="dark"] .sidebar,
-[data-theme="dark"] .command-area form,
-[data-theme="dark"] .browser-launch,
 [data-theme="dark"] .home-note textarea {
   background: #1d232b;
 }
-[data-theme="dark"] button:hover,
-[data-theme="dark"] nav button[aria-current] {
+[data-theme="dark"] .sidebar nav button[aria-current] {
   background: var(--panel);
 }
 [data-theme="dark"] .eyebrow > span {
   color: var(--muted);
 }
-[data-theme="dark"] nav button[aria-current] .nav-number,
+[data-theme="dark"] .sidebar nav button[aria-current] .nav-number,
 [data-theme="dark"] .browser-warning,
 [data-theme="dark"] .home-warning {
   color: #ffb47c !important;
@@ -794,67 +793,6 @@ textarea:focus-visible {
   color: var(--ink);
   background: transparent;
 }
-.app-shell.sidebar-collapsed {
-  grid-template-columns: 56px minmax(0, 1fr);
-}
-.sidebar-collapsed .sidebar {
-  padding: 12px 6px;
-  background: var(--paper);
-}
-.sidebar-collapsed .sidebar-toggle {
-  align-self: center;
-}
-.sidebar-collapsed .sidebar .brand,
-.sidebar-collapsed .sidebar-caption,
-.sidebar-collapsed .nav-number,
-.sidebar-collapsed .nav-label,
-.sidebar-collapsed .sidebar-bottom > div,
-.sidebar-collapsed .sidebar-bottom > span {
-  display: none;
-}
-.sidebar-collapsed nav button {
-  justify-content: center;
-  padding: 0;
-}
-.sidebar-collapsed nav button svg {
-  display: block;
-}
-.sidebar-collapsed nav button i {
-  position: absolute;
-  left: -6px;
-  width: 2px;
-  height: 14px;
-  border-radius: 0;
-  background: var(--ink);
-}
-.sidebar-collapsed .sidebar-bottom {
-  padding: 12px 0 0;
-}
-.sidebar-collapsed .sidebar-bottom > button {
-  justify-content: center;
-}
-
-/* A quiet instrument rail: one axis, one selection mark, no button chrome. */
-.sidebar-collapsed nav {
-  border-top: 0;
-  padding-top: 8px;
-}
-.sidebar-collapsed nav button {
-  color: var(--muted);
-  border-radius: 0;
-}
-.sidebar-collapsed nav button[aria-current] {
-  color: var(--ink);
-  background: transparent;
-}
-.sidebar-collapsed nav button:hover {
-  color: var(--ink);
-  background: var(--panel);
-}
-.sidebar-collapsed .sidebar-bottom > button {
-  color: var(--muted);
-  border-top: 0;
-}
 [data-theme="dark"] .sidebar-toggle:hover {
   background: transparent;
 }
@@ -878,13 +816,6 @@ textarea:focus-visible {
   height: 44px;
   margin: 0;
   align-self: auto;
-}
-.sidebar-collapsed .sidebar-heading {
-  margin: 0 0 8px;
-  justify-content: center;
-}
-.sidebar-collapsed .sidebar-toggle {
-  width: 44px;
 }
 .browser-panel {
   padding: 22px 0;
@@ -940,9 +871,6 @@ textarea:focus-visible {
   }
   .sidebar-heading .sidebar-toggle {
     width: 24px;
-  }
-  .sidebar-collapsed .sidebar-heading .sidebar-toggle {
-    width: 44px;
   }
 }
 @media (max-height: 650px) {
@@ -1623,7 +1551,7 @@ textarea:focus-visible {
   width: 100%;
   height: 48px;
   overflow: hidden;
-  color: var(--logo-blue);
+  color: var(--accent-fg);
 }
 .graph-line {
   fill: none;
@@ -2091,7 +2019,6 @@ main[data-page="AI assistant"] .page-content {
 @media (min-width: 850px) and (max-height: 800px) {
   html, body, #root { height: 100%; overflow: hidden; }
   .app-shell { height: 100dvh; min-height: 0; grid-template-columns: 176px minmax(0, 1fr); overflow: hidden; }
-  .app-shell.sidebar-collapsed { grid-template-columns: 52px minmax(0, 1fr); }
   .sidebar { height: 100dvh; padding: 10px 10px 8px; }
   .sidebar .brand { min-height: 32px; padding: 0 5px; }
   .sidebar .brand-lockup { max-width: 100%; }
@@ -2103,8 +2030,6 @@ main[data-page="AI assistant"] .page-content {
   .sidebar-bottom { padding-top: 4px; margin-top: auto; }
   .sidebar-bottom > div, .sidebar-bottom > span { display: none; }
   .sidebar-bottom > button { min-height: 30px; margin-top: 2px; padding-block: 5px; }
-  .sidebar-collapsed .sidebar { padding: 8px 5px; }
-  .sidebar-collapsed .sidebar-bottom { padding-top: 4px; }
   main { height: 100dvh; min-height: 0; padding: 10px 16px 8px; overflow: hidden; }
   .page-header { flex: none; align-items: center; margin-bottom: 10px; }
   .page-header h1 { font-size: 22px; margin: 4px 0 0; letter-spacing: -.6px; }
@@ -2304,7 +2229,7 @@ main[data-page="GPS / Maps"] .page-content,main[data-page="Field Briefing"] .pag
 .universal-results { overflow-y: auto; min-height: 0; }
 .universal-result { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: 100%; padding: 10px; gap: 4px; background: transparent; color: var(--ink); border: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
 .universal-result:hover, .universal-result:focus-visible { background: var(--panel); outline: 2px solid var(--blue); outline-offset: -2px; }
-.universal-result span { font-size: 10px; color: var(--blue); }
+.universal-result span { font-size: 10px; color: var(--accent-fg); }
 .universal-result strong { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
 .universal-result small { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .universal-search footer { font-size: 11px; color: var(--muted); }
@@ -2313,61 +2238,19 @@ main[data-page="GPS / Maps"] .page-content,main[data-page="Field Briefing"] .pag
 .gps-home {display:flex;align-items:center;gap:16px;padding:9px 0;border-top:1px solid var(--line);min-width:0;}
 .gps-home-position {display:flex;align-items:center;gap:10px;flex:1;min-width:0;background:none;border:0;padding:0;color:var(--ink);text-align:left;cursor:pointer;}
 .gps-home-position:disabled {cursor:default;opacity:.65;}
-.gps-home-position>svg {color:var(--logo-blue);flex-shrink:0;}
+.gps-home-position>svg {color:var(--accent-fg);flex-shrink:0;}
 .gps-home-position>span {display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
 .gps-home small {font:10px var(--mono);color:var(--muted);letter-spacing:.05em;}
 .gps-home strong {font:12px var(--mono);}
 .gps-home em {font:11px var(--sans);font-style:normal;color:var(--muted);}
 .gps-course {display:flex;align-items:center;gap:7px;flex-shrink:0;}
 .gps-course>span:last-child {display:grid;gap:3px;min-width:48px;}
-.gps-compass {position:relative;width:36px;height:36px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--logo-blue);}
+.gps-compass {position:relative;width:36px;height:36px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--accent-fg);}
 .gps-compass small {position:absolute;top:-6px;font-size:8px;background:var(--paper,var(--panel));padding:0 2px;}
 @media(max-width:650px){.gps-home-position>span {display:grid;gap:3px;}.gps-home{gap:8px;}}
 
 /* GPS shares the device-tools row; detailed readings stay in its info popover. */
 .gps-details {display:grid;gap:6px;}
-
-/* ── Cohesion pass (2026-11-20) ─────────────────────────────────────────
-   One tab treatment for every in-page view switcher (Library, Field
-   Briefing): quiet text tabs, a filled logo-blue pill for the active view,
-   matching the Maps toolbar. Built only from tokens so dark mode follows.
-   (Field Briefing now uses the .k-tabs primitive from ui.css.) */
-.library-navigation {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  border-bottom: 1px solid var(--line);
-  padding: 0 0 8px;
-  margin-bottom: 12px;
-}
-.library-workspace .library-navigation button,
-.library-navigation button {
-  flex: 0 0 auto;
-  width: auto;
-  min-height: 36px;
-  height: auto;
-  padding: 8px 16px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  box-shadow: none;
-  color: var(--muted);
-  font: 500 13px var(--sans);
-  cursor: pointer;
-}
-.library-navigation button:hover {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
-  color: var(--ink);
-}
-.library-navigation button[aria-pressed="true"] {
-  background: var(--logo-blue);
-  color: #fff;
-  box-shadow: none;
-}
-.library-navigation button:focus-visible {
-  outline: 2px solid var(--logo-blue);
-  outline-offset: 2px;
-}
 
 /* Command result toast: one definition. The older rules set paper-coloured
    text on a paper background (invisible) and pinned it bottom-left. */

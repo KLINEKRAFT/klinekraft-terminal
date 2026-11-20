@@ -1,17 +1,25 @@
 import { test, expect } from "@playwright/test";
+import { navigate } from "../tests/navigation";
+// The fixture backend fakes the cloud provider; Shackleton defaults to the
+// offline engine, so these tests choose Cloud explicitly.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() =>
+    localStorage.setItem("klinekraft.ai.provider", "cloud"),
+  );
+});
 test("chat persists across reload and browser profiles, renames, exports and deletes", async ({
   page,
   browser,
 }) => {
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.goto("/");
-  await page.getByRole("button", { name: /03 AI assistant/ }).click();
+  await navigate(page, "Shackleton");
   await page.getByRole("switch", { name: "Wikipedia", exact: true }).click();
   await page.getByLabel("Your question").fill("A persistent astronomy chat");
   await page.getByLabel("Your question").press("Enter");
   await expect(page.getByText("Saved on Pi", { exact: false })).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: /03 AI assistant/ }).click();
+  await navigate(page, "Shackleton");
   await expect(page.locator(".ai-answer")).toContainText("Saved answer");
   await page.getByRole("button", { name: "History", exact: true }).click();
   await page.getByLabel("Conversation title").fill("Astronomy notebook");
@@ -28,7 +36,7 @@ test("chat persists across reload and browser profiles, renames, exports and del
   });
   const other = await second.newPage();
   await other.goto("http://127.0.0.1:8015/");
-  await other.getByRole("button", { name: /03 AI assistant/ }).click();
+  await navigate(other, "Shackleton");
   await other.getByRole("button", { name: "History", exact: true }).click();
   await other.getByLabel("Search conversations").fill("astronomy");
   await other.getByRole("button", { name: /Astronomy notebook/ }).click();
@@ -56,14 +64,14 @@ test("failed save keeps answer and retry does not ask cloud AI again", async ({
       : r.continue(),
   );
   await page.goto("/");
-  await page.getByRole("button", { name: /03 AI assistant/ }).click();
+  await navigate(page, "Shackleton");
   await page.getByRole("switch", { name: "Wikipedia", exact: true }).click();
   await page.getByLabel("Your question").fill("Keep this answer");
   await page.getByLabel("Your question").press("Enter");
   await expect(page.getByText("Storage unavailable")).toBeVisible();
   await expect(page.locator(".ai-answer")).toContainText("Saved answer");
-  await page.getByRole("button", { name: /01 Home/ }).click();
-  await page.getByRole("button", { name: /03 AI assistant/ }).click();
+  await navigate(page, "Home");
+  await navigate(page, "Shackleton");
   await expect(page.locator(".ai-answer")).toContainText("Saved answer");
   await page.unroute("**/api/conversations/*");
   await page.getByRole("button", { name: "Retry save" }).click();

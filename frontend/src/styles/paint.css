@@ -452,10 +452,7 @@
   padding: 0;
   background: var(--paper);
 }
-main:has(.paint-expanded) > .page-header,
-main:has(.paint-expanded) > .power-controls,
-main:has(.paint-expanded) > .command-area,
-main[data-page="Paint"] > .command-area {
+main:has(.paint-expanded) > .page-header {
   display: none;
 }
 
