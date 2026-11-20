@@ -7,6 +7,7 @@ import "@fontsource/ibm-plex-mono/latin-400.css";
 import App from "./App";
 import { DesktopAway } from "./components/AwayPanel";
 import "./styles.css";
+import "./ui.css";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     {new URLSearchParams(window.location.search).get("desktop-away") === "1" ? <DesktopAway /> : <App />}

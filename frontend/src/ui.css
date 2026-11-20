@@ -1,0 +1,286 @@
+/*
+  Klinekraft UI foundation — the one scale every screen builds on.
+  Loaded after styles.css. New and rebuilt UI uses ONLY these tokens and
+  the .k-* primitives; do not add new raw px font sizes, radii or colors.
+
+  Type      12 / 14 / 16 / 20 / 28 / 48
+  Space     4 / 8 / 12 / 16 / 24 / 32
+  Radius    4 / 8 / pill
+  Color     paper, panel, ink, muted, line, blue, logo-blue, orange
+            (+ derived: field, danger, ok)
+  Touch     controls are at least 36px tall; primary actions 44px.
+*/
+:root {
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+  --text-hero: 48px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-pill: 999px;
+
+  --control-h: 36px;
+  --control-h-lg: 44px;
+
+  --field: #faf9f5;
+  --danger: #b3261e;
+  --ok: #1f7a3a;
+  --focus-ring: 0 0 0 2px var(--paper), 0 0 0 4px var(--logo-blue);
+}
+:root[data-theme="dark"] {
+  --field: #1d232b;
+  --danger: #ff8a80;
+  --ok: #7bd88f;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────── */
+.k-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-h);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink);
+  font: 500 var(--text-sm) / 1 var(--sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.k-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.k-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.k-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.k-btn--primary {
+  border-color: var(--logo-blue);
+  background: var(--logo-blue);
+  color: #fff;
+}
+.k-btn--primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--logo-blue) 88%, #000);
+}
+.k-btn--quiet {
+  border-color: transparent;
+}
+.k-btn--danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+.k-btn--icon {
+  width: var(--control-h);
+  padding: 0;
+}
+.k-btn--lg {
+  min-height: var(--control-h-lg);
+  font-size: var(--text-md);
+}
+.k-btn[aria-pressed="true"] {
+  border-color: var(--logo-blue);
+  background: color-mix(in srgb, var(--logo-blue) 12%, transparent);
+  color: var(--ink);
+}
+
+/* ── Fields ──────────────────────────────────────────────────────────── */
+.k-field,
+.k-select {
+  min-height: var(--control-h);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--field);
+  color: var(--ink);
+  font: var(--text-sm) var(--sans);
+}
+textarea.k-field {
+  padding: var(--space-2) var(--space-3);
+  line-height: 1.5;
+}
+.k-field::placeholder {
+  color: var(--muted);
+}
+.k-field:focus-visible,
+.k-select:focus-visible {
+  outline: none;
+  border-color: var(--logo-blue);
+  box-shadow: 0 0 0 1px var(--logo-blue);
+}
+.k-select {
+  appearance: none;
+  padding-right: var(--space-6);
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+.k-label {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--muted);
+  font: 500 var(--text-xs) var(--sans);
+}
+
+/* ── Switch (role="switch" button) ───────────────────────────────────── */
+.k-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-h);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: var(--text-sm) var(--sans);
+  cursor: pointer;
+}
+.k-switch::after {
+  content: "";
+  width: 36px;
+  height: 20px;
+  flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--line)
+    radial-gradient(circle 7px at 10px 50%, #fff 96%, transparent) no-repeat;
+  transition: background 150ms ease;
+}
+.k-switch[aria-checked="true"]::after {
+  background: var(--logo-blue)
+    radial-gradient(circle 7px at 26px 50%, #fff 96%, transparent) no-repeat;
+}
+.k-switch:focus-visible {
+  outline: none;
+}
+.k-switch:focus-visible::after {
+  box-shadow: var(--focus-ring);
+}
+.k-switch:disabled {
+  opacity: 0.45;
+}
+
+/* ── Tabs (view switchers) ───────────────────────────────────────────── */
+.k-tabs {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line);
+}
+.k-tabs > button {
+  min-height: var(--control-h);
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--muted);
+  font: 500 var(--text-sm) var(--sans);
+  cursor: pointer;
+}
+.k-tabs > button:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink);
+}
+.k-tabs > button[aria-pressed="true"],
+.k-tabs > button[aria-selected="true"] {
+  background: var(--logo-blue);
+  color: #fff;
+}
+.k-tabs > button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ── Card / panel ────────────────────────────────────────────────────── */
+.k-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--panel) 35%, transparent);
+}
+
+/* ── Empty state: says what goes here and the one action that fills it ─ */
+.k-empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  max-width: 440px;
+  margin: var(--space-6) auto;
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--muted);
+  font: var(--text-sm) / 1.5 var(--sans);
+}
+.k-empty > svg {
+  color: var(--logo-blue);
+  margin-bottom: var(--space-1);
+}
+.k-empty > h3 {
+  margin: 0;
+  color: var(--ink);
+  font: 600 var(--text-md) var(--sans);
+}
+.k-empty > p {
+  margin: 0;
+}
+.k-empty > .k-btn,
+.k-empty > code {
+  margin-top: var(--space-2);
+}
+.k-empty code {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--ink);
+  font: var(--text-xs) var(--mono);
+}
+
+/* ── Text helpers ────────────────────────────────────────────────────── */
+.k-eyebrow {
+  color: var(--muted);
+  font: 500 var(--text-xs) var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.k-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--muted);
+}
+.k-status-dot[data-state="ok"] {
+  background: var(--ok);
+}
+.k-status-dot[data-state="warn"] {
+  background: var(--orange);
+}
+.k-status-dot[data-state="off"] {
+  background: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .k-btn,
+  .k-switch::after {
+    transition: none;
+  }
+}
