@@ -322,7 +322,7 @@ export function Organizer({
         (item.title + " " + item.body)
           .toLowerCase()
           .includes(query.toLowerCase()) &&
-        (kind === "note" || !!query || item.day === day),
+        (kind === "note" || !!query || trash || item.day === day),
     )
     .sort((a, b) =>
       kind === "event"
@@ -358,37 +358,62 @@ export function Organizer({
         })
       : "All day";
   const today = dayString(new Date());
-  // One quiet line in the editor's corner says where the words are.
-  const saveState: { text: string; tone: "ok" | "warn" | "off" | "" } = busy
+  // One short, stable word or two in the editor's corner says where the
+  // words are; anything longer (why a save failed, what was loaded) goes in
+  // its title or in the notice line under the title, so the title keeps room.
+  const okStatus = /^(Saved|Moved|Restored|Loaded|Recovered)\b/.test(status);
+  const saveState: {
+    text: string;
+    tone: "ok" | "warn" | "off" | "";
+    title?: string;
+  } = busy
     ? { text: "Saving…", tone: "warn" }
     : saveError
-      ? {
-          text: conflict ? "Not saved — changed elsewhere" : status,
-          tone: "off",
-        }
+      ? { text: "Not saved", tone: "off" }
       : dirty
-        ? { text: "Edited", tone: "warn" }
-        : status
-          ? {
-              text: status.replace(/\.$/, ""),
-              // A failed list load also lands in status: never show it green.
-              tone: /^(Saved|Moved|Restored|Loaded)\b/.test(status)
-                ? "ok"
-                : "off",
-            }
-          : draft && draft.revision > 0
-            ? { text: "Saved on Pi", tone: "ok" }
-            : { text: "", tone: "" };
+        ? { text: "Edited", tone: "warn", title: status || undefined }
+        : status && !okStatus
+          ? // A failed list load also lands in status: never show it green.
+            { text: "Not synced", tone: "off" }
+          : /^Moved\b/.test(status)
+            ? { text: "Moved to Trash", tone: "ok" }
+            : /^Restored\b/.test(status)
+              ? { text: "Restored", tone: "ok" }
+              : status || (draft && draft.revision > 0)
+                ? {
+                    text: "Saved on Pi",
+                    tone: "ok",
+                    title: status ? status : undefined,
+                  }
+                : { text: "", tone: "" };
+  const notice = conflict
+    ? "Changed on the Pi from another tab or device."
+    : saveError || (status && !okStatus)
+      ? status.replace(/^Not saved — /, "")
+      : "";
+  const relativeDay = (value: string) => {
+    const offset = Math.round(
+      (new Date(`${value}T12:00`).getTime() -
+        new Date(`${today}T12:00`).getTime()) /
+        86400000,
+    );
+    return offset === 0
+      ? "today"
+      : offset === 1
+        ? "tomorrow"
+        : offset === -1
+          ? "yesterday"
+          : `on ${friendlyDay(value, "short")}`;
+  };
   const emptyList = () => {
-    if (kind === "event" && !query)
-      return <p className="organizer-hint">Nothing scheduled.</p>;
     if (query)
       return (
         <div className="k-empty">
           <SearchX size={28} aria-hidden="true" />
           <h3>No matches</h3>
           <p>
-            Nothing {trash ? "in Trash" : `in your ${noun}s`} mentions “{query}”.
+            Nothing {trash ? "in Trash" : `in your ${noun}s`} mentions “{query}
+            ”.
           </p>
         </div>
       );
@@ -399,6 +424,10 @@ export function Organizer({
           <h3>Trash is empty</h3>
           <p>Removed {noun}s wait here until you restore them.</p>
         </div>
+      );
+    if (kind === "event")
+      return (
+        <p className="organizer-hint">Nothing scheduled {relativeDay(day)}.</p>
       );
     return (
       <div className="k-empty">
@@ -521,8 +550,10 @@ export function Organizer({
           <div className="organizer-list-head">
             {kind === "event" && (
               <div className="organizer-day">
-                <h3>{query ? "All dates" : friendlyDay(day)}</h3>
-                {!query && holidays[day] && (
+                <h3>
+                  {query ? "All dates" : trash ? "Trash" : friendlyDay(day)}
+                </h3>
+                {!query && !trash && holidays[day] && (
                   <p className="holiday-agenda">{holidays[day].join(" · ")}</p>
                 )}
               </div>
@@ -642,6 +673,7 @@ export function Organizer({
                   <p
                     className="save-state"
                     role="status"
+                    title={saveState.title}
                     data-tone={saveState.tone || undefined}
                   >
                     {saveState.tone && (
@@ -653,6 +685,39 @@ export function Organizer({
                     )}
                     {saveState.text}
                   </p>
+                  {draft.revision > 0 &&
+                    (kind === "event" ? (
+                      <button
+                        type="button"
+                        className="k-btn k-btn--quiet k-btn--icon"
+                        disabled={busy}
+                        onClick={() => void showHistory()}
+                        aria-expanded={versions !== null}
+                        aria-label="History"
+                        title="Saved versions"
+                      >
+                        <History size={18} aria-hidden="true" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="k-btn k-btn--quiet"
+                        disabled={busy}
+                        onClick={() => void showHistory()}
+                        aria-expanded={versions !== null}
+                        title="Saved versions"
+                      >
+                        <History size={16} aria-hidden="true" /> History
+                      </button>
+                    ))}
+                </div>
+              </div>
+              {notice && (
+                <div
+                  className="organizer-notice"
+                  role={saveError ? "alert" : undefined}
+                >
+                  <p>{notice}</p>
                   {conflict ? (
                     <>
                       <button
@@ -687,20 +752,8 @@ export function Organizer({
                       </button>
                     )
                   )}
-                  {draft.revision > 0 && (
-                    <button
-                      type="button"
-                      className="k-btn k-btn--quiet"
-                      disabled={busy}
-                      onClick={() => void showHistory()}
-                      aria-expanded={versions !== null}
-                      title="Saved versions"
-                    >
-                      <History size={16} aria-hidden="true" /> History
-                    </button>
-                  )}
                 </div>
-              </div>
+              )}
               {versions !== null && (
                 <section className="note-history" aria-label="Saved versions">
                   <h3 className="k-eyebrow">Saved versions</h3>

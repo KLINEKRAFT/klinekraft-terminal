@@ -2,13 +2,18 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   conversions,
+  convertFields,
   convertUnit,
   formatUnitValue,
   parseUnitInput,
+  switchQuantity,
 } from "../frontend/src/units.ts";
 
-const show = (id: Parameters<typeof convertUnit>[0], value: number, from: "us" | "metric") =>
-  formatUnitValue(convertUnit(id, value, from));
+const show = (
+  id: Parameters<typeof convertUnit>[0],
+  value: number,
+  from: "us" | "metric",
+) => formatUnitValue(convertUnit(id, value, from));
 
 test("temperature uses the exact Fahrenheit/Celsius relationship", () => {
   assert.equal(show("temperature", 32, "us"), "0");
@@ -66,4 +71,30 @@ test("input parsing accepts partial typing without inventing numbers", () => {
   assert.equal(formatUnitValue(NaN), "");
   assert.equal(formatUnitValue(-0), "0");
   assert.equal(formatUnitValue(0.1 + 0.2), "0.3");
+});
+
+test("switching quantity re-converts from the side the person typed", () => {
+  // Typed 100 on the metric side of temperature: U.S. shows the derived 212.
+  const typedMetric = convertFields("temperature", "metric", "100");
+  assert.deepEqual(typedMetric, { us: "212", metric: "100" });
+  // Switching to distance keeps the typed 100 (now km), not the derived 212.
+  assert.deepEqual(switchQuantity("distance", typedMetric, "metric"), {
+    us: "62.13711922",
+    metric: "100",
+  });
+  // Typed on the U.S. side, the U.S. number carries over.
+  const typedUs = convertFields("temperature", "us", "212");
+  assert.deepEqual(switchQuantity("distance", typedUs, "us"), {
+    us: "212",
+    metric: "341.180928",
+  });
+  // Incomplete or empty input clears the other side instead of inventing 0.
+  assert.deepEqual(convertFields("temperature", "us", "-"), {
+    us: "-",
+    metric: "",
+  });
+  assert.deepEqual(switchQuantity("weight", { us: "", metric: "" }, "metric"), {
+    us: "",
+    metric: "",
+  });
 });

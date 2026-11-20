@@ -3,11 +3,11 @@ import { Info } from "./Info";
 import { useState } from "react";
 import {
   conversions,
-  convertUnit,
-  formatUnitValue,
-  parseUnitInput,
+  convertFields,
+  switchQuantity,
   type ConversionId,
   type Side,
+  type UnitValues,
 } from "../units";
 
 export function calculate(expression: string): number {
@@ -84,19 +84,14 @@ function UnitConverter() {
     }
     return "temperature";
   });
-  const [values, setValues] = useState<Record<Side, string>>({
-    us: "",
-    metric: "",
-  });
+  const [values, setValues] = useState<UnitValues>({ us: "", metric: "" });
+  // The side the person last typed on: its number is the one that carries
+  // over when the quantity changes (the other side is only derived).
+  const [source, setSource] = useState<Side>("us");
   const conversion = conversions.find((c) => c.id === id)!;
-  function type(side: Side, text: string, quantity: ConversionId = id) {
-    const other: Side = side === "us" ? "metric" : "us";
-    const number = parseUnitInput(text);
-    setValues({
-      [side]: text,
-      [other]:
-        number === null ? "" : formatUnitValue(convertUnit(quantity, number, side)),
-    } as Record<Side, string>);
+  function type(side: Side, text: string) {
+    setSource(side);
+    setValues(convertFields(id, side, text));
   }
   function choose(next: ConversionId) {
     setId(next);
@@ -105,12 +100,13 @@ function UnitConverter() {
     } catch {
       /* Keep working without remembering the choice. */
     }
-    // Keep the U.S. number the person typed and convert it in the new quantity.
-    if (values.us || !values.metric) type("us", values.us, next);
-    else type("metric", values.metric, next);
+    setValues(switchQuantity(next, values, source));
   }
   return (
-    <section className="k-card unit-converter" aria-labelledby="converter-title">
+    <section
+      className="k-card unit-converter"
+      aria-labelledby="converter-title"
+    >
       <div className="unit-converter-head">
         <h2 className="k-eyebrow" id="converter-title">
           Convert
@@ -144,7 +140,6 @@ function UnitConverter() {
                 className="k-field"
                 inputMode="decimal"
                 autoComplete="off"
-                placeholder="0"
                 value={values[side]}
                 onChange={(event) => type(side, event.target.value)}
               />
@@ -308,7 +303,10 @@ export function Calculator() {
       </div>
       <div className="calculator-side">
         <UnitConverter />
-        <section className="k-card calculator-history" aria-labelledby="calculator-history-title">
+        <section
+          className="k-card calculator-history"
+          aria-labelledby="calculator-history-title"
+        >
           <h2 className="k-eyebrow" id="calculator-history-title">
             History
           </h2>
