@@ -1,1 +1,477 @@
-/* controls area styles — built on ui.css tokens and .k-* primitives. */
+/* controls area styles — built on ui.css tokens and .k-* primitives.
+   Games, Settings → Workspace preferences, Network (Screen Cast, Field
+   connections), System (activity + processes), Field Briefing and
+   Shackleton. Layout only: every control's look comes from ui.css. */
+
+/* ── Shared helpers ──────────────────────────────────────────────────── */
+.games-help code,
+.cast-setup code,
+.field-secret code,
+.cast-pin {
+  display: inline-block;
+  max-width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--ink);
+  font: var(--text-xs) / 1.5 var(--mono);
+  overflow-wrap: anywhere;
+}
+
+/* ── Games ───────────────────────────────────────────────────────────── */
+.games-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+}
+.games-toolbar .games-search {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.games-toolbar .k-select {
+  flex: 0 1 200px;
+  min-width: 0;
+}
+.games-count {
+  margin: 0 0 var(--space-3);
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.game-list .k-btn {
+  width: 100%;
+}
+.game-list .game-favorite {
+  width: var(--control-h);
+  height: var(--control-h);
+  min-width: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+.game-list .game-favorite[aria-pressed="true"] {
+  color: var(--logo-blue);
+}
+.game-list .game-favorite:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.games-more {
+  display: flex;
+  margin: var(--space-4) auto 0;
+}
+.games-empty code,
+.games-help code {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  white-space: pre-wrap;
+  text-align: left;
+}
+.game-cover-fallback small {
+  padding-right: var(--space-6);
+}
+.games-help {
+  margin-top: var(--space-5);
+}
+.games-help p {
+  margin: 0 0 var(--space-3);
+  color: var(--muted);
+  font: var(--text-xs) / 1.6 var(--sans);
+}
+.games-help code {
+  margin: 0 0 var(--space-3);
+}
+
+/* ── Settings → Workspace preferences ────────────────────────────────── */
+.pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 52px;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+}
+.pref-row > span {
+  min-width: 0;
+}
+.pref-row strong {
+  display: block;
+  color: var(--ink);
+  font: 500 var(--text-sm) var(--sans);
+}
+.pref-row small {
+  display: block;
+  max-width: 44em;
+  margin-top: var(--space-1);
+  color: var(--muted);
+  font: var(--text-xs) / 1.5 var(--sans);
+}
+.pref-row .k-select {
+  flex: none;
+  min-width: 190px;
+}
+.pref-row .k-switch {
+  flex: none;
+}
+.settings-panel .pref-note {
+  margin: var(--space-3) 0 0;
+  color: var(--muted);
+  font: var(--text-xs) / 1.6 var(--sans);
+}
+
+/* ── Network → Screen Cast ───────────────────────────────────────────── */
+.cast-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.cast-heading h2 {
+  margin: 0;
+}
+.cast-state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.cast-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+  margin: var(--space-2) 0;
+  padding: var(--space-2) 0;
+  border-block: 1px solid var(--line);
+}
+.cast-setup {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.settings-panel .cast-setup p {
+  margin: 0;
+  color: var(--ink);
+  font: var(--text-sm) / 1.5 var(--sans);
+}
+
+/* ── Network → Field connections ─────────────────────────────────────── */
+.field-connections .details-panel-content {
+  display: grid;
+  gap: var(--space-3);
+}
+.field-connections .details-panel-content > * {
+  margin: 0;
+}
+.settings-panel .field-muted,
+.settings-panel .field-error {
+  margin: 0;
+  color: var(--muted);
+  font: var(--text-sm) / 1.5 var(--sans);
+}
+.settings-panel .field-error {
+  color: var(--danger);
+}
+.field-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2) var(--space-3);
+}
+.field-inline .k-label {
+  flex: 1 1 240px;
+}
+.field-inline-note {
+  flex-basis: 100%;
+}
+.field-form {
+  display: grid;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+.field-form textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+.field-form .k-btn {
+  justify-self: start;
+}
+.field-secret summary {
+  cursor: pointer;
+  min-height: var(--control-h);
+  display: flex;
+  align-items: center;
+  color: var(--ink);
+  font: 500 var(--text-sm) var(--sans);
+}
+.field-secret code {
+  margin-top: var(--space-1);
+}
+.field-connections .k-btn {
+  justify-self: start;
+}
+.field-messages {
+  display: grid;
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+.field-messages li {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.field-messages small {
+  color: var(--muted);
+  font: var(--text-xs) var(--mono);
+}
+.field-messages p {
+  margin: var(--space-1) 0;
+  color: var(--ink);
+  font: var(--text-sm) / 1.5 var(--sans);
+}
+
+/* ── System → activity and processes ─────────────────────────────────── */
+.resource-heading > .k-eyebrow {
+  font: 500 var(--text-xs) var(--mono);
+  letter-spacing: 0.06em;
+}
+.resource-heading h2 {
+  font: 500 var(--text-md) var(--sans);
+}
+.resource-note {
+  margin: var(--space-2) 0;
+  max-width: 64ch;
+  color: var(--muted);
+  font: var(--text-xs) / 1.6 var(--sans);
+}
+
+/* ── Field Briefing ──────────────────────────────────────────────────── */
+.briefing-page > .k-tabs,
+.briefing-dialog > .k-tabs {
+  flex: none;
+}
+.briefing-views > button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.briefing-views > .briefing-settings-button {
+  margin-left: auto;
+  padding: 0 var(--space-3);
+}
+.briefing-count {
+  min-width: 20px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font: 500 var(--text-xs) / 20px var(--sans);
+  text-align: center;
+}
+.briefing-dialog > header .k-btn {
+  flex: none;
+}
+.event-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-1) 0 var(--space-3);
+}
+.event-filters > .k-switch {
+  margin-left: auto;
+}
+.event-actions {
+  align-items: center;
+}
+.event-actions > .k-btn {
+  flex: none;
+}
+.event-empty {
+  margin-block: var(--space-5);
+}
+.briefing-preferences {
+  max-width: 720px;
+}
+.briefing-preferences h2 {
+  margin: var(--space-1) 0 var(--space-3);
+  font: 500 var(--text-md) var(--sans);
+}
+.briefing-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4);
+  margin: 0 0 var(--space-4);
+}
+.briefing-settings .k-field {
+  width: 100%;
+  min-width: 0;
+}
+.briefing-settings .briefing-switch {
+  justify-content: space-between;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.briefing-settings .briefing-wide {
+  grid-column: 1 / -1;
+}
+.briefing-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+.weather-topline .k-eyebrow {
+  color: var(--ink);
+}
+.weather-empty {
+  margin-block: var(--space-6);
+}
+.weather-section-heading .k-btn {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  color: var(--logo-blue);
+}
+@media (max-width: 600px) {
+  .briefing-settings {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Shackleton ──────────────────────────────────────────────────────── */
+.ai-chat-toolbar {
+  gap: var(--space-1);
+}
+.ai-chat-toolbar .k-btn--quiet {
+  color: var(--muted);
+}
+.ai-chat-toolbar .k-btn--quiet:hover:not(:disabled),
+.ai-chat-toolbar .k-btn[aria-expanded="true"] {
+  color: var(--ink);
+}
+.ai-toolbar-spacer {
+  flex: 1;
+}
+.ai-mode {
+  display: inline-flex;
+  margin-right: var(--space-2);
+}
+.ai-mode > .k-btn {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+}
+.ai-mode > .k-btn:first-child {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+.ai-mode > .k-btn:last-child {
+  margin-left: -1px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+.ai-mode > .k-btn[aria-pressed="true"] {
+  position: relative;
+  color: var(--ink);
+}
+.ai-options {
+  position: relative;
+}
+.ai-options > summary {
+  list-style: none;
+}
+.ai-options > summary::-webkit-details-marker {
+  display: none;
+}
+.ai-options[open] > summary {
+  color: var(--ink);
+}
+.ai-options-content {
+  position: absolute;
+  right: 0;
+  top: calc(var(--control-h) + var(--space-1));
+  z-index: 5;
+  display: grid;
+  gap: var(--space-3);
+  width: min(320px, 80vw);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 12%, transparent);
+  font: var(--text-sm) / 1.5 var(--sans);
+}
+.ai-options-content .k-switch {
+  justify-content: space-between;
+}
+.ai-options-content p {
+  margin: 0;
+  color: var(--muted);
+  font: var(--text-xs) / 1.6 var(--sans);
+}
+.ai-chat .ai-compose-controls {
+  gap: var(--space-2);
+}
+.ai-include {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-5);
+  margin-right: auto;
+}
+.ai-include > .k-switch {
+  gap: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+.ai-include > .k-switch[aria-checked="true"] {
+  color: var(--ink);
+}
+.ai-chat .ai-context,
+.ai-chat .ai-attachment {
+  gap: var(--space-2);
+}
+.ai-history .k-field {
+  flex: 1;
+  min-width: 0;
+}
+.ai-history-heading,
+.ai-rename {
+  gap: var(--space-2);
+}
+.chat-selection {
+  gap: var(--space-2);
+}
+.chat-history-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  accent-color: var(--logo-blue);
+}
+.ai-save-error > div {
+  margin-top: var(--space-2);
+}
+.ai-setup.k-empty {
+  min-height: 100%;
+  align-content: center;
+  margin: 0 auto;
+}
+.ai-setup code {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.chat-selection[hidden] {
+  display: none;
+}

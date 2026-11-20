@@ -99,10 +99,12 @@ export function WeatherOverview({
   feed,
   location,
   onRadar,
+  onSettings,
 }: {
   feed?: ForecastFeed;
   location: string;
   onRadar: () => void;
+  onSettings?: () => void;
 }) {
   const data = feed?.data,
     c = data?.current,
@@ -128,7 +130,7 @@ export function WeatherOverview({
   return (
     <div className="weather-overview">
       <div className="weather-topline">
-        <span className="eyebrow">{location}</span>
+        <span className="k-eyebrow">{location}</span>
         <span className={feed?.stale ? "feed-state stale" : "feed-state"}>
           {!data
             ? "Unavailable"
@@ -145,10 +147,18 @@ export function WeatherOverview({
         </span>
       </div>
       {!data ? (
-        <div className="weather-empty">
-          <Cloud size={38} />
-          <h2>Waiting for {location} weather</h2>
-          <p>Connect to the internet to save the first forecast.</p>
+        <div className="k-empty weather-empty">
+          <Cloud size={32} aria-hidden="true" />
+          <h3>Waiting for {location} weather</h3>
+          <p>
+            The first forecast is saved as soon as the deck reaches the
+            internet. After that it stays available offline.
+          </p>
+          {onSettings && (
+            <button className="k-btn" onClick={onSettings}>
+              Change location
+            </button>
+          )}
         </div>
       ) : (
         <>
@@ -204,7 +214,9 @@ export function WeatherOverview({
             <section className="weather-hourly" aria-label="Hourly forecast">
               <div className="weather-section-heading">
                 <h2>Next 24 hours</h2>
-                <button onClick={onRadar}>Open radar ↗</button>
+                <button className="k-btn k-btn--quiet" onClick={onRadar}>
+                  Open radar
+                </button>
               </div>
               {!indices.length ? (
                 <p>No upcoming hours in this saved forecast.</p>

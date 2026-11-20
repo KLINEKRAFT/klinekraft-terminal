@@ -73,9 +73,9 @@ export function ResourceGraphs({
   );
   return (
     <section className="resource-detail" aria-label="Resource history">
-      <div className="section-heading">
+      <div className="section-heading resource-heading">
         <h2>Activity</h2>
-        <span>{label} · 3 MIN</span>
+        <span className="k-eyebrow">{label} · last 3 min</span>
       </div>
       <div className="resource-grid">
         <article>
@@ -126,7 +126,7 @@ export function ResourceGraphs({
         </article>
       </div>
       {history.length < 2 && (
-        <p className="browser-help">
+        <p className="resource-note">
           {reading.source === "host"
             ? "History builds as live samples arrive."
             : "Switch to Live computer to collect history."}
@@ -204,9 +204,9 @@ export function ProcessList({
   }, [live, paused]);
   return (
     <section className="process-panel" aria-label="Processes">
-      <div className="section-heading">
+      <div className="section-heading resource-heading">
         <h2>Processes</h2>
-        <span>
+        <span className="k-eyebrow">
           {paused
             ? "PAUSED"
             : failed || data?.stale
@@ -215,16 +215,19 @@ export function ProcessList({
         </span>
       </div>
       {!live ? (
-        <p className="browser-help">Available in Live computer mode.</p>
+        <p className="resource-note">
+          Processes are read from the live computer. Switch Dashboard data to
+          Live computer in Settings to see them.
+        </p>
       ) : !data?.processes ? (
-        <p className="browser-help">
+        <p className="resource-note">
           {failed || data
             ? "Process information unavailable."
             : "Reading processes…"}
         </p>
       ) : (
         <>
-          <p className="browser-help">
+          <p className="resource-note">
             Top 12 by CPU, then memory. CPU is a share of total machine
             capacity.
           </p>
@@ -251,7 +254,7 @@ export function ProcessList({
             </table>
           </div>
           {data.sampledAt && (
-            <p className="browser-help">
+            <p className="resource-note">
               Sampled{" "}
               {new Date(data.sampledAt).toLocaleTimeString("en-US", {
                 hour12: true,

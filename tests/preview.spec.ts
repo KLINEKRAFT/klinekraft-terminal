@@ -56,9 +56,10 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
   );
   await navigate(page, "Games");
   await expect(
-    page.getByText("Your library is ready for its first games.", {
-      exact: false,
-    }),
+    page.getByRole("heading", { name: "No games yet", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("bash scripts/setup-games.sh", { exact: false }),
   ).toBeVisible();
   await navigate(page, "Home");
   await page
@@ -77,8 +78,9 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
     page.getByRole("heading", { name: "System", exact: true }),
   ).toBeVisible();
   await navigate(page, "Settings");
-  const toggle = page.getByRole("checkbox", { name: /Automatic updates/ });
-  await toggle.uncheck();
+  const toggle = page.getByRole("switch", { name: "Automatic updates" });
+  await expect(toggle).toBeChecked();
+  await toggle.click();
   await expect(toggle).not.toBeChecked();
   await page.keyboard.press("Control+k");
   await expect(

@@ -215,14 +215,22 @@ export function Briefing({ page = false }: { page?: boolean }) {
         {!page && (
           <header>
             <h2>Events & science</h2>
-            {!page && (
-              <button aria-label="Close events" onClick={() => setOpen(false)}>
-                <X size={18} />
-              </button>
-            )}
+            <button
+              className="k-btn k-btn--quiet k-btn--icon"
+              aria-label="Close events"
+              onClick={() => setOpen(false)}
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
           </header>
         )}
-        <nav className="briefing-tabs" aria-label="Field Briefing views">
+        {/* A plain group, not <nav>: global "nav button" rules are for the
+            sidebar and would override the .k-tabs primitive. */}
+        <div
+          className="k-tabs briefing-views"
+          role="group"
+          aria-label="Field Briefing views"
+        >
           {["Weather", "Radar", "Events", "Science"].map((name) => (
             <button
               key={name}
@@ -231,7 +239,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
             >
               {name}
               {name === "Events" && active.length > 0 && (
-                <small>{active.length}</small>
+                <span className="briefing-count">{active.length}</span>
               )}
             </button>
           ))}
@@ -244,9 +252,9 @@ export function Briefing({ page = false }: { page?: boolean }) {
               if (data) setDraft(data.settings);
             }}
           >
-            <Settings2 size={17} />
+            <Settings2 size={18} aria-hidden="true" />
           </button>
-        </nav>
+        </div>
         <div
           className={
             tab === "Radar" ? "briefing-body radar-body" : "briefing-body"
@@ -301,6 +309,10 @@ export function Briefing({ page = false }: { page?: boolean }) {
                     }}
                     location={data.settings.location}
                     onRadar={() => setTab("Radar")}
+                    onSettings={() => {
+                      setTab("Settings");
+                      setDraft(data.settings);
+                    }}
                   />
                 </>
               )}
@@ -321,6 +333,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                       (kind) => (
                         <button
                           key={kind}
+                          className="k-btn"
                           aria-pressed={filter === kind}
                           onClick={() => setFilter(kind)}
                         >
@@ -328,14 +341,15 @@ export function Briefing({ page = false }: { page?: boolean }) {
                         </button>
                       ),
                     )}
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={unreadOnly}
-                        onChange={(e) => setUnreadOnly(e.target.checked)}
-                      />
+                    <button
+                      type="button"
+                      role="switch"
+                      className="k-switch"
+                      aria-checked={unreadOnly}
+                      onClick={() => setUnreadOnly((value) => !value)}
+                    >
                       Unread only
-                    </label>
+                    </button>
                   </div>
                   <p className="briefing-caption">
                     {data.settings.location} · nearby quakes within{" "}
@@ -355,7 +369,29 @@ export function Briefing({ page = false }: { page?: boolean }) {
                       (filter === "All" || e.kind === filter) &&
                       (!unreadOnly || !data.acknowledged?.includes(e.id)),
                   ).length && (
-                    <p className="event-empty">No reports match this view.</p>
+                    <div className="k-empty event-empty">
+                      <h3>
+                        {filter === "All" && !unreadOnly
+                          ? "No reports right now"
+                          : "No reports match this view"}
+                      </h3>
+                      <p>
+                        {filter === "All" && !unreadOnly
+                          ? "Saved feeds have nothing to report for your area or worldwide."
+                          : "Other reports may be hidden by this filter."}
+                      </p>
+                      {(filter !== "All" || unreadOnly) && (
+                        <button
+                          className="k-btn"
+                          onClick={() => {
+                            setFilter("All");
+                            setUnreadOnly(false);
+                          }}
+                        >
+                          Show all reports
+                        </button>
+                      )}
+                    </div>
                   )}
                   {data.events
                     .filter(
@@ -384,6 +420,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                             <SourceLink url={e.url}>{e.source} ↗</SourceLink>
                           </DetailsPanel>
                           <button
+                            className="k-btn"
                             disabled={data.acknowledged?.includes(e.id)}
                             onClick={() => void acknowledge(e.id)}
                           >
@@ -460,29 +497,32 @@ export function Briefing({ page = false }: { page?: boolean }) {
                       }}
                       className="briefing-settings"
                     >
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={draft.enabled}
-                          onChange={(e) =>
-                            setDraft({ ...draft, enabled: e.target.checked })
-                          }
-                        />
+                      <button
+                        type="button"
+                        role="switch"
+                        className="k-switch briefing-switch"
+                        aria-checked={draft.enabled}
+                        onClick={() =>
+                          setDraft({ ...draft, enabled: !draft.enabled })
+                        }
+                      >
                         Fetch live feeds
-                      </label>
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={draft.ticker}
-                          onChange={(e) =>
-                            setDraft({ ...draft, ticker: e.target.checked })
-                          }
-                        />
+                      </button>
+                      <button
+                        type="button"
+                        role="switch"
+                        className="k-switch briefing-switch"
+                        aria-checked={draft.ticker}
+                        onClick={() =>
+                          setDraft({ ...draft, ticker: !draft.ticker })
+                        }
+                      >
                         Event ticker
-                      </label>
-                      <label>
+                      </button>
+                      <label className="k-label briefing-wide">
                         Location name
                         <input
+                          className="k-field"
                           value={draft.location}
                           onChange={(e) =>
                             setDraft({ ...draft, location: e.target.value })
@@ -498,7 +538,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                           "globalMagnitude",
                         ] as const
                       ).map((key) => (
-                        <label key={key}>
+                        <label className="k-label" key={key}>
                           {
                             {
                               latitude: "Latitude",
@@ -509,6 +549,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                             }[key]
                           }
                           <input
+                            className="k-field"
                             type="number"
                             step={key === "radiusMiles" ? "1" : "any"}
                             required
@@ -529,20 +570,28 @@ export function Briefing({ page = false }: { page?: boolean }) {
                           />
                         </label>
                       ))}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDraft({
-                            ...draft,
-                            location: "Tulsa, Oklahoma",
-                            latitude: 36.154,
-                            longitude: -95.993,
-                          })
-                        }
-                      >
-                        Use Tulsa
-                      </button>
-                      <button disabled={saving}>Save settings</button>
+                      <div className="briefing-form-actions">
+                        <button
+                          type="button"
+                          className="k-btn"
+                          onClick={() =>
+                            setDraft({
+                              ...draft,
+                              location: "Tulsa, Oklahoma",
+                              latitude: 36.154,
+                              longitude: -95.993,
+                            })
+                          }
+                        >
+                          Use Tulsa
+                        </button>
+                        <button
+                          className="k-btn k-btn--primary"
+                          disabled={saving}
+                        >
+                          {saving ? "Saving…" : "Save settings"}
+                        </button>
+                      </div>
                     </form>
                   )}
                   <DetailsPanel title="Source status">

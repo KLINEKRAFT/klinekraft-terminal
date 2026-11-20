@@ -56,12 +56,23 @@ export function ScreenCast() {
   }
   return (
     <section className="settings-panel" aria-label="Screen Cast">
-      <h2>
-        Screen Cast{" "}
-        <small>
-          · {receiver?.active ? "Receiver on" : receiver ? "Off" : "Checking"}
-        </small>
-      </h2>
+      <div className="cast-heading">
+        <h2>Screen Cast</h2>
+        <span className="cast-state">
+          <span
+            className="k-status-dot"
+            data-state={receiver?.active ? "ok" : undefined}
+            aria-hidden="true"
+          />
+          {receiver?.active
+            ? "Receiver on"
+            : !receiver
+              ? "Checking"
+              : receiver.installed
+                ? "Off"
+                : "Not installed"}
+        </span>
+      </div>
       <p>
         Mirror your iPhone, iPad or Mac to <strong>Klinekraft Deck</strong>.
         Connect both devices to the same Wi-Fi, or join the deck’s hotspot.
@@ -72,28 +83,39 @@ export function ScreenCast() {
           Receiver stopped unexpectedly. Try starting again from the Pi desktop.
         </p>
       )}
-      <div className="cast-controls">
-        <label>
-          <input
-            type="checkbox"
-            checked={fullscreen}
-            disabled={busy || receiver?.active}
-            onChange={(e) => setFullscreen(e.target.checked)}
-          />{" "}
-          Fullscreen when mirroring starts
-        </label>
-        <button
-          className="cast-start"
-          disabled={busy || !receiver?.installed}
-          onClick={() => void change(!receiver?.active)}
-        >
-          {busy
-            ? "Working…"
-            : receiver?.active
-              ? "Stop Screen Cast"
-              : "Start Screen Cast"}
-        </button>
-      </div>
+      {receiver && !receiver.installed ? (
+        <div className="cast-setup">
+          <p>
+            The Screen Cast receiver is not installed on this deck yet. Run this
+            once in a Terminal on the Pi desktop, then return here.
+          </p>
+          <code>bash scripts/setup-casting.sh</code>
+        </div>
+      ) : (
+        <div className="cast-row">
+          <button
+            type="button"
+            role="switch"
+            className="k-switch cast-fullscreen"
+            aria-checked={fullscreen}
+            disabled={busy || receiver?.active || !receiver}
+            onClick={() => setFullscreen((value) => !value)}
+          >
+            Fullscreen when mirroring starts
+          </button>
+          <button
+            className={receiver?.active ? "k-btn" : "k-btn k-btn--primary"}
+            disabled={busy || !receiver?.installed}
+            onClick={() => void change(!receiver?.active)}
+          >
+            {busy
+              ? "Working…"
+              : receiver?.active
+                ? "Stop Screen Cast"
+                : "Start Screen Cast"}
+          </button>
+        </div>
+      )}
       {receiver?.active && (
         <>
           <p>
@@ -102,7 +124,7 @@ export function ScreenCast() {
             .
           </p>
           <DetailsPanel title="Show pairing PIN">
-            <code>{receiver.pin}</code>
+            <code className="cast-pin">{receiver.pin}</code>
           </DetailsPanel>
           <p>
             Receiver is running; a phone connection has not been confirmed. Stop
@@ -110,9 +132,6 @@ export function ScreenCast() {
             to turn off the receiver.
           </p>
         </>
-      )}
-      {receiver && !receiver.installed && (
-        <p>Screen Cast is not installed on this device.</p>
       )}
       <DetailsPanel title="Compatibility & offline use">
         <p>
