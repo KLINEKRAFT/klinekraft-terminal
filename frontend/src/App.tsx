@@ -323,16 +323,23 @@ function savedFlag(key: string, fallback = false) {
     return fallback;
   }
 }
-/** Sentence-case name and dot colour for the telemetry source label. */
+/**
+ * Sentence-case name, dot colour and a short visible word for the telemetry
+ * source. Live data is just a green dot; every other state also says what it
+ * is, because a touchscreen cannot show a hover tooltip.
+ */
+const dataStates: Record<string, { state: string; short: string }> = {
+  "LIVE COMPUTER": { state: "ok", short: "" },
+  "STALE READINGS": { state: "warn", short: "Stale" },
+  "SERVICE OFFLINE": { state: "off", short: "Offline" },
+  CONNECTING: { state: "idle", short: "Connecting" },
+  "UPDATES PAUSED": { state: "idle", short: "Paused" },
+  "SIMULATED DATA": { state: "sim", short: "Simulated" },
+  "PREVIEW PAUSED": { state: "sim", short: "Simulated · paused" },
+};
 function dataStatus(label: string) {
   const name = label.charAt(0) + label.slice(1).toLowerCase();
-  const state =
-    label === "LIVE COMPUTER"
-      ? "ok"
-      : label === "SERVICE OFFLINE"
-        ? "off"
-        : "warn";
-  return { name, state };
+  return { name, ...(dataStates[label] ?? { state: "idle", short: name }) };
 }
 function isTyping(target: EventTarget | null) {
   return (
@@ -424,7 +431,9 @@ export default function App() {
         !e.ctrlKey &&
         !e.altKey &&
         !isTyping(e.target) &&
-        !document.querySelector("dialog[open], [aria-modal='true']")
+        !document.querySelector(
+          "dialog[open], [aria-modal='true'], [role='dialog']",
+        )
       ) {
         e.preventDefault();
         setSearchOpen(true);
@@ -571,13 +580,7 @@ export default function App() {
                 <KlinekraftBrandLockup />
               </div>
             )}
-            <h1
-              className={
-                ["Home", "Paint", "AI assistant"].includes(section)
-                  ? "sr-only"
-                  : undefined
-              }
-            >
+            <h1 className={section === "Home" ? "sr-only" : undefined}>
               {sectionLabel(section)}
             </h1>
           </div>
@@ -587,8 +590,10 @@ export default function App() {
               role="img"
               aria-label={status.name}
               title={status.name}
+              data-state={status.state}
             >
               <span className="k-status-dot" data-state={status.state} />
+              {status.short && <span aria-hidden="true">{status.short}</span>}
             </span>
             <button
               className="k-btn k-btn--quiet shell-search"
@@ -714,7 +719,10 @@ export default function App() {
                 <ResearchLibrary onAsk={askAboutFile} />
               </div>
               <div hidden={libraryView !== "Notebook"}>
-                <Notebook onAsk={askAboutFile} />
+                <Notebook
+                  onAsk={askAboutFile}
+                  onStart={() => navigate("AI assistant")}
+                />
               </div>
               <div hidden={libraryView !== "Wikipedia"}>
                 <WikiBrowser

@@ -103,7 +103,16 @@ export function PowerControls() {
         : `~${Math.floor(power.reserveMinutes / 60)}h ${power.reserveMinutes % 60}m to 15% reserve`,
   ].join(" · ");
   return (
-    <div className="shell-power">
+    <div
+      className="shell-power"
+      onBlur={(event) => {
+        // Keyboard focus leaving the button and popover closes it, so it never
+        // stays open over a page the user has tabbed into. A null target
+        // (a switch briefly disabled while saving) keeps it open.
+        const next = event.relatedTarget as Node | null;
+        if (next && !event.currentTarget.contains(next)) setOpen(false);
+      }}
+    >
       <button
         ref={button}
         className="k-btn k-btn--quiet shell-power-button"

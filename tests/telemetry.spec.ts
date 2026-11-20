@@ -38,6 +38,8 @@ test("live mode shows host readings and marks failed samples stale, then recover
   await page.goto("/");
   await selectHost(page);
   await expect(dataStatus(page, "Live computer")).toBeVisible();
+  // Live data is a lone dot; no status word.
+  await expect(dataStatus(page, "Live computer")).toHaveText("");
   await navigate(page, 'Home');
   await expect(page.locator(".device-label")).toContainText("macOS");
   await expect(page.getByRole("meter", { name: "Memory" })).toHaveAttribute(
@@ -62,9 +64,18 @@ test("live mode shows host readings and marks failed samples stale, then recover
   await expect(dataStatus(page, "Stale readings")).toBeVisible({
     timeout: 10000,
   });
-  await expect(page.getByRole("region", { name: "Resources" })).toContainText(
-    "25%",
-  );
+  // A touchscreen has no tooltip, so the stale state says so in words.
+  await expect(dataStatus(page, "Stale readings")).toHaveText("Stale");
+  await expect(
+    dataStatus(page, "Stale readings").locator(".k-status-dot"),
+  ).toHaveAttribute("data-state", "warn");
+  // The last CPU reading stays on screen while stale.
+  await expect(
+    page
+      .getByRole("region", { name: "Resources" })
+      .locator(".deck-resource")
+      .first(),
+  ).toContainText("25%");
   fail = false;
   await expect(dataStatus(page, "Live computer")).toBeVisible({
     timeout: 10000,
@@ -114,6 +125,11 @@ test("switching back to preview discards an in-flight live response", async ({
   await page.getByLabel("Dashboard data").selectOption("preview");
   release();
   await expect(dataStatus(page, "Simulated data")).toBeVisible();
+  // Simulated looks different from stale: its own word and dot colour.
+  await expect(dataStatus(page, "Simulated data")).toHaveText("Simulated");
+  await expect(
+    dataStatus(page, "Simulated data").locator(".k-status-dot"),
+  ).toHaveAttribute("data-state", "sim");
   await navigate(page, 'Home');
   await expect(page.locator(".device-label")).toContainText("Raspberry Pi 5");
 });

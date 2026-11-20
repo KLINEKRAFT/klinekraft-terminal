@@ -49,12 +49,27 @@
 .shell-header .k-btn--icon {
   color: var(--ink);
 }
+/* Live data is a lone green dot. Any other state names itself in a word,
+   because a touchscreen has no hover tooltip. */
 .shell-status {
-  display: inline-grid;
-  place-items: center;
-  width: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 24px;
   height: var(--control-h);
-  cursor: help;
+  justify-content: center;
+  color: var(--muted);
+  font: 500 var(--text-xs) var(--sans);
+  white-space: nowrap;
+}
+.shell-status:not([data-state="ok"]) {
+  padding: 0 var(--space-1);
+}
+.shell-status[data-state="warn"] {
+  color: var(--ink);
+}
+.shell-status[data-state="off"] {
+  color: var(--danger);
 }
 .shell-search.k-btn {
   gap: var(--space-2);
@@ -118,7 +133,7 @@
 }
 .shell-power-status svg {
   flex-shrink: 0;
-  color: var(--logo-blue);
+  color: var(--accent-fg);
 }
 .k-switch.shell-switch-row {
   justify-content: space-between;
@@ -305,13 +320,7 @@ main[data-page="Home"] .page-content {
   display: block;
   height: 100%;
   border-radius: var(--radius-pill);
-  background: var(--logo-blue);
-}
-:root[data-theme="dark"] .deck-meter > i {
-  background: var(--blue);
-}
-:root[data-theme="dark"] .deck-resource .resource-graph {
-  color: var(--blue);
+  background: var(--accent-fg);
 }
 
 .deck-row {
@@ -329,7 +338,7 @@ main[data-page="Home"] .page-content {
   min-width: 0;
 }
 .deck-home .outside-weather > svg {
-  color: var(--logo-blue);
+  color: var(--accent-fg);
 }
 .deck-home .outside-weather .eyebrow {
   color: var(--muted);
@@ -356,14 +365,6 @@ main[data-page="Home"] .page-content {
 .deck-home .deck-links {
   gap: 0;
   align-items: stretch;
-  padding: 0;
-  border-top: 0;
-}
-.deck-home .deck-links button {
-  justify-content: flex-start;
-  width: auto;
-  height: auto;
-  border-radius: 0;
 }
 .deck-home .deck-links > button {
   display: flex;
@@ -375,6 +376,7 @@ main[data-page="Home"] .page-content {
   border-top: 0;
   border-right: 0;
   border-bottom: 0;
+  border-radius: 0;
   background: none;
   color: var(--ink);
   font: 500 var(--text-sm) var(--sans);
@@ -384,7 +386,7 @@ main[data-page="Home"] .page-content {
   text-align: left;
 }
 .deck-home .deck-links > button > svg {
-  color: var(--logo-blue);
+  color: var(--accent-fg);
 }
 .deck-home .deck-links > button > svg:last-child {
   color: var(--muted);
@@ -468,8 +470,15 @@ main[data-page="Home"] .page-content {
   min-width: var(--control-h);
   min-height: var(--control-h);
 }
+/* The GPS cell sits left of centre and low on the screen: open its popover
+   rightward and upward so it stays whole at 1024x600 and 1024x560. */
 .deck-home .deck-links .info-content {
-  top: 40px;
+  top: auto;
+  right: auto;
+  bottom: calc(100% + var(--space-1));
+  left: 0;
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
   font-size: var(--text-xs);
 }
 
@@ -502,9 +511,8 @@ main[data-page="Home"] .page-content {
   text-transform: uppercase;
 }
 .deck-home .home-tools .k-btn {
-  min-height: 32px;
   padding: 0 var(--space-2);
-  color: var(--blue);
+  color: var(--accent-fg);
   font-size: var(--text-xs);
 }
 .deck-home .home-tools p {
@@ -538,35 +546,6 @@ main[data-page="Home"] .page-content {
 }
 .deck-home .home-warning {
   font-size: var(--text-xs);
-}
-
-/* ── Library view switcher: .k-tabs, guarded against older nav rules ── */
-.library-workspace > nav.k-tabs {
-  flex-wrap: wrap;
-  padding: 0 0 var(--space-2);
-  border-top: 0;
-}
-.library-workspace > nav.k-tabs > button {
-  flex: 0 0 auto;
-  justify-content: center;
-  width: auto;
-  height: auto;
-  min-height: var(--control-h);
-  padding: 0 var(--space-4);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  box-shadow: none;
-  color: var(--muted);
-  font: 500 var(--text-sm) var(--sans);
-}
-.library-workspace > nav.k-tabs > button:hover {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
-  color: var(--ink);
-}
-.library-workspace > nav.k-tabs > button[aria-pressed="true"] {
-  background: var(--logo-blue);
-  color: #fff;
 }
 
 /* The theme button shows its state by icon; no pressed chrome needed. */
