@@ -74,40 +74,83 @@ test("library filters, favorites and explicit launch", async ({ page }) => {
 test("missing emulator cannot launch and failed library is explicit", async ({
   page,
 }) => {
+  let state: "missing" | "ready" | "offline" = "missing";
+  let launches = 0;
   await page.route("**/api/games", (route) =>
-    route.fulfill({
-      json: {
-        games,
-        systems: {
-          nes: "RetroArch is not installed.",
-          megadrive: "Core missing",
-        },
-        running: null,
-        lastExitCode: null,
-      },
-    }),
+    state === "offline"
+      ? route.fulfill({ status: 503, json: { detail: "offline" } })
+      : route.fulfill({
+          json: {
+            games,
+            systems:
+              state === "missing"
+                ? {
+                    nes: "RetroArch is not installed.",
+                    megadrive: "Core missing",
+                  }
+                : { nes: null, megadrive: null },
+            running: null,
+            lastExitCode: null,
+          },
+        }),
   );
+  await page.route("**/api/games/launch", (route) => {
+    launches++;
+    return route.fulfill({ json: { started: true } });
+  });
   await page.goto("/");
   await navigate(page, "Games");
-  await expect(
-    page.getByRole("button", { name: "Play NES sample", exact: true }),
-  ).toBeDisabled();
+  const play = page.getByRole("button", {
+    name: "Play NES sample",
+    exact: true,
+  });
+  await expect(play).toBeDisabled();
   await page.getByLabel("Game system").selectOption("nes");
   await expect(
     page.getByRole("button", { name: "Play Genesis sample", exact: true }),
   ).toHaveCount(0);
+  await page.getByLabel("Game system").selectOption("all");
+  const refresh = page.getByRole("button", {
+    name: "Refresh games",
+    exact: true,
+  });
+  state = "ready";
+  await refresh.click();
+  await expect(play).toBeEnabled();
+  const status = page
+    .getByRole("status")
+    .filter({ hasText: "Library offline · reconnecting…" });
+  await expect(status).toHaveCount(0);
+  // The library becomes unreachable: the last good list stays on screen,
+  // every Play is disabled and the outage is stated plainly.
+  state = "offline";
+  await refresh.click();
+  await expect(status).toBeVisible();
+  await expect(page.locator(".game-list > li")).toHaveCount(2);
+  await expect(play).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Play Genesis sample", exact: true }),
+  ).toBeDisabled();
+  // The automatic 5-second retry finds the service; Play comes back.
+  state = "ready";
+  await expect(status).toHaveCount(0, { timeout: 10000 });
+  await expect(play).toBeEnabled();
+  expect(launches).toBe(0);
+  await play.click();
+  await expect(page.getByText("NES sample opened on the Pi.")).toBeVisible();
+  expect(launches).toBe(1);
+});
+
+test("a library that never loaded says so explicitly", async ({ page }) => {
   await page.route("**/api/games", (route) =>
     route.fulfill({ status: 503, json: { detail: "offline" } }),
   );
-  await page
-    .getByRole("button", { name: "Refresh games", exact: true })
-    .click();
+  await page.goto("/");
+  await navigate(page, "Games");
   await expect(page.getByRole("alert")).toContainText(
     "game library is unavailable",
   );
-  await expect(
-    page.getByRole("button", { name: "Play NES sample", exact: true }),
-  ).toHaveCount(0);
+  await expect(page.locator(".game-list")).toHaveCount(0);
 });
 
 test('Random shows a unique set, respects filters, and never launches games', async ({page}) => {

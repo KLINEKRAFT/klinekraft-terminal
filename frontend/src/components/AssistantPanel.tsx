@@ -283,7 +283,10 @@ export function AssistantPanel({
           </div>
         )}
         <details className="ai-options">
-          <summary className="k-btn k-btn--quiet" aria-label="Chat settings">
+          <summary
+            className="k-btn k-btn--quiet"
+            aria-label={`Chat settings · ${provider === "local" ? "Offline" : "Cloud"}`}
+          >
             <SlidersHorizontal size={16} aria-hidden="true" />
             <span>{provider === "local" ? "Offline" : "Cloud"}</span>
           </summary>

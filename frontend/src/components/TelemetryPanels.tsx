@@ -1,5 +1,6 @@
 import { Terminal } from "lucide-react";
-import { useGps } from "../hooks/useGps";
+import { useEffect, useRef, useState } from "react";
+import { useGps, type GpsFix } from "../hooks/useGps";
 import { isHostedDemo } from "../runtime";
 import type { Reading } from "../preview";
 import { amount, type DataMode } from "../telemetry";
@@ -80,6 +81,32 @@ export function TelemetrySettings({
   );
 }
 
+// The deck has a GPS unit; when it is unplugged that is a temporary state,
+// never "unsupported". Tell a missing receiver apart from a stopped service so
+// the owner is not sent to re-plug hardware when gpsd is the fault.
+function GpsReadout() {
+  const gps = useGps();
+  const fix = gps.fix as (GpsFix & { service?: boolean }) | null;
+  if (gps.current)
+    return (
+      <>
+        {fix?.mode === 3 ? "3D" : "2D"} fix
+        {fix?.satellitesUsed != null
+          ? ` · ${fix.satellitesUsed} satellites`
+          : ""}
+      </>
+    );
+  if (!fix) return <>Checking…</>;
+  if (fix.connected) return <>Connected · searching for satellites</>;
+  if (fix.service === true)
+    return <>Disconnected · reconnect the deck GPS unit</>;
+  return fix.service === false ? (
+    <>GPS service not running · start gpsd on the Pi</>
+  ) : (
+    <>Deck service unreachable · retrying</>
+  );
+}
+
 export function SystemPanel({
   reading,
   label,
@@ -88,24 +115,23 @@ export function SystemPanel({
   label: string;
 }) {
   const measured = reading.source === "host";
-  const gps = useGps();
-  // The deck has a GPS unit; when it is unplugged this is a temporary state,
-  // never "unsupported".
-  const gpsText = isHostedDemo
-    ? "Available on the installed deck"
-    : gps.current
-      ? `${gps.fix?.mode === 3 ? "3D" : "2D"} fix${
-          gps.fix?.satellitesUsed != null
-            ? ` · ${gps.fix.satellitesUsed} satellites`
-            : ""
-        }`
-      : gps.fix?.connected
-        ? "Connected · searching for satellites"
-        : gps.fix
-          ? "Disconnected · reconnect the deck GPS unit"
-          : "Checking…";
+  // This panel lives inside a collapsed <details>. Only poll GPS while that
+  // disclosure is open so a closed panel costs the Pi nothing.
+  const root = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const details = root.current?.closest("details");
+    if (!details) {
+      setVisible(true);
+      return;
+    }
+    const sync = () => setVisible(details.open);
+    sync();
+    details.addEventListener("toggle", sync);
+    return () => details.removeEventListener("toggle", sync);
+  }, []);
   return (
-    <section className="settings-panel">
+    <section className="settings-panel" ref={root}>
       <h2 className="sr-only">
         System overview <span className="inline-badge">{label}</span>
       </h2>
@@ -141,7 +167,16 @@ export function SystemPanel({
               ? (reading.batteryStatus ?? "Not configured")
               : `${reading.batteryPercent.toFixed(0)}% estimated · ${reading.batteryVoltage?.toFixed(2)} V`,
           ],
-          ["GPS", gpsText],
+          [
+            "GPS",
+            isHostedDemo ? (
+              "Available on the installed deck"
+            ) : visible ? (
+              <GpsReadout />
+            ) : (
+              "Checking…"
+            ),
+          ],
           [
             "Last sample",
             reading.sampledAt
@@ -153,7 +188,7 @@ export function SystemPanel({
                 : "Simulated fixture",
           ],
         ].map(([name, value]) => (
-          <div key={name}>
+          <div key={name as string}>
             <dt>{name}</dt>
             <dd>{value}</dd>
           </div>

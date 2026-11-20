@@ -89,7 +89,9 @@ export function ScreenCast() {
             The Screen Cast receiver is not installed on this deck yet. Run this
             once in a Terminal on the Pi desktop, then return here.
           </p>
-          <code>bash scripts/setup-casting.sh</code>
+          <code>
+            {"cd ~/klinekraft-terminal\nbash scripts/setup-casting.sh"}
+          </code>
         </div>
       ) : (
         <div className="cast-row">
