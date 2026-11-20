@@ -23,9 +23,13 @@ test("notes have one New action, honest empty states and labelled tools", async 
   await expect(
     workspace.getByRole("button", { name: "Save on Pi" }),
   ).toHaveCount(0);
+  const list = workspace.locator(".organizer-items");
   await expect(
     workspace.getByRole("heading", { name: "No notes yet" }),
   ).toBeVisible();
+  await expect(list).toContainText(
+    "Start typing on the right. Notes save to the Pi as you write.",
+  );
   const toolbar = page.getByRole("toolbar", { name: "Note formatting" });
   for (const name of [
     "Undo",
@@ -39,9 +43,9 @@ test("notes have one New action, honest empty states and labelled tools", async 
     "Checklist",
     "Plain text",
   ])
-    await expect(toolbar.getByRole("button", { name, exact: true })).toHaveCount(
-      1,
-    );
+    await expect(
+      toolbar.getByRole("button", { name, exact: true }),
+    ).toHaveCount(1);
   const all = workspace.getByRole("button", { name: "All", exact: true });
   const trash = workspace.getByRole("button", { name: "Trash", exact: true });
   await expect(all).toHaveAttribute("aria-pressed", "true");
@@ -50,6 +54,10 @@ test("notes have one New action, honest empty states and labelled tools", async 
   await expect(
     workspace.getByRole("heading", { name: "Trash is empty" }),
   ).toBeVisible();
+  await expect(list).toContainText(
+    "Removed notes wait here until you restore them.",
+  );
+  await expect(list).not.toContainText("No notes yet");
   await all.click();
 
   await page.getByRole("textbox", { name: "Title", exact: true }).fill("Camp");
@@ -61,6 +69,76 @@ test("notes have one New action, honest empty states and labelled tools", async 
   await expect(
     workspace.getByRole("heading", { name: "No matches" }),
   ).toBeVisible();
+  await expect(list).toContainText("Nothing in your notes mentions “zzz”.");
+});
+
+test("a long save message never squeezes the note title off its row", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1024, height: 600 });
+  const long = {
+    id: "a",
+    kind: "note",
+    title: "Expedition packing list for the long weekend in the backcountry",
+    body: "Tent",
+    day: null,
+    time: "",
+    revision: 3,
+    archived: false,
+  };
+  let fail = false;
+  await page.route("**/api/organizer**", (route) => {
+    if (route.request().method() === "GET")
+      return route.fulfill({ json: [long] });
+    if (fail)
+      return route.fulfill({
+        status: 409,
+        json: { detail: "Revision conflict. Reload before saving." },
+      });
+    return route.fulfill({ json: route.request().postDataJSON() });
+  });
+  await page.goto("/");
+  await navigate(page, "Notes");
+  await page.getByRole("button", { name: /^Expedition packing/ }).click();
+  const title = page.getByRole("textbox", { name: "Title", exact: true });
+  const status = page.getByRole("status");
+  const head = page.locator(".organizer-head");
+  const editorWidth = await page
+    .locator(".organizer-editor form")
+    .evaluate((e) => e.getBoundingClientRect().width);
+  const check = async () => {
+    const titleBox = (await title.boundingBox())!;
+    const statusBox = (await status.boundingBox())!;
+    // One row: the status sits beside the title, never wrapped under it.
+    expect(
+      Math.abs(
+        statusBox.y + statusBox.height / 2 - (titleBox.y + titleBox.height / 2),
+      ),
+    ).toBeLessThan(8);
+    expect(titleBox.width).toBeGreaterThanOrEqual(editorWidth / 2 - 1);
+    expect(await title.evaluate((e) => getComputedStyle(e).textOverflow)).toBe(
+      "ellipsis",
+    );
+    expect((await head.boundingBox())!.height).toBeLessThanOrEqual(48);
+  };
+  await check();
+  fail = true;
+  await page.getByRole("textbox", { name: "Note", exact: true }).fill("Mine");
+  await expect(status).toHaveText("Not saved");
+  await expect(page.getByRole("alert")).toContainText(
+    "Changed on the Pi from another tab or device.",
+  );
+  await check();
+  fail = false;
+  await page.getByRole("button", { name: "Load Pi version" }).click();
+  // The long message lives in the tooltip; the visible state stays short.
+  await expect(status).toHaveText("Saved on Pi");
+  await expect(status).toHaveAttribute(
+    "title",
+    "Loaded the version saved on the Pi.",
+  );
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await check();
 });
 
 test("a save conflict offers both ways out beside the save state", async ({
@@ -91,7 +169,9 @@ test("a save conflict offers both ways out beside the save state", async ({
   });
   await page.goto("/");
   await navigate(page, "Notes");
-  await page.getByRole("button", { name: "Alpha Pi copy", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Alpha Pi copy", exact: true })
+    .click();
   const note = page.getByRole("textbox", { name: "Note", exact: true });
   await note.fill("My edit");
   await expect(page.getByRole("status")).toContainText("Not saved");
@@ -106,9 +186,7 @@ test("a save conflict offers both ways out beside the save state", async ({
   await note.fill("Second edit");
   await expect(keep).toBeVisible();
   await keep.click();
-  await expect
-    .poll(() => puts.at(-1)?.title)
-    .toBe("Alpha (my copy)");
+  await expect.poll(() => puts.at(-1)?.title).toBe("Alpha (my copy)");
   expect(puts.at(-1).id).not.toBe("a");
   await expect(page.getByRole("status")).toContainText("Saved on Pi");
 });
@@ -148,7 +226,23 @@ test("calendar agenda names the day and event editor uses labelled fields", asyn
   await workspace
     .getByRole("button", { name: "2026-11-21", exact: true })
     .click();
-  await expect(workspace.getByText("Nothing scheduled.")).toBeVisible();
+  const list = workspace.locator(".organizer-items");
+  await expect(list).toHaveText("Nothing scheduled tomorrow.");
+  await workspace
+    .getByRole("button", { name: "2026-11-24", exact: true })
+    .click();
+  await expect(list).toHaveText("Nothing scheduled on Tue, Nov 24.");
+  // Trash lists every removed event, so an empty Trash says so, not "Nothing
+  // scheduled".
+  await workspace.getByRole("button", { name: "Trash", exact: true }).click();
+  await expect(
+    workspace.getByRole("heading", { name: "Trash is empty" }),
+  ).toBeVisible();
+  await expect(list).toContainText(
+    "Removed events wait here until you restore them.",
+  );
+  await expect(list).not.toContainText("Nothing scheduled");
+  await workspace.getByRole("button", { name: "All", exact: true }).click();
   await expect(workspace.getByLabel("Date", { exact: true })).toHaveValue(
     "2026-11-20",
   );
@@ -160,3 +254,63 @@ test("calendar agenda names the day and event editor uses labelled fields", asyn
     workspace.getByRole("button", { name: "New event", exact: true }),
   ).toBeVisible();
 });
+
+for (const height of [600, 560])
+  test(`calendar event editor keeps one head row and fits 1024x${height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height });
+    await page.clock.setFixedTime(new Date("2026-11-20T12:00:00"));
+    await page.route("**/api/organizer**", (route) =>
+      route.fulfill({
+        json: [
+          {
+            id: "e1",
+            kind: "event",
+            title: "Truck service at the dealership on Main Street",
+            body: "Bring the warranty folder",
+            day: "2026-11-20",
+            time: "09:30",
+            revision: 2,
+            archived: false,
+          },
+          {
+            id: "e2",
+            kind: "event",
+            title: "Ham club",
+            body: "",
+            day: "2026-11-20",
+            time: "19:00",
+            revision: 1,
+            archived: false,
+          },
+        ],
+      }),
+    );
+    await page.goto("/");
+    await navigate(page, "Calendar");
+    const workspace = page.getByRole("region", { name: "Calendar workspace" });
+    await workspace.getByRole("button", { name: /^Truck service/ }).click();
+    const history = workspace.getByRole("button", {
+      name: "History",
+      exact: true,
+    });
+    await expect(history).toBeVisible();
+    const title = (await workspace
+      .getByRole("textbox", { name: "Title", exact: true })
+      .boundingBox())!;
+    const historyBox = (await history.boundingBox())!;
+    expect(
+      Math.abs(
+        historyBox.y + historyBox.height / 2 - (title.y + title.height / 2),
+      ),
+    ).toBeLessThan(8);
+    expect(historyBox.height).toBeGreaterThanOrEqual(36);
+    const editor = await page
+      .locator(".organizer-editor")
+      .evaluate((e) => [e.scrollHeight, e.clientHeight]);
+    expect(editor[0]).toBeLessThanOrEqual(editor[1]);
+    await expect(
+      workspace.getByRole("textbox", { name: "Details", exact: true }),
+    ).toBeInViewport({ ratio: 1 });
+  });

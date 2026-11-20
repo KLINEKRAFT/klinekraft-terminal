@@ -94,8 +94,8 @@
   cursor: progress;
 }
 .organizer-item[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--logo-blue) 12%, transparent);
-  box-shadow: inset 3px 0 var(--logo-blue);
+  background: color-mix(in srgb, var(--accent-fg) 12%, transparent);
+  box-shadow: inset 3px 0 var(--accent-fg);
 }
 .organizer-item strong {
   font-weight: 600;
@@ -143,17 +143,20 @@
 }
 .organizer-head {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-3);
+  gap: var(--space-3);
   min-width: 0;
 }
+/* The title keeps at least half the row; the save bar holds only a short,
+   fixed status and History, so the two always share one line. */
 .organizer-title {
-  flex: 1 1 260px;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 50%;
 }
 .organizer-title input {
   width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   min-height: var(--control-h-lg);
   padding: 0;
   border: 0;
@@ -171,7 +174,7 @@
 }
 .organizer-savebar {
   display: flex;
-  flex-wrap: wrap;
+  flex: none;
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-2);
@@ -182,6 +185,9 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  /* Fits the longest short state ("Moved to Trash"), so the title does not
+     jump when the state changes. */
+  min-width: calc(var(--space-6) * 3.5);
   margin: 0;
   color: var(--muted);
   font: var(--text-xs) var(--sans);
@@ -189,7 +195,25 @@
 }
 .save-state[data-tone="off"] {
   color: var(--danger);
-  white-space: normal;
+}
+
+/* Why a save failed, and the ways out, on one line under the title. */
+.organizer-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--line));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--danger) 6%, transparent);
+}
+.organizer-notice p {
+  flex: 1 1 200px;
+  min-width: 0;
+  margin: 0;
+  color: var(--ink);
+  font: var(--text-sm) / 1.35 var(--sans);
 }
 .organizer-savebar .k-btn--quiet {
   color: var(--muted);
@@ -340,9 +364,9 @@
   color: var(--muted);
 }
 .calendar-grid button[aria-pressed="true"] {
-  border-color: var(--logo-blue);
-  background: color-mix(in srgb, var(--logo-blue) 12%, transparent);
-  box-shadow: inset 0 0 0 1px var(--logo-blue);
+  border-color: var(--accent-fg);
+  background: color-mix(in srgb, var(--accent-fg) 12%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent-fg);
 }
 .calendar-date {
   font-variant-numeric: tabular-nums;
@@ -483,8 +507,37 @@
 }
 .calculator-info {
   position: absolute;
-  top: var(--space-3);
-  left: var(--space-3);
+  top: var(--space-2);
+  left: var(--space-2);
+}
+/* Info (i) buttons keep the 36px touch size. */
+.calculator-info .info-popover > summary,
+.calendar-head .info-popover > summary {
+  width: var(--control-h);
+  height: var(--control-h);
+  border: 0;
+  border-radius: var(--radius-pill);
+  /* The familiar small ringed "i", inside a full-size touch target. */
+  outline: 1px solid currentColor;
+  outline-offset: calc(var(--space-2) * -1);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.calculator-info .info-popover > summary:hover,
+.calendar-head .info-popover > summary:hover {
+  color: var(--ink);
+}
+.calculator-info .info-popover > summary:focus-visible,
+.calendar-head .info-popover > summary:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+.calculator-info .info-content {
+  left: 0;
+  right: auto;
+  top: calc(var(--control-h) + var(--space-1));
+}
+.calendar-head .info-content {
+  top: calc(var(--control-h) + var(--space-1));
 }
 .calculator-machine form {
   display: grid;

@@ -23,6 +23,11 @@ test("calculator keeps desk behavior and converts units both ways", async ({
 
   const quantity = page.getByRole("combobox", { name: "Quantity" });
   await expect(quantity).toHaveValue("temperature");
+  // No placeholder pretends that 0 °F equals 0 °C.
+  for (const name of ["Fahrenheit", "Celsius"])
+    expect(
+      await page.getByRole("textbox", { name }).getAttribute("placeholder"),
+    ).toBeNull();
   await page.getByRole("textbox", { name: "Fahrenheit" }).fill("212");
   await expect(page.getByRole("textbox", { name: "Celsius" })).toHaveValue(
     "100",
@@ -38,6 +43,20 @@ test("calculator keeps desk behavior and converts units both ways", async ({
   );
   await page.getByRole("textbox", { name: "Kilometers" }).fill("-");
   await expect(page.getByRole("textbox", { name: "Miles" })).toHaveValue("");
+  // Changing quantity keeps the number typed on the metric side, not the
+  // derived U.S. value.
+  await quantity.selectOption("temperature");
+  await page.getByRole("textbox", { name: "Celsius" }).fill("100");
+  await expect(page.getByRole("textbox", { name: "Fahrenheit" })).toHaveValue(
+    "212",
+  );
+  await quantity.selectOption("distance");
+  await expect(page.getByRole("textbox", { name: "Kilometers" })).toHaveValue(
+    "100",
+  );
+  await expect(page.getByRole("textbox", { name: "Miles" })).toHaveValue(
+    "62.13711922",
+  );
   await quantity.selectOption("small-weight");
   await page.getByRole("textbox", { name: "Ounces" }).fill("16");
   await expect(page.getByRole("textbox", { name: "Grams" })).toHaveValue(
@@ -54,7 +73,12 @@ for (const height of [600, 560])
     await navigate(page, "Calculator");
     const content = await page
       .locator(".page-content")
-      .evaluate((e) => [e.scrollHeight, e.clientHeight, e.scrollWidth, e.clientWidth]);
+      .evaluate((e) => [
+        e.scrollHeight,
+        e.clientHeight,
+        e.scrollWidth,
+        e.clientWidth,
+      ]);
     expect(content[0]).toBeLessThanOrEqual(content[1]);
     expect(content[2]).toBeLessThanOrEqual(content[3]);
     for (const name of ["=", "Clear", "0"]) {
@@ -65,4 +89,10 @@ for (const height of [600, 560])
     await expect(
       page.getByRole("combobox", { name: "Quantity" }),
     ).toBeInViewport({ ratio: 1 });
+    // The Info (i) button keeps the 36px touch size too.
+    const help = (await page
+      .locator('summary[aria-label="Calculator help"]')
+      .boundingBox())!;
+    expect(help.width).toBeGreaterThanOrEqual(36);
+    expect(help.height).toBeGreaterThanOrEqual(36);
   });

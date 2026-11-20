@@ -86,7 +86,11 @@ const factors: Record<Exclude<ConversionId, "temperature">, number> = {
 };
 
 /** Converts a value given on side `from` to the other side. */
-export function convertUnit(id: ConversionId, value: number, from: Side): number {
+export function convertUnit(
+  id: ConversionId,
+  value: number,
+  from: Side,
+): number {
   if (!Number.isFinite(value)) return NaN;
   if (id === "temperature")
     return from === "us" ? ((value - 32) * 5) / 9 : (value * 9) / 5 + 32;
@@ -107,4 +111,38 @@ export function formatUnitValue(value: number): string {
   if (!Number.isFinite(value)) return "";
   const rounded = Number(value.toPrecision(10));
   return String(Object.is(rounded, -0) ? 0 : rounded);
+}
+
+export type UnitValues = Record<Side, string>;
+
+/**
+ * The converter's two fields after a person types `text` on `side`: the typed
+ * text is kept as-is and the other side shows the conversion (or nothing while
+ * the input is incomplete).
+ */
+export function convertFields(
+  id: ConversionId,
+  side: Side,
+  text: string,
+): UnitValues {
+  const other: Side = side === "us" ? "metric" : "us";
+  const number = parseUnitInput(text);
+  return {
+    [side]: text,
+    [other]:
+      number === null ? "" : formatUnitValue(convertUnit(id, number, side)),
+  } as UnitValues;
+}
+
+/**
+ * The fields after switching quantity. The number the person last typed (on
+ * `source`) is the one that carries over; the other side is recomputed, so a
+ * typed 100 °C becomes 100 km, never the derived 212.
+ */
+export function switchQuantity(
+  next: ConversionId,
+  values: UnitValues,
+  source: Side,
+): UnitValues {
+  return convertFields(next, source, values[source]);
 }
