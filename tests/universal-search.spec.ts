@@ -112,20 +112,20 @@ test("partial outages preserve available results; Escape restores focus", async 
 test("secondary panels start closed and share one-open behavior", async ({
   page,
 }) => {
-  await navigate(page, "Library");
-  const library = page.getByRole("region", { name: "Research library" });
-  const filters = library
-    .locator("details")
-    .filter({ has: page.locator("summary", { hasText: /^Filters$/ }) });
-  const importing = library.locator("details").filter({
-    has: page.locator("summary", { hasText: /^Import documents$/ }),
-  });
-  await expect(filters).not.toHaveAttribute("open", "");
-  await filters.locator("summary").click();
-  await expect(library.getByLabel("Document format")).toBeVisible();
-  await importing.locator("summary").click();
-  await expect(filters).not.toHaveAttribute("open", "");
-  await expect(importing).toHaveAttribute("open", "");
+  await navigate(page, "Network");
+  const panel = (title: RegExp) =>
+    page
+      .locator("details.details-panel")
+      .filter({ has: page.locator("summary", { hasText: title }) });
+  const hotspot = panel(/^Phone hotspot/);
+  const radio = panel(/^Off-grid messages/);
+  await expect(hotspot).not.toHaveAttribute("open", "");
+  await expect(radio).not.toHaveAttribute("open", "");
+  await hotspot.locator("summary").click();
+  await expect(hotspot).toHaveAttribute("open", "");
+  await radio.locator("summary").click();
+  await expect(hotspot).not.toHaveAttribute("open", "");
+  await expect(radio).toHaveAttribute("open", "");
 });
 
 test("Kiwix articles open with local illustrations and source context", async ({
