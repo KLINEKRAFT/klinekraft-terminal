@@ -48,7 +48,9 @@ test("bookmarks persist, edit, launch safely, and remove", async ({
   await page.reload();
   await navigate(page, "Library");
   await page.getByRole("button", { name: "Bookmarks", exact: true }).click();
-  await expect(page.getByText("A place for your regular stops.")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Keep your regular stops close" }),
+  ).toBeVisible();
 });
 
 test("launch URL persists, rejects unsafe schemes, and clears", async ({

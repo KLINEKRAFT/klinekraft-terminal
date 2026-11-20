@@ -93,16 +93,16 @@ export function DocumentReader({ source, onClose, onAsk }: {
   return <dialog ref={dialog} className="document-reader" aria-labelledby={heading} onCancel={onClose}>
     <header>
       <h2 id={heading}>{source.title}</h2>
-      <button type="button" onClick={onClose} autoFocus>Close reader</button>
-      {onAsk && file && <button type="button" onClick={() => onAsk(file)}>Ask about this</button>}
+      {onAsk && file && <button type="button" className="k-btn" onClick={() => onAsk(file)}>Ask about this</button>}
+      <button type="button" className="k-btn k-btn--quiet" onClick={onClose} autoFocus>Close reader</button>
     </header>
     {pdf && <nav aria-label="Document pages">
-      <button type="button" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous page</button>
+      <button type="button" className="k-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous page</button>
       <span>Page {page} of {pdf.numPages}</span>
-      <button type="button" disabled={page >= pdf.numPages} onClick={() => setPage(p => p + 1)}>Next page</button>
+      <button type="button" className="k-btn" disabled={page >= pdf.numPages} onClick={() => setPage(p => p + 1)}>Next page</button>
     </nav>}
-    {(loading || rendering) && <p role="status">{loading ? "Opening document…" : "Drawing page…"}</p>}
-    {error && <p role="alert">{error}</p>}
+    {(loading || rendering) && <p role="status" className="lib-note">{loading ? "Opening document…" : "Drawing page…"}</p>}
+    {error && <p role="alert" className="lib-alert">{error}</p>}
     <div className="document-reader-body">
       {pdf && <canvas key={page} ref={canvas} role="img" aria-label={`Page ${page} of ${source.title}`} />}
       {text && <pre>{text}</pre>}

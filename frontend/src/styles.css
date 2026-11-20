@@ -937,12 +937,6 @@ select:focus-visible {
   border-top: 1px solid var(--ink);
   padding: 18px 0;
 }
-.browser-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
 .browser-panel h2 {
   font-size: 22px;
   font-weight: 500;
@@ -984,29 +978,6 @@ select:focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 3px;
 }
-.browser-launch {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 12px;
-  background: #eae7df;
-}
-.browser-launch > div {
-  min-width: 0;
-}
-.browser-launch strong {
-  font-size: 12px;
-  font-weight: 500;
-}
-.browser-launch span,
-.bookmark-list a span {
-  display: block;
-  font-size: 10px;
-  color: var(--muted);
-  margin-top: 5px;
-  overflow-wrap: anywhere;
-}
 .browser-help,
 .archive-plan p,
 .bookmark-empty p {
@@ -1019,75 +990,6 @@ select:focus-visible {
   line-height: 1.6;
   color: #943b00;
 }
-.bookmark-form {
-  border: 1px solid var(--line);
-  padding: 14px;
-  margin: 16px 0;
-}
-.bookmark-form label {
-  display: block;
-  font-size: 11px;
-  margin-bottom: 12px;
-}
-.bookmark-form input {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  min-height: 44px;
-  margin-top: 6px;
-  padding: 8px 10px;
-  color: var(--ink);
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  font-size: 12px;
-}
-.browser-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.bookmark-list {
-  list-style: none;
-  padding: 0;
-  margin: 16px 0;
-}
-.bookmark-list li {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-}
-.bookmark-list li > svg {
-  color: var(--blue);
-  flex-shrink: 0;
-}
-.bookmark-list a {
-  flex: 1;
-  min-width: 0;
-  padding: 6px 0;
-  text-decoration: none;
-  color: var(--ink);
-}
-.bookmark-list a:hover strong {
-  text-decoration: underline;
-}
-.bookmark-list strong {
-  font-size: 13px;
-  font-weight: 500;
-  overflow-wrap: anywhere;
-}
-.bookmark-empty {
-  padding: 28px 16px;
-  text-align: center;
-  border: 1px dashed var(--line);
-  margin: 18px 0;
-}
-.bookmark-empty svg {
-  color: var(--blue);
-  margin-bottom: 12px;
-}
 .archive-plan {
   border-top: 1px solid var(--line);
   padding: 16px 0 0;
@@ -1096,19 +998,6 @@ select:focus-visible {
 .archive-plan summary {
   cursor: pointer;
   padding: 8px 0;
-}
-@media (max-width: 850px) {
-  .browser-heading,
-  .browser-launch {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .bookmark-list li {
-    flex-wrap: wrap;
-  }
-  .bookmark-list .browser-actions {
-    width: 100%;
-  }
 }
 
 .home-tools {
@@ -1366,57 +1255,6 @@ textarea:focus-visible {
   background: transparent;
 }
 
-.file-location {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  font: 11px var(--mono);
-  overflow-wrap: anywhere;
-}
-.file-list {
-  list-style: none;
-  padding: 0;
-}
-.file-list li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 56px;
-  border-bottom: 1px solid var(--line);
-}
-.file-list svg {
-  flex-shrink: 0;
-  color: var(--muted);
-}
-.file-name {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  font: 12px var(--sans);
-}
-button.file-name {
-  border: 0;
-  background: transparent;
-  text-align: left;
-  min-height: 44px;
-  padding: 8px 0;
-}
-button.file-name:hover {
-  text-decoration: underline;
-}
-.file-size {
-  color: var(--muted);
-  font: 10px var(--mono);
-  white-space: nowrap;
-}
-.wiki-archives {
-  padding-left: 16px;
-  color: var(--muted);
-  font: 11px/1.8 var(--mono);
-  overflow-wrap: anywhere;
-}
-
 /* Quiet hierarchy, with the collapse affordance beside the device caption. */
 .sidebar-heading {
   display: flex;
@@ -1490,42 +1328,6 @@ button.file-name:hover {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
 }
-.file-tabs {
-  border-bottom: 1px solid var(--line);
-  gap: 20px;
-}
-.file-tabs .browser-button {
-  border: 0;
-  border-radius: 0;
-  padding: 8px 0;
-  color: var(--muted);
-}
-.file-tabs .browser-button[aria-pressed="true"] {
-  color: var(--ink);
-  box-shadow: inset 0 -1px var(--ink);
-}
-.file-tabs .browser-button:last-child {
-  margin-left: auto;
-}
-.file-list .browser-button,
-.file-location .browser-button {
-  border: 0;
-}
-.file-location {
-  color: var(--muted);
-  margin-top: 8px;
-}
-.wiki-status {
-  font-size: 12px;
-  margin: 16px 0;
-  line-height: 1.6;
-}
-.wiki-status small {
-  display: block;
-  color: var(--muted);
-  font-size: 11px;
-  margin-top: 4px;
-}
 @media (max-width: 850px) {
   .sidebar-heading .sidebar-caption {
     font-size: 6px;
@@ -1538,23 +1340,6 @@ button.file-name:hover {
   .sidebar-collapsed .sidebar-heading .sidebar-toggle {
     width: 44px;
   }
-}
-.bookmark-empty {
-  border: 0;
-  border-top: 1px solid var(--line);
-  text-align: left;
-  padding: 20px 0;
-}
-.bookmark-empty > svg {
-  display: none;
-}
-.browser-launch {
-  background: transparent;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-}
-[data-theme="dark"] .browser-launch {
-  background: transparent;
 }
 @media (max-height: 650px) {
   .sidebar {
@@ -2162,12 +1947,6 @@ main[data-page="Home"] .page-header {
 .browser-heading .eyebrow {
   display: none;
 }
-.browser-heading {
-  align-items: flex-start;
-}
-.browser-heading h2 {
-  margin-bottom: 8px;
-}
 .browser-help {
   font-size: 12px;
   line-height: 1.6;
@@ -2176,12 +1955,6 @@ main[data-page="Home"] .page-header {
   border-radius: 0;
   min-height: 36px;
   font-size: 11px;
-}
-.file-tabs {
-  margin-top: 0;
-}
-.file-location {
-  margin-top: 0;
 }
 .setting-row {
   padding: 12px 0;
@@ -2334,9 +2107,6 @@ textarea:focus-visible {
     grid-template-columns: 1fr;
     gap: 6px;
   }
-  .browser-heading {
-    flex-wrap: wrap;
-  }
 }
 @media (max-width: 600px) {
   .sidebar nav button svg {
@@ -2373,11 +2143,6 @@ textarea:focus-visible {
   margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid var(--line);
-}
-.browser-settings .bookmark-form {
-  border: 0;
-  padding: 0;
-  background: transparent;
 }
 @media (max-width: 600px) {
   .system-list > div {
@@ -2530,9 +2295,6 @@ textarea:focus-visible {
   gap: 12px;
   justify-content: space-between;
 }
-.wiki-search {
-  margin: 20px 0 12px;
-}
 .wiki-search input,
 .wiki-book select,
 .ai-composer textarea {
@@ -2543,23 +2305,6 @@ textarea:focus-visible {
   padding: 12px;
   font: inherit;
   min-width: 0;
-}
-.wiki-search input {
-  flex: 1;
-}
-.wiki-book {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.wiki-results {
-  list-style: none;
-  padding: 0;
-  margin: 24px 0;
-}
-.wiki-results li {
-  border-top: 1px solid var(--line);
-  padding: 16px 0;
 }
 .wiki-results button,
 .wiki-related button,
@@ -2573,130 +2318,11 @@ textarea:focus-visible {
   text-align: left;
   cursor: pointer;
 }
-.wiki-results button {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  font-weight: 500;
-}
-.wiki-results p {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
-  margin: 8px 0 0;
-}
-.knowledge-dialog {
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--paper);
-  color: var(--ink);
-  width: min(860px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
-}
-.knowledge-dialog::backdrop {
-  background: #0008;
-}
-.knowledge-surface {
-  background: var(--paper);
-  color: var(--ink);
-}
-.knowledge-surface:fullscreen {
-  overflow-y: auto;
-}
-.knowledge-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 24px;
-  background: var(--paper);
-  border-bottom: 1px solid var(--line);
-}
-.knowledge-toolbar > div {
-  display: flex;
-  gap: 8px;
-}
-.knowledge-toolbar button {
-  background: transparent;
-  color: inherit;
-  border: 0;
-  cursor: pointer;
-  min-width: 36px;
-  min-height: 36px;
-  display: grid;
-  place-items: center;
-}
-.wiki-article {
-  max-width: 690px;
-  margin: auto;
-  padding: 28px 24px 40px;
-}
-.wiki-article > h2 {
-  font-size: clamp(24px, 4vw, 36px);
-  font-weight: 500;
-  letter-spacing: -0.035em;
-  margin: 0 0 20px;
-}
 .wiki-credit,
 .ai-footnote {
   font-size: 11px;
   color: var(--muted);
   line-height: 1.6;
-}
-.wiki-credit a {
-  color: inherit;
-}
-.wiki-prose {
-  font-size: 15px;
-  line-height: 1.85;
-  overflow-wrap: anywhere;
-}
-.wiki-prose h3 {
-  font-size: 21px;
-  font-weight: 500;
-  margin-top: 32px;
-}
-.wiki-prose h4 {
-  font-size: 17px;
-  font-weight: 500;
-  margin-top: 24px;
-}
-.wiki-list-line {
-  padding-left: 16px;
-  border-left: 1px solid var(--line);
-}
-.wiki-image {
-  margin: 24px 0;
-}
-.wiki-image img {
-  display: block;
-  max-width: 100%;
-  max-height: 340px;
-  width: auto;
-  height: auto;
-  margin: auto;
-  object-fit: contain;
-}
-.wiki-image figcaption {
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--muted);
-  margin-top: 12px;
-}
-.wiki-image-placeholder {
-  color: var(--muted);
-  font-size: 12px;
-  padding: 16px 0;
-}
-.wiki-related {
-  display: grid;
-  gap: 14px;
-  margin: 16px 0;
 }
 .assistant-panel {
   max-width: 800px;
@@ -2765,15 +2391,6 @@ textarea:focus-visible {
   font-size: 12px;
 }
 @media (max-width: 600px) {
-  .knowledge-toolbar {
-    padding: 10px 12px;
-  }
-  .knowledge-toolbar .eyebrow {
-    font-size: 9px;
-  }
-  .wiki-article {
-    padding: 24px 18px;
-  }
   .ai-composer > div {
     flex-wrap: wrap;
   }
@@ -3023,28 +2640,6 @@ main[data-page="AI assistant"] .page-content {
   margin: 0;
 }
 
-.research-library form,
-.research-fields {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 12px;
-  margin-block: 12px;
-}
-
-.research-library label {
-  display: grid;
-  gap: 4px;
-}
-
-.research-library li {
-  margin-block: 6px;
-}
-
-.research-library li span {
-  margin-inline-start: 8px;
-}
-
 .research-preview img {
   display: block;
   max-width: 100%;
@@ -3053,16 +2648,7 @@ main[data-page="AI assistant"] .page-content {
 
 
 
-
-.document-reader { width: min(960px, 94vw); max-height: 92dvh; padding: 20px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
-.document-reader::backdrop { background: #000a; }
-.document-reader header, .document-reader nav { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
-.document-reader h2 { flex: 1 1 100%; font-size: 16px; overflow-wrap: anywhere; margin: 0; }
-.document-reader button { background: var(--panel); color: var(--ink); border: 1px solid var(--line); padding: 9px 12px; cursor: pointer; }
-.document-reader button:disabled { opacity: .45; cursor: default; }
 .document-reader-body { overflow: auto; max-height: 68dvh; }
-.document-reader canvas, .document-reader img { display: block; max-width: 100%; height: auto; margin: 0 auto; background: white; }
-.document-reader pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.6 var(--mono); }
 
 /* Native cyberdeck display: keep controls in reach at 100% zoom. */
 @media (min-width: 850px) and (max-height: 800px) {
@@ -3100,12 +2686,6 @@ main[data-page="AI assistant"] .page-content {
   .file-list li, .game-list li { min-height: 44px; padding-block: 6px; }
   .file-list, .game-list { margin-block: 8px; }
   .setting-row, .system-list > div { padding-block: 8px; }
-  .research-library > ul { max-height: 260px; overflow: auto; padding-left: 20px; scrollbar-width: thin; }
-  .research-library li button { text-align: left; overflow-wrap: anywhere; }
-  .research-library li span { display: block; margin: 3px 0 8px; font-size: 11px; color: var(--muted); }
-  .research-fields { margin-block: 8px; }
-  .research-fields label { min-width: 0; flex: 1; }
-  .research-fields input, .research-fields select { width: 100%; min-width: 0; }
   main[data-page="AI assistant"] .page-content { padding-bottom: 0; overflow: hidden; }
   .ai-chat { height: 100%; min-height: 0; max-width: 900px; display: flex; }
   .ai-chat-toolbar { padding-bottom: 6px; }
@@ -3116,12 +2696,6 @@ main[data-page="AI assistant"] .page-content {
   .ai-chat .ai-composer { padding: 8px 10px 5px; }
   .ai-chat .ai-composer textarea { min-height: 36px; max-height: 80px; }
   .ai-chat-footer { margin-top: 4px; }
-  .document-reader { width: min(960px, 96vw); height: calc(100dvh - 24px); max-height: calc(100dvh - 24px); padding: 12px; }
-  .document-reader[open] { display: flex; flex-direction: column; }
-  .document-reader header, .document-reader nav { flex: none; gap: 8px; margin-bottom: 8px; }
-  .document-reader h2 { flex: 1 1 60%; font-size: 14px; }
-  .document-reader nav { padding-top: 6px; }
-  .document-reader nav button { width: auto; height: 32px; }
   .document-reader-body { flex: 1; min-height: 0; max-height: none; }
 }
 
@@ -3133,7 +2707,6 @@ main[data-page="AI assistant"] .page-content {
 .emergency-topics button, .emergency-actions button { padding: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
 .emergency-topics button[aria-pressed=true] { border-color: #397cff; color: #397cff; }
 .emergency-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 12px; }
-.research-snippet { font-size: 12px; line-height: 1.5; white-space: pre-wrap; color: var(--muted); margin: 5px 0 12px; }
 @media (min-width:850px) and (max-height:700px) { .sidebar nav button { height:30px; min-height:30px; } }
 @media (max-width:650px) { .emergency-readiness { grid-template-columns:repeat(2,minmax(0,1fr)); } .emergency-topics { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
@@ -3174,25 +2747,8 @@ main[data-page="AI assistant"] .page-content {
 /* Focused library views and consistent local-document controls. */
 .library-workspace [hidden] { display: none !important; }
 .library-navigation { display: flex; flex-wrap: wrap; gap: 6px; position: sticky; top: 0; background: var(--paper); z-index: 2; padding: 0 0 12px; border-bottom: 1px solid var(--line); }
-.library-workspace button, .library-workspace input, .library-workspace select,
-.research-library button, .research-library input, .research-library select {
-  font: 12px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 4px; min-height: 34px; padding: 7px 10px; max-width: 100%;
-}
-.library-workspace button, .research-library button { cursor: pointer; }
 .library-workspace .library-navigation button { width: auto; height: 34px; flex: 0 0 auto; }
 .library-navigation button[aria-pressed="true"] { border-color: var(--logo-blue); box-shadow: inset 0 -2px var(--logo-blue); }
-.library-workspace :is(button,input,select):focus-visible, .research-library :is(button,input,select):focus-visible { outline: 2px solid var(--logo-blue); outline-offset: 2px; }
-.library-workspace button:disabled, .research-library button:disabled { opacity: .5; cursor: default; }
-.library-workspace .settings-panel { margin-top: 12px; }
-.research-fields { margin: 12px 0; }
-.research-library label { font-size: 12px; }
-.research-library input, .research-library select { width: 100%; }
-.research-library > ul { list-style: none; padding: 0; max-height: none; overflow: visible; margin: 8px 0; }
-.research-library li { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.research-library li .research-result-title { display: block; width: 100%; text-align: left; font-weight: 500; border: 0; background: transparent; padding: 4px 0; overflow-wrap: anywhere; }
-.research-library li .research-result-title:hover { color: var(--blue); text-decoration: underline; }
-.research-library li span { display: block; margin: 4px 0 0; font-size: 12px; color: var(--muted); }
-.research-snippet { font-size: 12px; line-height: 1.5; margin: 7px 0; }
 
 
 /* A contained, slow drift keeps the original mark fully on-screen. */
@@ -3239,24 +2795,8 @@ main[data-page="AI assistant"] .page-content {
 .info-popover>summary { list-style:none; border:1px solid currentColor; border-radius:50%; width:20px; height:20px; display:grid; place-items:center; font:italic 13px Georgia,serif; cursor:pointer; }
 .info-popover>summary::-webkit-details-marker {display:none;}
 .info-content {position:absolute;right:0;top:28px;z-index:100;width:min(340px,80vw);padding:16px;background:var(--paper,#efeee8);color:var(--ink);border:1px solid var(--line);box-shadow:0 8px 30px #0002;font-size:12px;line-height:1.5;}
-.library-view-tools {display:flex;justify-content:space-between;align-items:center;}
-.view-switch {display:flex;gap:4px;}
-.view-switch button {text-transform:capitalize;}
-.library-import {margin:8px 0;}
-.document-gallery {list-style:none!important;padding:0!important;gap:16px!important;}
-.document-gallery.shelf {display:flex!important;overflow-x:auto;scroll-snap-type:x proximity;padding:8px 0 18px!important;}
-.document-gallery.shelf>li {flex:0 0 190px;scroll-snap-align:start;}
-.document-gallery.grid {display:grid!important;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));}
-.document-gallery:not(.list)>li {display:flex!important;flex-direction:column;align-items:stretch;gap:8px;border:0!important;padding:0!important;min-width:0;}
-.document-gallery .research-result-title {width:100%;padding:0!important;text-align:left;}
-.document-gallery .research-result-title>strong {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.4;margin-top:9px;}
-.document-cover {display:block;position:relative;height:235px;background:#d8d7ce;overflow:hidden;border:1px solid #0001;box-shadow:0 4px 9px #0001;}
-.document-cover>small {position:absolute;bottom:8px;left:8px;background:#182032;color:white;padding:3px 6px;font:9px 'IBM Plex Mono';}
 .local-image {display:block;width:100%;height:100%;}
 .local-image img {display:block;width:100%;height:100%;object-fit:contain;}
-.text-cover {display:flex;height:100%;align-items:center;padding:20px;color:#222;font-family:'IBM Plex Mono';font-size:15px;background:linear-gradient(135deg,#e4e2d8,#c9c6b6);}
-.document-gallery:not(.list)>li>span {font-size:9px;opacity:.6;}
-.document-gallery:not(.list) .research-snippet {font-size:11px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .ai-history {position:absolute!important;z-index:35;inset:0 auto 0 0;width:min(320px,85%);background:var(--paper,#efeee8);box-shadow:16px 0 50px #0002;padding:14px;overflow:auto;}
 .assistant-panel {position:relative;}
 .chat-history-row {display:flex;gap:8px;align-items:center;}
@@ -3278,10 +2818,7 @@ main[data-page="AI assistant"] .page-content {
 [data-theme=dark] .info-content,[data-theme=dark] .minimal-shell .sidebar,[data-theme=dark] .ai-history,[data-theme=dark] .paint-file-menu .paint-command-bar,[data-theme=dark] .paint-context,[data-theme=dark] .recent-colors {background:#202220;}
 .app-shell.minimal-shell,.app-shell.minimal-shell.sidebar-collapsed {grid-template-columns:minmax(0,1fr)!important;}
 .app-shell.minimal-shell>main {grid-column:1!important;width:100%;}
-.research-fields {grid-template-columns:90px minmax(0,1fr) minmax(180px,1fr)!important;}
-.document-gallery.shelf .document-cover {transition:transform .18s ease;}
-.document-gallery.shelf .research-result-title:hover .document-cover {transform:translateY(-4px);}
-@media(prefers-reduced-motion:reduce){.document-gallery.shelf .document-cover{transition:none;}}
+
 .header-brand {width:145px;}
 .header-brand .brand {min-height:32px;padding:0;}
 .header-brand svg,.header-brand img {max-height:38px;width:100%;object-fit:contain;}
@@ -3349,14 +2886,8 @@ main[data-page="GPS / Maps"] .page-content,main[data-page="Field Briefing"] .pag
 .home-device-links > button:last-child{border-right:0;}.home-device-links > button span{flex:1;text-align:left;}.home-device-links > button>svg:first-child{color:var(--logo-blue,#123aff);}.home-device-links > button:hover{background:color-mix(in srgb,#123aff 5%,transparent);}.home-device-links > button:focus-visible{outline:2px solid #123aff;outline-offset:-3px;}
 
 /* Shared secondary controls: closed by default, one panel open at a time. */
-.details-panel { border: 1px solid var(--line); border-radius: 5px; margin: 8px 0; background: transparent; }
-.details-panel > summary { cursor: pointer; padding: 10px 12px; font-size: 12px; font-weight: 500; color: var(--ink); }
-.details-panel > summary::marker { color: var(--blue); }
-.details-panel[open] > summary { border-bottom: 1px solid var(--line); }
-.details-panel > summary:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+
 .details-panel-content { padding: 12px; }
-.library-search label { display: flex; gap: 10px; align-items: center; font-size: 12px; }
-.library-search input { flex: 1; min-width: 0; }
 .shackleton-logo { display: block; width: 115px; height: 120px; object-fit: contain; filter: brightness(0); margin: 0 auto 16px; }
 [data-theme="dark"] .shackleton-logo { filter: brightness(0) invert(1); }
 .ai-empty:has(.shackleton-logo) { flex-direction: column; gap: 0; }
