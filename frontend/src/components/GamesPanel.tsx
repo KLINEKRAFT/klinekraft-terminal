@@ -17,11 +17,16 @@ const names: Record<string, string> = {
   megadrive: "Genesis / Mega Drive",
 };
 const headers = { "X-Klinekraft-Client": "local-ui" };
+// The documented mount point of the deck's NO NAME USB drive
+// (docs/GAMES_SETUP.md), so the command can be pasted as is.
 const setupCommand =
-  'cd ~/klinekraft-terminal\nbash scripts/setup-games.sh "/path/to/retropie/roms"';
+  'cd ~/klinekraft-terminal\nbash scripts/setup-games.sh "/media/klinekraft/NO NAME/retropie/roms"';
 export function GamesPanel() {
   const [data, setData] = useState<Catalog | null>(null);
   const [error, setError] = useState("");
+  // True while the last library poll failed. The last good list stays on
+  // screen; only launching is blocked until the service answers again.
+  const [offline, setOffline] = useState(false);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
   const [system, setSystem] = useState("all");
@@ -64,11 +69,12 @@ export function GamesPanel() {
         if (!controller.signal.aborted) {
           setData(catalog);
           setError("");
+          setOffline(false);
         }
       } catch (error) {
         if (!controller.signal.aborted) {
-          setData(null);
           setError((error as Error).message);
+          setOffline(true);
         }
       } finally {
         if (!controller.signal.aborted) retry = setTimeout(load, 5000);
@@ -293,9 +299,19 @@ export function GamesPanel() {
               </button>
             </div>
           )}
-          {error && (
+          {error && !data && (
             <p role="alert" className="browser-warning">
               {error}
+            </p>
+          )}
+          {offline && data && (
+            <p role="status" className="games-offline">
+              <span
+                className="k-status-dot"
+                data-state="warn"
+                aria-hidden="true"
+              />
+              Library offline · reconnecting…
             </p>
           )}
           {message && (
@@ -409,6 +425,7 @@ export function GamesPanel() {
                           className="k-btn"
                           disabled={
                             launching ||
+                            offline ||
                             !!data.running ||
                             !!data.systems[game.system]
                           }

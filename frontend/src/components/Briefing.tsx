@@ -32,6 +32,8 @@ type Event = {
   severity: string;
   text: string;
   issued: number;
+  /** Epoch seconds after which the alert no longer applies. */
+  expires?: number | null;
   stale: boolean;
   url: string;
   source: string;
@@ -65,9 +67,23 @@ function FeedAge({ feed }: { feed?: { stale: boolean; updated?: number } }) {
     </p>
   );
 }
+/** After this long without a successful /api/briefing answer the live
+ * ticker is withdrawn: saved alerts are too old to present as current. */
+const CONTACT_LIMIT_MS = 5 * 60 * 1000;
+export function lastCheckedLabel(ms: number) {
+  const minutes = Math.floor(ms / 60000);
+  return minutes < 1
+    ? "Last checked under 1 min ago"
+    : `Last checked ${minutes} min ago`;
+}
 export function Briefing({ page = false }: { page?: boolean }) {
   const [data, setData] = useState<Snapshot | null>(null),
     [error, setError] = useState(""),
+    // A failed poll keeps the last good snapshot; lastContact (ms) says how
+    // old it is. Separate from `error`, which reports failed user actions.
+    [offline, setOffline] = useState(false),
+    [lastContact, setLastContact] = useState(0),
+    [now, setNow] = useState(() => Date.now()),
     [open, setOpen] = useState(false),
     [index, setIndex] = useState(0),
     [paused, setPaused] = useState(false),
@@ -88,10 +104,16 @@ export function Briefing({ page = false }: { page?: boolean }) {
         });
         if (active) {
           setData(value);
-          setError("");
+          setOffline(false);
+          const at = Date.now();
+          setLastContact(at);
+          setNow(at);
         }
       } catch {
-        if (active) setError("Live feeds unavailable");
+        if (active) {
+          setOffline(true);
+          setNow(Date.now());
+        }
       }
     }
     void load();
@@ -104,6 +126,11 @@ export function Briefing({ page = false }: { page?: boolean }) {
       window.removeEventListener("briefing-updated", load);
     };
   }, []);
+  // Re-evaluate alert expiry and contact age even when polls keep failing.
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(timer);
+  }, []);
   useEffect(() => {
     if (open) dialog.current?.showModal();
     else dialog.current?.close();
@@ -113,11 +140,15 @@ export function Briefing({ page = false }: { page?: boolean }) {
     const timer = setInterval(() => setIndex((v) => v + 1), 10000);
     return () => clearInterval(timer);
   }, [paused]);
+  const contactAge = lastContact ? now - lastContact : Infinity;
+  const inContact = contactAge <= CONTACT_LIMIT_MS;
+  // Each alert leaves on its own 'expires' time, even while polls fail.
+  const events = (data?.events || []).filter(
+    (e) => !(e.expires && e.expires * 1000 <= now),
+  );
   const active =
-    !error && data?.settings.enabled
-      ? data.events.filter(
-          (e) => !e.stale && !data.acknowledged?.includes(e.id),
-        )
+    inContact && data?.settings.enabled
+      ? events.filter((e) => !e.stale && !data.acknowledged?.includes(e.id))
       : [];
   const urgent = active.filter(
     (e) => e.severity === "Extreme" || e.severity === "Severe",
@@ -132,6 +163,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
         body: JSON.stringify({ id }),
       });
       window.dispatchEvent(new window.Event("briefing-updated"));
+      setError("");
       setData((v) =>
         v ? { ...v, acknowledged: [...(v.acknowledged || []), id] } : v,
       );
@@ -179,19 +211,31 @@ export function Briefing({ page = false }: { page?: boolean }) {
         <button
           className="icon-button alert-bell"
           aria-label={`Events and science${active.length ? `: ${active.length} unread` : ""}`}
-          title={error || "Events & science"}
+          title={offline ? "Live feeds unavailable" : "Events & science"}
           onClick={() => setOpen(true)}
         >
           <Bell size={17} />
-          {active.length > 0 && <small>{active.length}</small>}
-          {error && <small>!</small>}
+          {active.length > 0 ? (
+            <small>{active.length}</small>
+          ) : (
+            offline && <small>!</small>
+          )}
         </button>
       )}
       {!page && item && data?.settings.ticker && (
-        <div className="event-ticker" data-severity={item.severity}>
+        <div
+          className="event-ticker"
+          data-severity={item.severity}
+          data-stale={offline || undefined}
+        >
           <button onClick={() => setOpen(true)}>
             <span>{item.kind}</span> {item.title}
           </button>
+          {offline && (
+            <small className="event-ticker-stamp">
+              {lastCheckedLabel(contactAge)}
+            </small>
+          )}
           <button
             aria-label={paused ? "Resume event ticker" : "Pause event ticker"}
             onClick={() => setPaused((v) => !v)}
@@ -260,9 +304,18 @@ export function Briefing({ page = false }: { page?: boolean }) {
             tab === "Radar" ? "briefing-body radar-body" : "briefing-body"
           }
         >
-          {error && (
+          {offline && (
             <p className="briefing-warning" role="status">
-              {error}. Showing saved readings.
+              Live feeds unavailable. Showing saved readings
+              {lastContact
+                ? ` · ${lastCheckedLabel(contactAge).toLowerCase()}`
+                : ""}
+              .
+            </p>
+          )}
+          {error && (
+            <p className="briefing-warning" role="alert">
+              {error}
             </p>
           )}
           {!data && (
@@ -281,7 +334,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
               )}
               {tab === "Weather" && (
                 <>
-                  {data.events
+                  {events
                     .filter(
                       (e) =>
                         !e.stale &&
@@ -305,7 +358,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                   <WeatherOverview
                     feed={{
                       ...data.feeds.forecast,
-                      stale: !!error || data.feeds.forecast?.stale,
+                      stale: offline || data.feeds.forecast?.stale,
                     }}
                     location={data.settings.location}
                     onRadar={() => setTab("Radar")}
@@ -364,7 +417,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                       incomplete.
                     </p>
                   )}
-                  {!data.events.filter(
+                  {!events.filter(
                     (e) =>
                       (filter === "All" || e.kind === filter) &&
                       (!unreadOnly || !data.acknowledged?.includes(e.id)),
@@ -393,7 +446,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                       )}
                     </div>
                   )}
-                  {data.events
+                  {events
                     .filter(
                       (e) =>
                         (filter === "All" || e.kind === filter) &&

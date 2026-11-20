@@ -53,7 +53,7 @@
   cursor: pointer;
 }
 .game-list .game-favorite[aria-pressed="true"] {
-  color: var(--logo-blue);
+  color: var(--accent-fg);
 }
 .game-list .game-favorite:focus-visible {
   outline: none;
@@ -64,11 +64,34 @@
   margin: var(--space-4) auto 0;
 }
 .games-empty code,
-.games-help code {
+.games-help code,
+.cast-setup code {
   display: block;
   padding: var(--space-2) var(--space-3);
-  white-space: pre-wrap;
+  /* One command per line, never wrapped mid-argument: it must paste as is. */
+  white-space: pre;
+  overflow-x: auto;
+  overflow-wrap: normal;
   text-align: left;
+}
+/* The empty state's one action is a two-line command; give it room so the
+   quoted drive path stays on its own command line. */
+.k-empty.games-empty {
+  max-width: 600px;
+}
+.games-empty > p {
+  max-width: 400px;
+}
+.games-empty code {
+  max-width: 100%;
+}
+.games-offline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  color: var(--ink);
+  font: 500 var(--text-sm) var(--sans);
 }
 .game-cover-fallback small {
   padding-right: var(--space-6);
@@ -161,8 +184,8 @@
 }
 .settings-panel .cast-setup p {
   margin: 0;
-  color: var(--ink);
-  font: var(--text-sm) / 1.5 var(--sans);
+  color: var(--muted);
+  font: var(--text-xs) / 1.6 var(--sans);
 }
 
 /* ── Network → Field connections ─────────────────────────────────────── */
@@ -342,9 +365,63 @@
   margin-block: var(--space-6);
 }
 .weather-section-heading .k-btn {
-  min-height: 32px;
   padding: 0 var(--space-3);
-  color: var(--logo-blue);
+  color: var(--accent-fg);
+}
+.weather-condition svg {
+  color: var(--accent-fg);
+}
+.briefing-events
+  .event-report:not([data-severity="Severe"]):not(
+    [data-severity="Extreme"]
+  ):not([data-read="true"]) {
+  border-left-color: var(--accent-fg);
+}
+
+/* Header bell badge and bottom event ticker (rendered by Briefing). */
+.alert-bell small {
+  min-width: 16px;
+  padding: 2px var(--space-1);
+  background: var(--logo-blue);
+  font: 500 var(--text-xs) / 1 var(--sans);
+  text-align: center;
+}
+.event-ticker {
+  height: var(--control-h);
+  align-items: stretch;
+  background: var(--logo-blue);
+  font: var(--text-xs) var(--mono);
+}
+.event-ticker > button {
+  min-width: var(--control-h);
+  cursor: pointer;
+}
+.event-ticker > button:first-child {
+  padding: 0 var(--space-3);
+}
+.event-ticker > button:focus-visible {
+  outline: 2px solid white;
+  outline-offset: -4px;
+}
+.minimal-shell:has(.event-ticker) main {
+  padding-bottom: calc(var(--control-h) + var(--space-2));
+}
+/* Polls are failing: still the last known alerts, but visibly not live. */
+.event-ticker[data-stale] {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 12px,
+    rgb(0 0 0 / 0.14) 12px 24px
+  );
+}
+.event-ticker-stamp {
+  flex: none;
+  align-self: center;
+  padding: 2px var(--space-2);
+  border: 1px solid rgb(255 255 255 / 0.6);
+  border-radius: var(--radius-pill);
+  font: 500 var(--text-xs) / 1.2 var(--sans);
+  white-space: nowrap;
 }
 @media (max-width: 600px) {
   .briefing-settings {
@@ -371,9 +448,7 @@
   margin-right: var(--space-2);
 }
 .ai-mode > .k-btn {
-  min-height: 32px;
   padding: 0 var(--space-3);
-  font-size: var(--text-xs);
 }
 .ai-mode > .k-btn:first-child {
   border-radius: var(--radius-md) 0 0 var(--radius-md);
@@ -467,6 +542,12 @@
   min-height: 100%;
   align-content: center;
   margin: 0 auto;
+}
+.ai-answer a {
+  color: var(--accent-fg);
+}
+.ai-answer blockquote {
+  border-left-color: var(--accent-fg);
 }
 .ai-setup code {
   max-width: 100%;
