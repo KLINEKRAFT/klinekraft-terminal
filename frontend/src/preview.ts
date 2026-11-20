@@ -65,35 +65,51 @@ export const navigationSections = sections.filter(
 export const sectionLabel = (section: Section) =>
   section === "AI assistant" ? "Shackleton" : section;
 export type CommandResult = { section?: Section; message: string };
+// Every section is reachable by its own name; aliases cover common words.
+const commandAliases: Record<string, Section> = {
+  shackleton: "AI assistant",
+  ai: "AI assistant",
+  ask: "AI assistant",
+  chat: "AI assistant",
+  arcade: "Games",
+  play: "Games",
+  maps: "GPS / Maps",
+  map: "GPS / Maps",
+  gps: "GPS / Maps",
+  "gps status": "GPS / Maps",
+  weather: "Field Briefing",
+  radar: "Field Briefing",
+  feeds: "Field Briefing",
+  briefing: "Field Briefing",
+  note: "Notes",
+  draw: "Paint",
+  events: "Calendar",
+  calc: "Calculator",
+  status: "System",
+  "system status": "System",
+  processes: "System",
+  wifi: "Network",
+  hotspot: "Network",
+  wiki: "Library",
+  wikipedia: "Library",
+  bookmarks: "Library",
+  browser: "Library",
+  documents: "Library",
+  sos: "Emergency",
+  "first aid": "Emergency",
+};
+const commandRoutes: Record<string, Section> = {
+  ...Object.fromEntries(sections.map((s) => [s.toLowerCase(), s])),
+  ...commandAliases,
+};
+export const commandHelp =
+  "Try: home, shackleton, maps, weather, library, notes, paint, games, calendar, calc, files, network, system, settings, emergency. This is not a shell.";
 export function resolveCommand(value: string): CommandResult {
   const command = value.trim().toLowerCase().replace(/\s+/g, " ");
-  const routes: Record<string, Section> = {
-    shackleton: "AI assistant",
-    "ai assistant": "AI assistant",
-    emergency: "Emergency",
-    home: "Home",
-    games: "Games",
-    arcade: "Games",
-    weather: "Field Briefing",
-    feeds: "Field Briefing",
-    briefing: "Field Briefing",
-    gps: "GPS / Maps",
-    "gps status": "GPS / Maps",
-    status: "System",
-    "system status": "System",
-    network: "Network",
-    files: "Files",
-    settings: "Settings",
-    library: "Library",
-    wiki: "Library",
-    wikipedia: "Library",
-    bookmarks: "Library",
-    browser: "Library",
-  };
-  if (Object.hasOwn(routes, command))
+  if (Object.hasOwn(commandRoutes, command))
     return {
-      section: routes[command],
-      message: `Opened ${sectionLabel(routes[command])}.`,
+      section: commandRoutes[command],
+      message: `Opened ${sectionLabel(commandRoutes[command])}.`,
     };
   if (command.startsWith("play "))
     return {
@@ -110,10 +126,7 @@ export function resolveCommand(value: string): CommandResult {
   if (command.startsWith("ask "))
     return {
       section: "AI assistant",
-      message: "AI providers are not configured. No request was sent.",
+      message: "Opened Shackleton. Type your question there.",
     };
-  return {
-    message:
-      "Available: home, games, gps status, system status, network, files, library, settings. This is not a shell.",
-  };
+  return { message: `Unknown command. ${commandHelp}` };
 }

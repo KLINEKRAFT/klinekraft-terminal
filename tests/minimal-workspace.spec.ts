@@ -64,10 +64,7 @@ test("blank note can save from body and formatting survives a reload", async ({
   await page.getByRole("button", { name: "Bold", exact: true }).click();
   await expect.poll(() => notes[0]?.body || "").toMatch(/<(b|strong)>/);
   await page.reload();
-  await page
-    .getByRole("navigation", { name: "Applications" })
-    .getByRole("button", { name: "Notes", exact: true })
-    .click();
+  await navigate(page, "Notes");
   await page.locator(".organizer-item").first().click();
   await expect(page.locator(".note-paper b,.note-paper strong")).toHaveText(
     "Bold field note",

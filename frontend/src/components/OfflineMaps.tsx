@@ -143,7 +143,9 @@ export default function OfflineMaps({
         setRegion(metadata);
         setPlaces(saved);
         if (!metadata.available) {
-          setStatus("No offline map region is installed.");
+          setStatus(
+            "No offline map region is installed. On the Pi, run scripts/setup-maps.py to download street maps.",
+          );
           return;
         }
         let center: [number, number] = [-95.993, 36.154],
@@ -780,7 +782,7 @@ export default function OfflineMaps({
               </p>
               <p>
                 Street maps: lower 48 + Alaska, no Hawaii.{" "}
-                {region
+                {region?.available && Number.isFinite(region.bytes)
                   ? `${(region.bytes / 1024 ** 3).toFixed(1)} GB saved`
                   : "Not installed"}
                 .

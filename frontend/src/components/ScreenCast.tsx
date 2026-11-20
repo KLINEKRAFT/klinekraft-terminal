@@ -72,25 +72,28 @@ export function ScreenCast() {
           Receiver stopped unexpectedly. Try starting again from the Pi desktop.
         </p>
       )}
-      <label>
-        <input
-          type="checkbox"
-          checked={fullscreen}
-          disabled={busy || receiver?.active}
-          onChange={(e) => setFullscreen(e.target.checked)}
-        />{" "}
-        Fullscreen when mirroring starts
-      </label>
-      <button
-        disabled={busy || !receiver?.installed}
-        onClick={() => void change(!receiver?.active)}
-      >
-        {busy
-          ? "Working…"
-          : receiver?.active
-            ? "Stop Screen Cast"
-            : "Start Screen Cast"}
-      </button>
+      <div className="cast-controls">
+        <label>
+          <input
+            type="checkbox"
+            checked={fullscreen}
+            disabled={busy || receiver?.active}
+            onChange={(e) => setFullscreen(e.target.checked)}
+          />{" "}
+          Fullscreen when mirroring starts
+        </label>
+        <button
+          className="cast-start"
+          disabled={busy || !receiver?.installed}
+          onClick={() => void change(!receiver?.active)}
+        >
+          {busy
+            ? "Working…"
+            : receiver?.active
+              ? "Stop Screen Cast"
+              : "Start Screen Cast"}
+        </button>
+      </div>
       {receiver?.active && (
         <>
           <p>

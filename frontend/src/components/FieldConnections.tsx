@@ -34,17 +34,17 @@ export function FieldConnections() {
   useEffect(() => {
     const request = new AbortController();
     const refresh = () =>
-      Promise.all([
+      // Hotspot and radio fail independently; one must not freeze the other.
+      Promise.allSettled([
         localJSON("/api/hotspot", { signal: request.signal }),
         localJSON("/api/mesh", { signal: request.signal }),
-      ])
-        .then(([h, m]) => {
-          setHotspot(h);
-          setMesh(m);
-        })
-        .catch((e) => {
-          if (!request.signal.aborted) setError(e.message);
-        });
+      ]).then(([h, m]) => {
+        if (request.signal.aborted) return;
+        if (h.status === "fulfilled") setHotspot(h.value);
+        if (m.status === "fulfilled") setMesh(m.value);
+        const failed = [h, m].find((r) => r.status === "rejected");
+        setError(failed ? (failed.reason as Error).message : "");
+      });
     void refresh();
     const timer = setInterval(() => void refresh(), 10000);
     return () => {

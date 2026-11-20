@@ -53,6 +53,9 @@ export function Organizer({
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
   const [saveError, setSaveError] = useState(false);
+  // A 409 means the Pi copy changed elsewhere (another tab or device). Without
+  // an explicit way out, every switch/New/Trash retries the same failing save.
+  const [conflict, setConflict] = useState(false);
   const [status, setStatus] = useState("");
   const [month, setMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -107,6 +110,7 @@ export function Organizer({
 
   function edit(next: Item | null, changed = true) {
     setSaveError(false);
+    setConflict(false);
     setStatus("");
     latest.current = next;
     setDraft(next);
@@ -170,11 +174,38 @@ export function Organizer({
       return current === snapshot;
     } catch (error) {
       setSaveError(true);
+      setConflict((error as { status?: number }).status === 409);
       setStatus("Not saved — " + (error as Error).message);
       return false;
     } finally {
       saving.current = false;
       setBusy(false);
+    }
+  }
+  async function keepMineAsCopy() {
+    const mine = latest.current;
+    if (!mine) return;
+    setConflict(false);
+    edit({
+      ...mine,
+      id: crypto.randomUUID(),
+      revision: 0,
+      title: `${mine.title.trim() || "Untitled"} (my copy)`,
+    });
+    await save();
+  }
+  async function loadPiVersion() {
+    const mine = latest.current;
+    if (!mine) return;
+    try {
+      const all: Item[] = await localJSON(`/api/organizer?kind=${kind}`);
+      setItems(all);
+      setConflict(false);
+      edit(all.find((item) => item.id === mine.id) ?? blank(), false);
+      setStatus("Loaded the version saved on the Pi.");
+    } catch (error) {
+      setSaveError(true);
+      setStatus((error as Error).message);
     }
   }
   async function open(next: Item | null) {
@@ -445,7 +476,7 @@ export function Organizer({
           {!visible.length && (
             <p>
               {kind === "event" && !query
-                ? `No events for ${day}.`
+                ? `No events on ${new Date(`${day}T12:00`).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}.`
                 : "No items in this view."}
             </p>
           )}
@@ -490,6 +521,24 @@ export function Organizer({
                       ? "Saved"
                       : ""}
             </p>
+            {conflict && (
+              <>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void keepMineAsCopy()}
+                >
+                  Keep mine as a copy
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void loadPiVersion()}
+                >
+                  Load Pi version
+                </button>
+              </>
+            )}
             {draft && draft.revision > 0 && (
               <button
                 type="button"

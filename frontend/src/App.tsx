@@ -198,10 +198,40 @@ function Metric({
     </article>
   );
 }
+// The only component that ticks every second. Keeping the clock local stops
+// the whole application from re-rendering once a second on the Pi.
+function LocalClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  return (
+    <>
+      <time className="time" dateTime={now.toISOString()}>
+        {now
+          .toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+          .replace(/\s*[AP]M$/, "")}
+        <span>{now.getHours() < 12 ? "AM" : "PM"}</span>
+      </time>
+      <span className="date">
+        {now.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })}
+      </span>
+    </>
+  );
+}
 function Home({
   history,
   reading,
-  now,
   navigate,
   detail,
   browser,
@@ -216,7 +246,6 @@ function Home({
   note: ReturnType<typeof useQuickNote>;
   reading: Reading;
   detail: string;
-  now: Date;
   navigate: (s: Section) => void;
 }) {
   return (
@@ -224,24 +253,7 @@ function Home({
       <section className="overview" aria-label="System overview">
         <div className="clock-panel">
           <span className="eyebrow">LOCAL TIME</span>
-          <time className="time" dateTime={now.toISOString()}>
-            {now
-              .toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              })
-              .replace(/\s*[AP]M$/, "")}
-            <span>{now.getHours() < 12 ? "AM" : "PM"}</span>
-          </time>
-          <span className="date">
-            {now.toLocaleDateString("en-US", {
-              weekday: "long",
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </span>
+          <LocalClock />
           <div className="device-label">
             <span className="dot" /> {reading.system.toUpperCase()}{" "}
             <span> / {reading.source === "host" ? "HOST" : "PREVIEW"}</span>
@@ -423,9 +435,8 @@ export default function App() {
   const [libraryView, setLibraryView] = useState("Documents");
   const [section, setSection] = useState<Section>("Home");
   const [dimTarget, setDimTarget] = useState<HTMLSpanElement | null>(null);
-  const [now, setNow] = useState(new Date());
   const [paused, setPaused] = useState(false);
-  const telemetry = useTelemetry(paused, now.getTime());
+  const telemetry = useTelemetry(paused);
   const { reading, mode, setMode, label, detail } = telemetry;
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchDocument, setSearchDocument] = useState<DocumentSource | null>(
@@ -434,6 +445,7 @@ export default function App() {
   const [searchWiki, setSearchWiki] = useState<WikiReference | null>(null);
   const [searchNote, setSearchNote] = useState<string | undefined>();
   const [searchPlace, setSearchPlace] = useState<MapLocation | undefined>();
+  const [emergencyTopic, setEmergencyTopic] = useState<string | undefined>();
   function selectSearch(result: SearchResult) {
     setSearchOpen(false);
     if (result.wiki) setSearchWiki(result.wiki);
@@ -444,20 +456,28 @@ export default function App() {
     } else if (result.place) {
       setSearchPlace(result.place);
       navigate("GPS / Maps");
+    } else if (result.emergencyTopic) {
+      setEmergencyTopic(result.emergencyTopic);
+      navigate("Emergency");
     } else if (result.section) navigate(result.section);
   }
   const [command, setCommand] = useState("");
   const [feedback, setFeedback] = useState("");
   const [exitHelp, setExitHelp] = useState(false);
+  // Confirmations ("Opened Notes.") fade on their own; help text stays until
+  // dismissed so it can be read.
+  useEffect(() => {
+    if (!feedback.startsWith("Opened ")) return;
+    const timer = setTimeout(() => setFeedback(""), 2500);
+    return () => clearTimeout(timer);
+  }, [feedback]);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
     installBrandIcon();
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
   }, []);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setSearchOpen(true);
       }
@@ -479,7 +499,7 @@ export default function App() {
     event.preventDefault();
     if (!command.trim()) return;
     const result = resolveCommand(command);
-    if (result.section) setSection(result.section);
+    if (result.section) navigate(result.section);
     setFeedback(result.message);
     setCommand("");
   };
@@ -671,7 +691,6 @@ export default function App() {
               <Home
                 history={telemetry.history}
                 reading={reading}
-                now={now}
                 navigate={navigate}
                 detail={detail}
                 browser={browser}
@@ -687,7 +706,12 @@ export default function App() {
               />
             </>
           ) : section === "Emergency" ? (
-            <EmergencyDashboard navigate={navigate} onAsk={askAboutFile} />
+            <EmergencyDashboard
+              key={emergencyTopic ?? "default"}
+              initialTopic={emergencyTopic}
+              navigate={navigate}
+              onAsk={askAboutFile}
+            />
           ) : section === "AI assistant" ? (
             <AssistantPanel
               context={wikiContext}

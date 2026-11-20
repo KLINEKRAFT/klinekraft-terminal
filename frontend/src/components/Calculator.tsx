@@ -58,7 +58,9 @@ export function calculate(expression: string): number {
   if (cursor !== tokens.length) throw Error("Check the expression.");
   if (!Number.isFinite(result))
     throw Error("Result is outside the supported range.");
-  return Number(result.toPrecision(12));
+  // 15 significant digits removes float noise (0.1 + 0.2) without rounding
+  // large whole numbers: 999999999999 + 2 must be 1000000000001.
+  return Number(result.toPrecision(15));
 }
 
 export function Calculator() {
@@ -111,13 +113,20 @@ export function Calculator() {
       evaluate();
       return;
     }
+    // After "=", an operator continues from the answer (2+3 = then ×4 = 20)
+    // and a digit starts a new calculation, like a desk calculator.
+    const continuing = result !== "" && key !== "AC" && key !== "⌫";
+    const operator = ["÷", "×", "−", "-", "+", "%", "*", "/"].includes(key);
     setResult("");
     setExpression((value) =>
       key === "AC"
         ? ""
         : key === "⌫"
           ? value.slice(0, -1)
-          : (value + key).slice(0, 200),
+          : ((continuing ? (operator ? result : "") : value) + key).slice(
+              0,
+              200,
+            ),
     );
   }
   return (

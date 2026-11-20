@@ -11,18 +11,36 @@ type Article = WikiReference & {
   truncated: boolean;
 };
 export async function localJSON(url: string, init: RequestInit = {}) {
+  // The hosted web demo has no Pi service. Fail fast instead of sending
+  // requests that can only 404 (and would leak noise into the console).
+  if (isHostedDemo)
+    throw Object.assign(Error("Available on the deck, not in the web demo."), {
+      status: 0,
+    });
   const response = await fetch(url, {
     ...init,
     headers: { ...init.headers, "X-Klinekraft-Client": "local-ui" },
     cache: "no-store",
   });
   const data = await response.json().catch(() => null);
-  if (!response.ok)
-    throw Error(
-      typeof data?.detail === "string"
-        ? data.detail
-        : "The local service is unavailable. Update or restart Klinekraft.",
+  if (!response.ok) {
+    if (typeof data?.detail === "string")
+      throw Object.assign(Error(data.detail), { status: response.status });
+    // FastAPI validation errors (422) send a list. They mean the input was
+    // rejected, not that the service is down — say so instead of "restart".
+    if (Array.isArray(data?.detail)) {
+      const first = data.detail[0]?.msg;
+      throw Error(
+        typeof first === "string"
+          ? `Not saved: ${first.replace(/^Value error, /, "")}`
+          : "Not saved: check the size or format of what you entered.",
+      );
+    }
+    throw Object.assign(
+      Error("The local service is unavailable. Update or restart Klinekraft."),
+      { status: response.status },
     );
+  }
   return data;
 }
 export function WikiImage({

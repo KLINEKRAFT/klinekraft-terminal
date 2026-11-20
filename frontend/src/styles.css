@@ -3864,3 +3864,107 @@ main[data-page="Home"] .connections {grid-template-columns:repeat(3,minmax(0,1fr
   .home-device-links .gps-home {gap:5px;padding-right:6px;}
   .home-device-links > button {padding:8px 6px;gap:5px;}
 }
+
+/* ── Cohesion pass (2026-11-20) ─────────────────────────────────────────
+   One tab treatment for every in-page view switcher (Library, Field
+   Briefing): quiet text tabs, a filled logo-blue pill for the active view,
+   matching the Maps toolbar. Built only from tokens so dark mode follows. */
+.library-navigation,
+.briefing-tabs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 0 0 8px;
+  margin-bottom: 12px;
+}
+.library-workspace .library-navigation button,
+.library-navigation button,
+.briefing-tabs button,
+.briefing-page .briefing-tabs button {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 36px;
+  height: auto;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+  font: 500 13px var(--sans);
+  cursor: pointer;
+}
+.library-navigation button:hover,
+.briefing-tabs button:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink);
+}
+.library-navigation button[aria-pressed="true"],
+.briefing-tabs button[aria-pressed="true"],
+.briefing-page .briefing-tabs button[aria-pressed="true"] {
+  background: var(--logo-blue);
+  color: #fff;
+  box-shadow: none;
+}
+.library-navigation button:focus-visible,
+.briefing-tabs button:focus-visible {
+  outline: 2px solid var(--logo-blue);
+  outline-offset: 2px;
+}
+.briefing-tabs .briefing-settings-button { margin-left: auto; }
+
+/* Screen Cast: option and action on one aligned row, not a raw checkbox
+   glued to a native button. */
+.cast-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-block: 1px solid var(--line);
+  margin: 4px 0 8px;
+}
+.cast-controls label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 14px var(--sans);
+  color: var(--ink);
+}
+.cast-controls input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--logo-blue);
+}
+.cast-controls .cast-start {
+  min-height: 36px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--logo-blue);
+  color: #fff;
+  font: 500 13px var(--sans);
+}
+.cast-controls .cast-start:disabled {
+  background: var(--panel);
+  color: var(--muted);
+}
+
+/* Command result toast: one definition. The older rules set paper-coloured
+   text on a paper background (invisible) and pinned it bottom-left. */
+main > .command-feedback {
+  position: fixed;
+  left: auto;
+  right: 16px;
+  bottom: 16px;
+  z-index: 120;
+  max-width: min(480px, calc(100vw - 32px));
+  padding: 6px 6px 6px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 0 8px 24px #0003;
+  font: 13px/1.4 var(--sans);
+}

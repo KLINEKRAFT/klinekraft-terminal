@@ -141,6 +141,20 @@ export function Briefing({ page = false }: { page?: boolean }) {
   }
   async function save() {
     if (!draft) return;
+    if (
+      (
+        [
+          "latitude",
+          "longitude",
+          "radiusMiles",
+          "magnitude",
+          "globalMagnitude",
+        ] as const
+      ).some((key) => !Number.isFinite(draft[key]))
+    ) {
+      setError("Enter a number in every location and magnitude field.");
+      return;
+    }
     setSaving(true);
     try {
       await localJSON("/api/briefing/settings", {
@@ -497,11 +511,19 @@ export function Briefing({ page = false }: { page?: boolean }) {
                           <input
                             type="number"
                             step={key === "radiusMiles" ? "1" : "any"}
-                            value={draft[key]}
+                            required
+                            value={
+                              Number.isFinite(draft[key]) ? draft[key] : ""
+                            }
                             onChange={(e) =>
                               setDraft({
                                 ...draft,
-                                [key]: Number(e.target.value),
+                                // An emptied field must not silently become 0
+                                // (latitude 0, longitude 0 is the Atlantic).
+                                [key]:
+                                  e.target.value.trim() === ""
+                                    ? Number.NaN
+                                    : Number(e.target.value),
                               })
                             }
                           />

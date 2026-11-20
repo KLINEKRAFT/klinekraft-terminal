@@ -26,9 +26,12 @@ export default function WeatherRadar({
   const [playing, setPlaying] = useState(false),
     [loading, setLoading] = useState(false),
     [displayTime, setDisplayTime] = useState<number | null>(null);
-  const [error, setError] = useState(""),
+  const [feedError, setError] = useState(""),
+    [mapError, setMapError] = useState(""),
     [tileError, setTileError] = useState(""),
     [refresh, setRefresh] = useState(0);
+  // The missing-basemap error is permanent; a later radar fetch must not clear it.
+  const error = mapError || feedError;
   const initial = useRef({ latitude, longitude });
   useEffect(() => {
     const controller = new AbortController();
@@ -55,7 +58,7 @@ export default function WeatherRadar({
         local.view.on("zoomstart", () => setPlaying(false));
       })
       .catch((e) => {
-        if (!controller.signal.aborted) setError(e.message);
+        if (!controller.signal.aborted) setMapError(e.message);
       });
     return () => {
       controller.abort();

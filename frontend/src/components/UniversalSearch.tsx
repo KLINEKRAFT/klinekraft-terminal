@@ -4,6 +4,7 @@ import { sections, sectionLabel, type Section } from "../preview";
 import { isHostedDemo } from "../runtime";
 import { localJSON, type WikiReference } from "./WikiReader";
 import { noteText } from "./RichNote";
+import { emergencyGuides } from "../emergencyGuides";
 import type { DocumentSource } from "./DocumentReader";
 import type { MapLocation } from "./MapCollections";
 export type SearchResult = {
@@ -16,6 +17,7 @@ export type SearchResult = {
   document?: DocumentSource;
   place?: MapLocation;
   wiki?: WikiReference;
+  emergencyTopic?: string;
 };
 type Note = { id: string; title: string; body: string; archived: boolean };
 type Research = {
@@ -49,7 +51,7 @@ export function UniversalSearch({
   useEffect(() => {
     const request = new AbortController();
     const q = query.trim().toLocaleLowerCase();
-    const apps = sections
+    const apps: SearchResult[] = sections
       .filter((s) => sectionLabel(s).toLocaleLowerCase().includes(q))
       .map((s) => ({
         id: `app:${s}`,
@@ -57,6 +59,26 @@ export function UniversalSearch({
         group: "Apps",
         section: s,
       }));
+    // Bundled field guides are always local and instant — never wait on the
+    // network or the service to find "water" or "bleeding" in an emergency.
+    if (q.length >= 2)
+      for (const [topic, guide] of Object.entries(emergencyGuides)) {
+        const step = guide.steps.find((text) =>
+          text.toLocaleLowerCase().includes(q),
+        );
+        if (
+          step ||
+          `${topic} ${guide.title}`.toLocaleLowerCase().includes(q)
+        )
+          apps.push({
+            id: `emergency:${topic}`,
+            title: guide.title,
+            group: "Emergency guide",
+            section: "Emergency",
+            snippet: step ?? guide.steps[0],
+            emergencyTopic: topic,
+          });
+      }
     setResults(apps);
     setStatus("");
     if (q.length < 2 || isHostedDemo) {
@@ -251,7 +273,7 @@ export function UniversalSearch({
                 ?.querySelector<HTMLButtonElement>(".universal-result")
                 ?.focus();
             }
-            if (event.key === "Enter" && results[0] && !busy) {
+            if (event.key === "Enter" && results[0]) {
               event.preventDefault();
               onSelect(results[0]);
             }
