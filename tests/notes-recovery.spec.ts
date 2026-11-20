@@ -73,7 +73,7 @@ test("undo survives autosave; saved history survives reload; trash restores a no
     .getByRole("button", { name: "Restore Expedition", exact: true })
     .click();
   await expect.poll(() => note.archived).toBe(false);
-  await page.getByRole("button", { name: "Show active", exact: true }).click();
+  await page.getByRole("button", { name: "All", exact: true }).click();
   await expect(
     page.getByRole("button", {
       name: "Expedition Keep the whole long note safely.",
