@@ -56,6 +56,10 @@
   flex: none;
 }
 .paint-menu-trigger {
+  /* File and Canvas are stacked right-aligned; one shared width keeps a
+     panel opened beside one trigger clear of the other. */
+  width: 104px;
+  justify-content: space-between;
   gap: var(--space-1);
   padding: 0 var(--space-3);
 }
@@ -93,9 +97,11 @@
   background: var(--panel);
 }
 .paint-menu-panel {
+  /* Open beside the trigger, not below it: a panel dropping down from File
+     would cover the Canvas trigger underneath and swallow taps meant for it. */
   position: absolute;
-  right: 0;
-  top: calc(100% + var(--space-1));
+  right: calc(100% + var(--space-1));
+  top: 0;
   display: grid;
   width: 230px;
   gap: var(--space-1);

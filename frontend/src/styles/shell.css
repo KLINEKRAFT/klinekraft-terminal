@@ -511,6 +511,8 @@ main[data-page="Home"] .page-content {
   text-transform: uppercase;
 }
 .deck-home .home-tools .k-btn {
+  /* The legacy ".home-tools button { min-height: 24px }" outranks .k-btn. */
+  min-height: var(--control-h);
   padding: 0 var(--space-2);
   color: var(--accent-fg);
   font-size: var(--text-xs);
@@ -560,4 +562,9 @@ main[data-page="Home"] .page-content {
 /* ── Settings: appearance switches ──────────────────────────────────── */
 .settings-panel .setting-row .k-switch {
   flex-shrink: 0;
+}
+
+/* Drawer items: hover feedback (the old global button:hover was removed). */
+.sidebar nav button:hover:not([aria-current]) {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }

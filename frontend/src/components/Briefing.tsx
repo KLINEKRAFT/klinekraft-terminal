@@ -133,7 +133,12 @@ export function Briefing({ page = false }: { page?: boolean }) {
   }, []);
   useEffect(() => {
     if (open) dialog.current?.showModal();
-    else dialog.current?.close();
+    else {
+      dialog.current?.close();
+      // A failed Acknowledge/Save message belongs to that visit; polls no
+      // longer clear it, so drop it when the dialog closes.
+      setError("");
+    }
   }, [open]);
   useEffect(() => {
     if (paused) return;
