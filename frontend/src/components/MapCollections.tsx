@@ -11,7 +11,7 @@ export type MapLocation = {
   note?: string;
 };
 import { localJSON } from "./WikiReader";
-import { mapColor } from "./mapBase";
+import { overlayColors } from "./mapBase";
 type Catalog = {
   updated: string;
   groups: { id: string; name: string; note: string }[];
@@ -70,14 +70,15 @@ export function MapCollections({
       (view.getSource("catalog") as GeoJSONSource).setData(data);
     else {
       view.addSource("catalog", { type: "geojson", data });
+      const colors = overlayColors();
       view.addLayer({
         id: "catalog-points",
         type: "circle",
         source: "catalog",
         paint: {
           "circle-radius": 5,
-          "circle-color": mapColor("--logo-blue", "#0227ff"),
-          "circle-stroke-color": "#fff",
+          "circle-color": colors.accent,
+          "circle-stroke-color": colors.ring,
           "circle-stroke-width": 1.5,
         },
       });

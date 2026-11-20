@@ -4,8 +4,10 @@ import * as maplibregl from "maplibre-gl";
 import type * as GeoJSON from "geojson";
 import {
   createLocalMap,
-  mapColor,
+  overlayColors,
+  pinMarker,
   satelliteSource,
+  FALLBACK_MAX_ZOOM,
   type Region,
 } from "./mapBase";
 import {
@@ -103,9 +105,9 @@ export default function OfflineMaps({
           type: "circle",
           source: "earthquakes",
           paint: {
-            "circle-color": mapColor("--logo-blue", "#0227ff"),
+            "circle-color": overlayColors().accent,
             "circle-opacity": 0.65,
-            "circle-stroke-color": "#fff",
+            "circle-stroke-color": overlayColors().ring,
             "circle-stroke-width": 1,
             "circle-radius": [
               "interpolate",
@@ -197,7 +199,12 @@ export default function OfflineMaps({
             saved.zoom <= 18
           ) {
             center = saved.center;
-            zoom = saved.zoom;
+            // A street or satellite view saved at zoom 14 would open the
+            // outline on an empty fill: never restore past what it shows.
+            zoom = Math.min(
+              saved.zoom,
+              metadata.available ? 18 : FALLBACK_MAX_ZOOM,
+            );
           }
         } catch {}
         const local = createLocalMap(container.current, metadata, center, zoom);
@@ -254,11 +261,7 @@ export default function OfflineMaps({
           const p: [number, number] = [event.lngLat.lng, event.lngLat.lat];
           setSelected(p);
           marker.current?.remove();
-          marker.current = new maplibregl.Marker({
-            color: mapColor("--orange", "#ff6a00"),
-          })
-            .setLngLat(p)
-            .addTo(view);
+          marker.current = pinMarker("selection").setLngLat(p).addTo(view);
         });
       });
     return () => {
@@ -291,11 +294,7 @@ export default function OfflineMaps({
         zoom: region.available || satellite ? 14 : 5,
       });
       marker.current?.remove();
-      marker.current = new maplibregl.Marker({
-        color: mapColor("--orange", "#ff6a00"),
-      })
-        .setLngLat(p)
-        .addTo(map.current);
+      marker.current = pinMarker("selection").setLngLat(p).addTo(map.current);
     },
     [region, satellite],
   );
@@ -335,6 +334,9 @@ export default function OfflineMaps({
       "visibility",
       satellite ? "none" : "visible",
     );
+    // Imagery has detail to zoom into; the bare outline does not. Leaving
+    // satellite on the outline snaps the camera back to where states show.
+    if (fallback) view.setMaxZoom(satellite ? FALLBACK_MAX_ZOOM : 16);
     setSatellite(!satellite);
     setStatus("");
   }
@@ -374,7 +376,7 @@ export default function OfflineMaps({
       type: "line",
       source: "planned-route",
       paint: {
-        "line-color": mapColor("--logo-blue", "#0227ff"),
+        "line-color": overlayColors().accent,
         "line-width": 5,
       },
     });
@@ -924,35 +926,38 @@ export default function OfflineMaps({
               className="k-card atlas-install"
               aria-label="Install street maps"
             >
-              {isHostedDemo ? (
-                <>
-                  <h3>Built-in US outline</h3>
+              {/* One quiet row by default; the how-to opens on demand. */}
+              <details>
+                <summary>
+                  <strong>Street maps not installed</strong>
+                  <span>{isHostedDemo ? "About" : "How to install"}</span>
+                </summary>
+                {isHostedDemo ? (
                   <p>
                     Street maps, GPS and saved places run on the deck. This web
-                    demo shows the outline map only.
+                    demo shows the built-in US outline only.
                   </p>
-                </>
-              ) : (
-                <>
-                  <header>
-                    <h3>Install street maps</h3>
-                    <button
-                      className="k-btn k-btn--quiet k-btn--icon"
-                      aria-label="Copy install command"
-                      title="Copy install command"
-                      onClick={() => void copyCommand()}
-                    >
-                      {copied ? <Check size={16} /> : <Copy size={16} />}
-                    </button>
-                  </header>
-                  <p>
-                    Built-in US outline only. For roads, towns and labels, run
-                    this on the Pi (about 10 GB):
-                  </p>
-                  <code className="atlas-command">
-                    {INSTALL_COMMAND.replaceAll(" --", " \\\n  --")}
-                  </code>
-                </>
+                ) : (
+                  <>
+                    <p>
+                      This is the built-in US outline. For roads, towns and
+                      labels, run this on the Pi (about 10 GB):
+                    </p>
+                    <code className="atlas-command">
+                      {INSTALL_COMMAND.replaceAll(" --", " \\\n  --")}
+                    </code>
+                  </>
+                )}
+              </details>
+              {!isHostedDemo && (
+                <button
+                  className="k-btn k-btn--quiet k-btn--icon"
+                  aria-label="Copy install command"
+                  title="Copy install command"
+                  onClick={() => void copyCommand()}
+                >
+                  {copied ? <Check size={16} /> : <Copy size={16} />}
+                </button>
               )}
             </section>
           )}

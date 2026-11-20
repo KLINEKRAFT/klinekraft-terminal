@@ -201,8 +201,6 @@ function token(name: string, fallback: string) {
     .trim();
   return /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
 }
-/** A ui.css color token as a hex string MapLibre can paint with. */
-export const mapColor = token;
 function mix(a: string, b: string, amount: number) {
   const channel = (hex: string, i: number) =>
     parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
@@ -280,6 +278,50 @@ function paintFallback(view: maplibregl.Map) {
   view.setPaintProperty("fallback-borders", "line-color", colors.border);
 }
 
+/**
+ * Colors for the deck's own map overlays (collection points, earthquakes,
+ * planned route). They follow --accent-fg, so they stay legible on the dark
+ * outline as well as the light one.
+ */
+export function overlayColors() {
+  const dark = document.documentElement.dataset.theme === "dark";
+  return {
+    accent: token("--accent-fg", dark ? "#8ea2ff" : "#0227ff"),
+    ring: dark ? token("--paper", "#15191e") : "#ffffff",
+  };
+}
+/** Overlay layers painted with overlayColors(); recolored on theme change. */
+const OVERLAYS: [string, "circle" | "line"][] = [
+  ["catalog-points", "circle"],
+  ["earthquake-points", "circle"],
+  ["planned-route", "line"],
+];
+function paintOverlays(view: maplibregl.Map) {
+  const colors = overlayColors();
+  for (const [id, type] of OVERLAYS) {
+    if (!view.getLayer(id)) continue;
+    if (type === "line") view.setPaintProperty(id, "line-color", colors.accent);
+    else {
+      view.setPaintProperty(id, "circle-color", colors.accent);
+      view.setPaintProperty(id, "circle-stroke-color", colors.ring);
+    }
+  }
+}
+/**
+ * A map pin whose fill comes from CSS (styles/maps.css), so it follows the
+ * light/dark theme without being recreated: "accent" is --accent-fg,
+ * "selection" is --orange.
+ */
+export function pinMarker(kind: "accent" | "selection") {
+  return new maplibregl.Marker({ className: `k-map-pin k-map-pin--${kind}` });
+}
+
+/**
+ * The outline holds state borders only; past this zoom it is an empty fill,
+ * so the camera never goes further in on it.
+ */
+export const FALLBACK_MAX_ZOOM = 7;
+
 let users = 0;
 let protocol: Protocol | null = null;
 /**
@@ -294,6 +336,8 @@ export function createLocalMap(
   maxZoom = 18,
 ) {
   const fallback = !region.available;
+  if (fallback) maxZoom = Math.min(maxZoom, FALLBACK_MAX_ZOOM);
+  zoom = Math.min(zoom, maxZoom);
   const url = window.location.origin + "/api/maps/region.pmtiles";
   if (!fallback) {
     if (!protocol) {
@@ -347,15 +391,17 @@ export function createLocalMap(
     });
   });
   resize.observe(container);
-  // The outline follows the light/dark toggle without rebuilding the map.
+  // The outline and the deck's overlays follow the light/dark toggle
+  // without rebuilding the map.
   const theme = new MutationObserver(() => {
-    if (!removed && view.isStyleLoaded()) paintFallback(view);
+    if (removed || !view.isStyleLoaded()) return;
+    paintFallback(view);
+    paintOverlays(view);
   });
-  if (fallback)
-    theme.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
+  theme.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  });
   return {
     view,
     fallback,

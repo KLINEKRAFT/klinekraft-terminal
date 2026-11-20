@@ -3,12 +3,8 @@
 
 .atlas-workspace,
 .weather-radar {
-  --map-accent: var(--logo-blue);
+  --map-accent: var(--accent-fg);
   --map-shadow: 0 2px 12px color-mix(in srgb, var(--ink) 14%, transparent);
-}
-:root[data-theme="dark"] .atlas-workspace,
-:root[data-theme="dark"] .weather-radar {
-  --map-accent: var(--blue);
 }
 
 /* ── Workspace ───────────────────────────────────────────────────────── */
@@ -364,23 +360,61 @@
 .atlas-status > span {
   flex: 1;
 }
+/* Street maps not installed: one quiet row; the how-to opens on demand. */
 .atlas-install.k-card {
-  display: grid;
-  gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-3);
+  position: relative;
+  max-width: 320px;
+  padding: 0 var(--space-3);
   background: var(--paper);
 }
-.atlas-install > header {
+.atlas-install:has(details[open]) {
+  max-width: 100%;
+  padding-bottom: var(--space-3);
+}
+.atlas-install > .k-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.atlas-install summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
-  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) 0 0;
+  min-height: var(--control-h);
+  /* Room for the copy button that sits in the row's right corner. */
+  padding-right: calc(var(--control-h) - var(--space-2));
+  cursor: pointer;
+  list-style: none;
+  font: var(--text-xs) var(--sans);
+  white-space: nowrap;
 }
-.atlas-install h3 {
-  margin: 0;
-  font: 600 var(--text-sm) var(--sans);
+.atlas-install summary::-webkit-details-marker {
+  display: none;
+}
+.atlas-install summary strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.atlas-install summary span {
+  color: var(--accent-fg);
+  font-weight: 500;
+}
+.atlas-install summary span::after {
+  content: "›";
+  display: inline-block;
+  margin-left: var(--space-1);
+  transition: transform 0.15s;
+}
+.atlas-install details[open] summary span::after {
+  transform: rotate(90deg);
+}
+.atlas-install summary:focus-visible {
+  outline: 2px solid var(--accent-fg);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+.atlas-install details > :not(summary) {
+  margin-top: var(--space-2);
 }
 .atlas-install p {
   margin: 0;
@@ -475,8 +509,16 @@
   height: 16px;
   border: 3px solid white;
   border-radius: var(--radius-pill);
-  background: var(--logo-blue);
-  box-shadow: 0 0 0 2px var(--logo-blue);
+  background: var(--accent-fg);
+  box-shadow: 0 0 0 2px var(--accent-fg);
+}
+/* Map pins (mapBase pinMarker): CSS fill overrides MapLibre's attribute,
+   so a pin recolors with the theme instead of keeping its creation color. */
+.k-map-pin svg > g > g:nth-child(2) {
+  fill: var(--accent-fg);
+}
+.k-map-pin--selection svg > g > g:nth-child(2) {
+  fill: var(--orange);
 }
 
 /* ── MapLibre controls, themed to match ──────────────────────────────── */
@@ -538,6 +580,16 @@
 }
 
 /* ── Field Briefing → Radar ──────────────────────────────────────────── */
+/* The Radar tab body hands its whole height to the map. */
+.briefing-body.radar-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+.briefing-dialog:not(.briefing-page) .radar-body {
+  height: 450px;
+}
 .weather-radar {
   display: flex;
   flex: 1;
@@ -674,7 +726,8 @@
 }
 .radar-timeline span {
   color: var(--muted);
-  font: var(--text-xs) var(--mono);
+  font: var(--text-xs) var(--sans);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .radar-footnote {
@@ -700,5 +753,8 @@
   .atlas-workspace *,
   .weather-radar * {
     scroll-behavior: auto;
+  }
+  .atlas-install summary span::after {
+    transition: none;
   }
 }

@@ -4,7 +4,11 @@ GPS / Maps uses MapLibre GL and a local Protomaps PMTiles vector archive. The fi
 
 Tiles, styles, fonts and scripts are served by the Pi. No remote map/font server or account is needed to view the installed region. Click a map location, or enter latitude/longitude, then name and save it. Places persist in the same SQLite database as notes and are included in the existing encrypted backup. The large, replaceable map archive is not included in daily cloud backups.
 
-This release provides an offline atlas, coordinate lookup and saved places. Offline route calculation, automatic route saving and GeoJSON export are now available through BRouter; see [Offline field tools](offline-field-tools.md). Address search, turn-by-turn navigation and a connected GPS receiver remain unavailable. Existing Home weather may still use the network independently of the map.
+This release provides an offline atlas, coordinate lookup and saved places. Offline route calculation, automatic route saving and GeoJSON export are available through BRouter; see [Offline field tools](offline-field-tools.md). US street-address search asks the U.S. Census geocoder once and keeps each match on the Pi for offline reuse. Live position, Follow and Save this spot read the deck's gpsd receiver ([GPS setup](gps-setup.md)); while the receiver is unplugged the map says it is disconnected and the GPS buttons wait for it. Turn-by-turn navigation is not available. Existing Home weather may still use the network independently of the map.
+
+## Without an installed region
+
+Until a street region is installed (or when the map service cannot be reached), GPS / Maps and Field Briefing → Radar draw on a built-in US state outline bundled with the UI at `frontend/public/maps/us-states.geojson` (about 250 KB, lower 48 + Alaska, no labels). The map is never blank: the outline needs no network, glyphs or installed files, and its colors follow the light/dark theme. Because it holds only state borders, the camera stops at zoom 7 on it, and a saved view from a deeper zoom reopens at that limit. Find, saved places, collections, routing, the earthquake overlay, GPS and online satellite imagery all work over it (with satellite on, zoom goes to 16). A one-line "Street maps not installed" note in the map corner expands to the install command below; it disappears once `/api/maps` reports an installed region.
 
 ## Install or refresh
 

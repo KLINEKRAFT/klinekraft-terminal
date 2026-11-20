@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import { Pause, Play, LocateFixed, RefreshCw, Plus, Minus } from "lucide-react";
-import { createLocalMap, mapColor, type Region } from "./mapBase";
+import { createLocalMap, pinMarker, type Region } from "./mapBase";
 import { localJSON } from "./WikiReader";
 type Frame = { time: number; path: string };
 type Manifest = { host: string; frames: Frame[] };
@@ -77,9 +77,7 @@ export default function WeatherRadar({
       center: [longitude, latitude],
       zoom: homeZoom.current,
     });
-    const marker = new maplibregl.Marker({
-      color: mapColor("--logo-blue", "#0227ff"),
-    })
+    const marker = pinMarker("accent")
       .setLngLat([longitude, latitude])
       .addTo(map.current);
     return () => {
