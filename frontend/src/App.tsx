@@ -11,14 +11,7 @@ import {
 import type { MapLocation } from "./components/MapCollections";
 import { Briefing } from "./components/Briefing";
 import { ScienceSearch } from "./components/ScienceSearch";
-import {
-  lazy,
-  Suspense,
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-} from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useState } from "react";
 import {
   Search,
   Paintbrush,
@@ -29,13 +22,14 @@ import {
   ArrowDownLeft,
   ArrowRight,
   ArrowUpRight,
-  Battery,
   Compass,
   Cpu,
   Folder,
   Gamepad2,
+  House,
   Library,
   Maximize2,
+  Menu,
   Moon,
   Sun,
   ChevronLeft,
@@ -80,9 +74,7 @@ import { useBrowserPreferences } from "./bookmarks";
 import { BrowserLibrary, BrowserSettings } from "./components/BrowserLibrary";
 import { KlinekraftBrandLockup, installBrandIcon } from "./components/Brand";
 import {
-  resolveCommand,
   sectionLabel,
-  sections,
   navigationSections,
   homeSections,
   type Reading,
@@ -114,90 +106,16 @@ const icons: Record<Section, LucideIcon> = {
   System: Terminal,
   Settings: Settings2,
 };
-const integrations: Record<
-  string,
-  { title: string; body: string; items: string[] }
-> = {
-  Games: {
-    title: "Your next session starts here.",
-    body: "RetroArch and a local SQLite game catalog will power this library. No games have been imported.",
-    items: [
-      "NES · SNES · Genesis · Game Boy",
-      "Game Boy Advance · Arcade · PlayStation · N64",
-      "Planned: search, favorites, artwork and recent games",
-    ],
-  },
-  "AI assistant": {
-    title: "Ready for a conversation. Once connected.",
-    body: "OpenAI and Anthropic integration is planned. API keys stay on the backend; this preview sends no AI requests.",
-    items: [
-      "Planned: streamed responses and conversation history",
-      "Approved local tools through a shared service layer",
-      "Provider API billing is separate from chat subscriptions",
-    ],
-  },
-  "GPS / Maps": {
-    title: "A position, without a receiver.",
-    body: "Preview coordinates are a development fixture; live mode reports GPS unavailable. No USB receiver, gpsd connection or map region is installed.",
-    items: [
-      "Planned: fix quality, satellites and reported accuracy",
-      "Local MapLibre maps with bundled styles and tiles",
-      "Waypoints, track recording and GPX export",
-    ],
-  },
-  Files: {
-    title: "Local files, thoughtfully organized.",
-    body: "Filesystem access is not connected. This preview does not read or change files on your computer.",
-    items: [
-      "Planned: approved folders and project shortcuts",
-      "Path validation and explicit approval for changes",
-      "No unrestricted filesystem tools for AI",
-    ],
-  },
-};
-function Metric({
-  label,
-  value,
-  unit,
-  detail,
-  percent,
-  history,
-  field,
-}: {
-  label: string;
-  value: string;
-  unit: string;
-  detail: string;
-  percent: number | null;
-  history?: HistoryPoint[];
-  field?: "cpu" | "memory";
-}) {
-  return (
-    <article className="metric">
-      <span className="eyebrow">{label}</span>
-      <div className="metric-value">
-        {value}
-        <span>{unit}</span>
-      </div>
-      {history && field ? (
-        <Sparkline history={history} field={field} label={label} />
-      ) : (
-        <div className="metric-graph-space" aria-hidden="true" />
-      )}
-      <div
-        className="meter"
-        role={percent === null ? undefined : "meter"}
-        aria-label={label}
-        aria-valuenow={percent ?? undefined}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <i style={{ width: `${percent ?? 0}%` }} />
-      </div>
-      <span className="metric-detail">{detail}</span>
-    </article>
-  );
-}
+const libraryViews = [
+  "Documents",
+  "Research",
+  "Wikipedia",
+  "Notebook",
+  "Bookmarks",
+] as const;
+const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+const searchShortcut = isMac ? "⌘K" : "Ctrl K";
+
 // The only component that ticks every second. Keeping the clock local stops
 // the whole application from re-rendering once a second on the Pi.
 function LocalClock() {
@@ -208,7 +126,7 @@ function LocalClock() {
   }, []);
   return (
     <>
-      <time className="time" dateTime={now.toISOString()}>
+      <time className="deck-value deck-value--hero" dateTime={now.toISOString()}>
         {now
           .toLocaleTimeString("en-US", {
             hour: "numeric",
@@ -218,15 +136,67 @@ function LocalClock() {
           .replace(/\s*[AP]M$/, "")}
         <span>{now.getHours() < 12 ? "AM" : "PM"}</span>
       </time>
-      <span className="date">
+      <span className="deck-detail">
         {now.toLocaleDateString("en-US", {
           weekday: "long",
           month: "short",
           day: "numeric",
-          year: "numeric",
         })}
       </span>
     </>
+  );
+}
+/** A large at-a-glance figure: label, value, and one line of context. */
+function Readout({
+  label,
+  value,
+  detail,
+  missing = false,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  missing?: boolean;
+}) {
+  return (
+    <article className="deck-readout">
+      <span className="k-eyebrow">{label}</span>
+      <strong className="deck-value" data-missing={missing || undefined}>
+        {value}
+      </strong>
+      <span className="deck-detail">{detail}</span>
+    </article>
+  );
+}
+/** One resource, shown once: a number plus a meter. */
+function Gauge({
+  label,
+  used,
+  total,
+}: {
+  label: string;
+  used: number | null;
+  total: number | null;
+}) {
+  const share = percent(used, total);
+  return (
+    <div className="deck-resource">
+      <span className="k-eyebrow">{label}</span>
+      <strong>
+        {amount(used)}
+        <small> / {amount(total)} GB</small>
+      </strong>
+      <div
+        className="deck-meter"
+        role={share === null ? undefined : "meter"}
+        aria-label={label}
+        aria-valuenow={share ?? undefined}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <i style={{ width: `${share ?? 0}%` }} />
+      </div>
+    </div>
   );
 }
 function Home({
@@ -248,144 +218,101 @@ function Home({
   detail: string;
   navigate: (s: Section) => void;
 }) {
+  const measured = detail.toLowerCase();
+  const rates =
+    reading.networkDownload == null && reading.networkUpload == null
+      ? null
+      : `↓ ${rate(reading.networkDownload)} · ↑ ${rate(reading.networkUpload)}`;
   return (
-    <>
-      <section className="overview" aria-label="System overview">
-        <div className="clock-panel">
-          <span className="eyebrow">LOCAL TIME</span>
+    <div className="deck-home">
+      <section className="deck-readouts" aria-label="Device status">
+        <article className="deck-readout deck-readout--time">
+          <span className="k-eyebrow">Local time</span>
           <LocalClock />
-          <div className="device-label">
-            <span className="dot" /> {reading.system.toUpperCase()}{" "}
-            <span> / {reading.source === "host" ? "HOST" : "PREVIEW"}</span>
-          </div>
-        </div>
-        <div className="metrics">
-          <Metric
-            history={history}
-            field="cpu"
-            label="CPU LOAD"
-            value={amount(reading.cpu, 0)}
-            unit="%"
-            percent={reading.cpu}
-            detail={`${reading.cpuCores ?? "—"} cores · ${detail.toLowerCase()}`}
-          />
-          <Metric
-            history={history}
-            field="memory"
-            label="MEMORY"
-            value={amount(reading.memoryUsed)}
-            unit="GB"
-            percent={percent(reading.memoryUsed, reading.memoryTotal)}
-            detail={`of ${amount(reading.memoryTotal)} GB · ${detail.toLowerCase()}`}
-          />
-          <Metric
-            label="STORAGE"
-            value={amount(reading.storageUsed)}
-            unit="GB"
-            percent={percent(reading.storageUsed, reading.storageTotal)}
-            detail={`of ${amount(reading.storageTotal)} GB · ${detail.toLowerCase()}`}
-          />
-        </div>
+        </article>
+        <Readout
+          label="Battery"
+          missing={reading.batteryPercent == null}
+          value={
+            reading.batteryPercent == null
+              ? "Not configured"
+              : `${reading.batteryPercent.toFixed(0)}%`
+          }
+          detail={
+            reading.batteryVoltage == null
+              ? reading.batteryPercent == null
+                ? "No battery monitor reading"
+                : (reading.batteryStatus ?? measured)
+              : `${reading.batteryVoltage.toFixed(2)} V · estimated · ${measured}`
+          }
+        />
+        <Readout
+          label="CPU temperature"
+          missing={reading.temperature === null}
+          value={
+            reading.temperature === null
+              ? "Unavailable"
+              : `${amount((reading.temperature * 9) / 5 + 32, 0)}°F`
+          }
+          detail={reading.temperature === null ? "No sensor reading" : detail}
+        />
+        <Readout
+          label="Connectivity"
+          missing={reading.interfaces === null}
+          value={networkSummary(reading)}
+          detail={
+            rates ?? (reading.interfaces === null ? "No interface data" : detail)
+          }
+        />
       </section>
-      <div className="home-ambient">
+      <section className="deck-resources" aria-label="Resources">
+        <span className="device-label">
+          {reading.system}
+          <small>{detail}</small>
+        </span>
+        <div className="deck-resource">
+          <span className="k-eyebrow">CPU</span>
+          <strong>
+            {reading.cpu === null ? "—" : `${amount(reading.cpu, 0)}%`}
+            {reading.cpuCores != null && (
+              <small> · {reading.cpuCores} cores</small>
+            )}
+          </strong>
+          <Sparkline history={history} field="cpu" label="CPU load" />
+        </div>
+        <Gauge
+          label="Memory"
+          used={reading.memoryUsed}
+          total={reading.memoryTotal}
+        />
+        <Gauge
+          label="Storage"
+          used={reading.storageUsed}
+          total={reading.storageTotal}
+        />
+      </section>
+      <div className="deck-row">
         <OutsideWeather />
         <div className="home-actions">
           <ToolsLauncher />
           <AwayLaunch />
         </div>
       </div>
-      <nav className="home-device-links" aria-label="Device tools">
+      <nav className="deck-row deck-links" aria-label="Device tools">
         <GpsStatus openMap={openGps} />
         {homeSections.map((item) => {
           const Icon = icons[item];
           return (
             <button key={item} onClick={() => navigate(item)}>
-              <Icon size={16} />
+              <Icon size={16} aria-hidden="true" />
               <span>{item}</span>
-              <ArrowUpRight size={14} />
+              <ArrowUpRight size={14} aria-hidden="true" />
             </button>
           );
         })}
       </nav>
-      <section className="connections" aria-label="Device readings">
-        <div>
-          <Cpu size={17} />
-          <span>
-            <small>CPU TEMPERATURE</small>
-            <strong>
-              {reading.temperature === null
-                ? "Unavailable"
-                : `${amount((reading.temperature * 9) / 5 + 32)}°F`}{" "}
-              <em>
-                {reading.temperature === null ? "No sensor reading" : detail}
-              </em>
-            </strong>
-          </span>
-        </div>
-        <div>
-          <Battery size={19} />
-          <span>
-            <small>BATTERY · X1202</small>
-            <strong>
-              {reading.batteryPercent == null
-                ? "Unavailable"
-                : `${reading.batteryPercent.toFixed(0)}%`}
-              <em>
-                {reading.batteryVoltage == null
-                  ? (reading.batteryStatus ?? "Not configured")
-                  : `${reading.batteryVoltage.toFixed(2)} V · estimated · ${detail.toLowerCase()}`}
-              </em>
-            </strong>
-          </span>
-        </div>
-        <div>
-          <Wifi size={17} />
-          <span>
-            <small>NETWORK</small>
-            <strong>
-              {reading.networkDownload == null
-                ? networkSummary(reading)
-                : `↓ ${rate(reading.networkDownload)}`}{" "}
-              <em>
-                {reading.networkUpload == null
-                  ? reading.interfaces === null
-                    ? "No interface data"
-                    : detail
-                  : `↑ ${rate(reading.networkUpload)} · ${detail.toLowerCase()}`}
-              </em>
-            </strong>
-          </span>
-        </div>
-      </section>
-
       <HomeTools browser={browser} note={note} openLibrary={openBookmarks} />
-    </>
-  );
-}
-function Feature({ section }: { section: Section }) {
-  const data = integrations[section];
-  return (
-    <section className="feature">
-      <span className="eyebrow">NOT CONNECTED</span>
-      <h2>
-        {section === "AI assistant"
-          ? "No AI provider connected."
-          : "No GPS receiver connected."}
-      </h2>
-      <p>
-        {section === "AI assistant"
-          ? "Your local tools work without AI. A provider connection is needed to start a conversation."
-          : "Location will appear here once a GPS receiver and map service are configured."}
-      </p>
-      <details className="feature-plans">
-        <summary>Planned features</summary>
-        <ul>
-          {data.items.map((item) => (
-            <li key={item}>{item.replace(/^Planned: /, "")}</li>
-          ))}
-        </ul>
-      </details>
-    </section>
+    </div>
   );
 }
 function savedFlag(key: string, fallback = false) {
@@ -395,6 +322,24 @@ function savedFlag(key: string, fallback = false) {
   } catch {
     return fallback;
   }
+}
+/** Sentence-case name and dot colour for the telemetry source label. */
+function dataStatus(label: string) {
+  const name = label.charAt(0) + label.slice(1).toLowerCase();
+  const state =
+    label === "LIVE COMPUTER"
+      ? "ok"
+      : label === "SERVICE OFFLINE"
+        ? "off"
+        : "warn";
+  return { name, state };
+}
+function isTyping(target: EventTarget | null) {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      !!target.closest("input, textarea, select, [contenteditable]"))
+  );
 }
 export default function App() {
   const [collapsed, setCollapsed] = useState(() =>
@@ -434,10 +379,10 @@ export default function App() {
   const [wikiContext, setWikiContext] = useState<WikiReference | null>(null);
   const [libraryView, setLibraryView] = useState("Documents");
   const [section, setSection] = useState<Section>("Home");
-  const [dimTarget, setDimTarget] = useState<HTMLSpanElement | null>(null);
   const [paused, setPaused] = useState(false);
   const telemetry = useTelemetry(paused);
   const { reading, mode, setMode, label, detail } = telemetry;
+  const status = dataStatus(label);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchDocument, setSearchDocument] = useState<DocumentSource | null>(
     null,
@@ -461,30 +406,32 @@ export default function App() {
       navigate("Emergency");
     } else if (result.section) navigate(result.section);
   }
-  const [command, setCommand] = useState("");
-  const [feedback, setFeedback] = useState("");
+  const [notice, setNotice] = useState("");
   const [exitHelp, setExitHelp] = useState(false);
-  // Confirmations ("Opened Notes.") fade on their own; help text stays until
-  // dismissed so it can be read.
-  useEffect(() => {
-    if (!feedback.startsWith("Opened ")) return;
-    const timer = setTimeout(() => setFeedback(""), 2500);
-    return () => clearTimeout(timer);
-  }, [feedback]);
-  const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
     installBrandIcon();
   }, []);
-  useEffect(() => {
+  // Layout effect: the shortcuts work from the first frame, not after the
+  // first idle callback, so an early Ctrl+K or "/" is never lost.
+  useLayoutEffect(() => {
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      } else if (
+        e.key === "/" &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !isTyping(e.target) &&
+        !document.querySelector("dialog[open], [aria-modal='true']")
+      ) {
         e.preventDefault();
         setSearchOpen(true);
       }
       if (e.key === "Escape") {
         setExitHelp(false);
         setCollapsed(true);
-        input.current?.blur();
       }
     };
     window.addEventListener("keydown", key);
@@ -493,22 +440,14 @@ export default function App() {
   const navigate = (next: Section) => {
     setCollapsed(true);
     setSection(next);
-    setFeedback("");
-  };
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (!command.trim()) return;
-    const result = resolveCommand(command);
-    if (result.section) navigate(result.section);
-    setFeedback(result.message);
-    setCommand("");
+    setNotice("");
   };
   async function fullscreen() {
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
       else await document.documentElement.requestFullscreen();
     } catch {
-      setFeedback(
+      setNotice(
         "Fullscreen is unavailable in this browser. Use the browser’s fullscreen control.",
       );
     }
@@ -547,7 +486,7 @@ export default function App() {
       <aside className="sidebar" inert={exitHelp}>
         <KlinekraftBrandLockup />
         <div className="sidebar-heading">
-          <div className="sidebar-caption">PORTABLE COMPUTING / 01</div>
+          <div className="sidebar-caption">PORTABLE COMPUTING</div>
           <button
             className="sidebar-toggle"
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -605,35 +544,33 @@ export default function App() {
         </div>
       </aside>
       <main inert={exitHelp} data-page={section}>
-        <header className="page-header">
+        <header className="page-header shell-header">
           <div className="navigation-controls">
             <button
-              className="icon-button"
+              className="k-btn k-btn--quiet k-btn--icon"
               aria-label="Open navigation"
+              title="Apps"
               onClick={() => setCollapsed(!collapsed)}
             >
-              ☰
+              <Menu size={20} aria-hidden="true" />
             </button>
-            <button
-              className="icon-button"
-              aria-label="Go Home"
-              onClick={() => navigate("Home")}
-            >
-              ⌂
-            </button>
+            {section !== "Home" && (
+              <button
+                className="k-btn k-btn--quiet k-btn--icon"
+                aria-label="Go Home"
+                title="Home"
+                onClick={() => navigate("Home")}
+              >
+                <House size={18} aria-hidden="true" />
+              </button>
+            )}
           </div>
-          <div>
+          <div className="shell-title">
             {section === "Home" && (
               <div className="header-brand">
                 <KlinekraftBrandLockup />
               </div>
             )}
-            <div className="eyebrow">
-              KLINEKRAFT TERMINAL{" "}
-              <span>
-                / {String(sections.indexOf(section) + 1).padStart(2, "0")}
-              </span>
-            </div>
             <h1
               className={
                 ["Home", "Paint", "AI assistant"].includes(section)
@@ -645,19 +582,28 @@ export default function App() {
             </h1>
           </div>
           <div className="header-actions">
+            <span
+              className="shell-status"
+              role="img"
+              aria-label={status.name}
+              title={status.name}
+            >
+              <span className="k-status-dot" data-state={status.state} />
+            </span>
             <button
-              className="icon-button"
+              className="k-btn k-btn--quiet shell-search"
               aria-label="Search Terminal"
-              title="Search Terminal (Ctrl+K)"
+              title={`Search Terminal (${searchShortcut} or /)`}
               onClick={() => setSearchOpen(true)}
             >
-              <Search size={18} />
+              <Search size={16} aria-hidden="true" />
+              <span>Search</span>
+              <kbd>{searchShortcut}</kbd>
             </button>
             <Briefing />
-            <PowerControls dimTarget={dimTarget} />
-            <span className="dim-toggle-slot" ref={setDimTarget} />
+            <PowerControls />
             <button
-              className="icon-button"
+              className="k-btn k-btn--quiet k-btn--icon"
               aria-label="Dark mode"
               aria-pressed={dark}
               title={dark ? "Switch to light mode" : "Switch to dark mode"}
@@ -665,15 +611,10 @@ export default function App() {
             >
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <span
-              className="preview-badge"
-              data-live={label === "LIVE COMPUTER"}
-            >
-              <span /> {label}
-            </span>
             <button
-              className="icon-button"
+              className="k-btn k-btn--quiet k-btn--icon"
               aria-label="Toggle fullscreen"
+              title="Fullscreen"
               onClick={fullscreen}
             >
               <Maximize2 size={17} />
@@ -686,25 +627,35 @@ export default function App() {
               {appearanceWarning}
             </p>
           )}
+          {notice && (
+            <p role="status" className="browser-warning shell-notice">
+              {notice}
+              <button
+                className="k-btn k-btn--quiet k-btn--icon"
+                aria-label="Dismiss"
+                onClick={() => setNotice("")}
+              >
+                <X size={16} />
+              </button>
+            </p>
+          )}
           {section === "Home" ? (
-            <>
-              <Home
-                history={telemetry.history}
-                reading={reading}
-                navigate={navigate}
-                detail={detail}
-                browser={browser}
-                note={note}
-                openGps={(latitude, longitude) => {
-                  setSearchPlace({ name: "GPS position", latitude, longitude });
-                  navigate("GPS / Maps");
-                }}
-                openBookmarks={() => {
-                  setLibraryView("Bookmarks");
-                  navigate("Library");
-                }}
-              />
-            </>
+            <Home
+              history={telemetry.history}
+              reading={reading}
+              navigate={navigate}
+              detail={detail}
+              browser={browser}
+              note={note}
+              openGps={(latitude, longitude) => {
+                setSearchPlace({ name: "GPS position", latitude, longitude });
+                navigate("GPS / Maps");
+              }}
+              openBookmarks={() => {
+                setLibraryView("Bookmarks");
+                navigate("Library");
+              }}
+            />
           ) : section === "Emergency" ? (
             <EmergencyDashboard
               key={emergencyTopic ?? "default"}
@@ -745,14 +696,8 @@ export default function App() {
             <GamesPanel />
           ) : section === "Library" ? (
             <div className="library-workspace">
-              <nav className="library-navigation" aria-label="Library sections">
-                {[
-                  "Documents",
-                  "Research",
-                  "Wikipedia",
-                  "Notebook",
-                  "Bookmarks",
-                ].map((view) => (
+              <nav className="k-tabs" aria-label="Library sections">
+                {libraryViews.map((view) => (
                   <button
                     key={view}
                     aria-pressed={libraryView === view}
@@ -790,22 +735,35 @@ export default function App() {
             <>
               <section className="settings-panel" aria-label="Appearance">
                 <h2>Appearance</h2>
-                <label className="setting-row">
-                  Dark mode
-                  <input
-                    type="checkbox"
-                    checked={dark}
-                    onChange={(e) => setDark(e.target.checked)}
+                <div className="setting-row">
+                  <span>
+                    <strong>Dark mode</strong>
+                    <small>Also on the moon button in every header.</small>
+                  </span>
+                  <button
+                    className="k-switch"
+                    role="switch"
+                    aria-label="Dark mode"
+                    aria-checked={dark}
+                    onClick={() => setDark(!dark)}
                   />
-                </label>
-                <label className="setting-row">
-                  Collapse sidebar
-                  <input
-                    type="checkbox"
-                    checked={collapsed}
-                    onChange={(e) => setCollapsed(e.target.checked)}
+                </div>
+                <div className="setting-row">
+                  <span>
+                    <strong>Collapse sidebar</strong>
+                    <small>
+                      Keep the app drawer closed until you open it with the
+                      menu button.
+                    </small>
+                  </span>
+                  <button
+                    className="k-switch"
+                    role="switch"
+                    aria-label="Collapse sidebar"
+                    aria-checked={collapsed}
+                    onClick={() => setCollapsed(!collapsed)}
                   />
-                </label>
+                </div>
               </section>
               <TelemetrySettings
                 storageWarning={telemetry.storageWarning}
@@ -840,48 +798,8 @@ export default function App() {
               <FieldConnections />
               <NetworkPanel reading={reading} label={label} />
             </>
-          ) : (
-            <Feature section={section} />
-          )}
+          ) : null}
         </div>
-        {feedback && (
-          <div
-            className="command-feedback"
-            role="status"
-            aria-label="Command result"
-          >
-            <span>{feedback}</span>
-            <button
-              aria-label="Dismiss command result"
-              onClick={() => setFeedback("")}
-            >
-              <X size={16} />
-            </button>
-          </div>
-        )}
-        {section !== "AI assistant" && (
-          <footer className="command-area">
-            <form onSubmit={submit}>
-              <Terminal size={18} />
-              <label className="sr-only" htmlFor="command">
-                Workspace command
-              </label>
-              <input
-                ref={input}
-                id="command"
-                value={command}
-                onChange={(e) => setCommand(e.target.value)}
-                placeholder="Open app or run command…"
-                autoComplete="off"
-                maxLength={240}
-              />
-              <kbd>Enter ↵</kbd>
-              <button aria-label="Run workspace command" type="submit">
-                <ArrowRight size={18} />
-              </button>
-            </form>
-          </footer>
-        )}
       </main>
       <AwayPanel />
       {exitHelp && (

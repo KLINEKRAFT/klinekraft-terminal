@@ -21,7 +21,7 @@ test("hosted demo keeps navigation working without a local service", async ({
     "web demo cannot open desktop utilities",
   );
   await page.getByRole("button", { name: "Close Tools" }).click();
-  await expect(page.getByText("SIMULATED DATA", { exact: true })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Simulated data", exact: true })).toBeVisible();
   for (const name of [
     "Games",
     "Shackleton",

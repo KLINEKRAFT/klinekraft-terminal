@@ -25,11 +25,11 @@ test("local mode defaults live, persists choices and never falls back to simulat
     route.fulfill({ json: snapshot }),
   );
   await page.goto("/");
-  await expect(page.getByText("LIVE COMPUTER", { exact: true })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Live computer", exact: true })).toBeVisible();
   await navigate(page, "Settings");
   await page.getByLabel("Dashboard data").selectOption("preview");
   await page.reload();
-  await expect(page.getByText("SIMULATED DATA", { exact: true })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Simulated data", exact: true })).toBeVisible();
   await navigate(page, "Settings");
   await page.getByLabel("Dashboard data").selectOption("host");
   await page.unroute("**/api/system");
@@ -38,9 +38,9 @@ test("local mode defaults live, persists choices and never falls back to simulat
   );
   await page.reload();
   await expect(
-    page.getByText("SERVICE OFFLINE", { exact: true }),
+    page.getByRole("img", { name: "Service offline", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("SIMULATED DATA", { exact: true })).toHaveCount(
+  await expect(page.getByRole("img", { name: "Simulated data", exact: true })).toHaveCount(
     0,
   );
 });

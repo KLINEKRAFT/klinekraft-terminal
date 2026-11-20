@@ -14,20 +14,15 @@ test("built UI reads the real running service over its own origin", async ({
   expect(response.headers()["cache-control"]).toBe("no-store");
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.goto("/");
-  await expect(page.locator(".preview-badge")).toHaveText("LIVE COMPUTER");
-  await page
-    .getByRole("navigation")
-    .getByRole("button", { name: "01 Home" })
-    .click();
-  await expect(page.locator(".device-label")).toContainText(
-    snapshot.system.toUpperCase(),
-  );
-  await expect(page.locator(".metric-detail").nth(1)).toContainText(
-    snapshot.memoryTotal.toFixed(1),
-  );
+  await expect(
+    page.getByRole("img", { name: "Live computer", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".device-label")).toContainText(snapshot.system);
+  const resources = page.getByRole("region", { name: "Resources" });
+  await expect(resources).toContainText(snapshot.memoryTotal.toFixed(1));
   expect(
     await page
-      .getByRole("meter", { name: "CPU LOAD" })
+      .getByRole("meter", { name: "Memory" })
       .getAttribute("aria-valuenow"),
   ).not.toBeNull();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(

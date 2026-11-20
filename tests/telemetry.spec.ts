@@ -17,6 +17,9 @@ const snapshot = {
   interfaces: [{ name: "en0", isUp: true }],
 };
 
+const dataStatus = (page: import("@playwright/test").Page, name: string) =>
+  page.getByRole("img", { name, exact: true });
+
 async function selectHost(page: import("@playwright/test").Page) {
   await navigate(page, 'Settings');
   await page.getByLabel("Dashboard data").selectOption("host");
@@ -34,33 +37,36 @@ test("live mode shows host readings and marks failed samples stale, then recover
   );
   await page.goto("/");
   await selectHost(page);
-  await expect(page.locator(".preview-badge")).toHaveText("LIVE COMPUTER");
+  await expect(dataStatus(page, "Live computer")).toBeVisible();
   await navigate(page, 'Home');
-  await expect(page.locator(".device-label")).toContainText("MACOS");
-  await expect(page.getByRole("meter", { name: "MEMORY" })).toHaveAttribute(
+  await expect(page.locator(".device-label")).toContainText("macOS");
+  await expect(page.getByRole("meter", { name: "Memory" })).toHaveAttribute(
     "aria-valuenow",
     "25",
   );
-  await expect(page.getByRole("meter", { name: "STORAGE" })).toHaveAttribute(
+  await expect(page.getByRole("meter", { name: "Storage" })).toHaveAttribute(
     "aria-valuenow",
     "12.5",
   );
-  await expect(page.locator(".connections")).toContainText("No sensor reading");
-  await expect(page.locator(".connections")).not.toContainText("41.8781");
+  const status = page.getByRole("region", { name: "Device status" });
+  await expect(status).toContainText("No sensor reading");
+  await expect(status).not.toContainText("41.8781");
+  await expect(
+    page.getByRole("region", { name: "Resources" }),
+  ).toContainText("25%");
   await page.screenshot({ path: "test-results/home-live-1024x600.png" });
   expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(
     600,
   );
   fail = true;
-  await expect(page.locator(".preview-badge")).toHaveText("STALE READINGS", {
+  await expect(dataStatus(page, "Stale readings")).toBeVisible({
     timeout: 10000,
   });
-  await expect(page.getByRole("meter", { name: "CPU LOAD" })).toHaveAttribute(
-    "aria-valuenow",
-    "25",
+  await expect(page.getByRole("region", { name: "Resources" })).toContainText(
+    "25%",
   );
   fail = false;
-  await expect(page.locator(".preview-badge")).toHaveText("LIVE COMPUTER", {
+  await expect(dataStatus(page, "Live computer")).toBeVisible({
     timeout: 10000,
   });
   await navigate(page, 'Network');
@@ -76,10 +82,14 @@ test("missing or invalid backend never substitutes simulated data", async ({
   );
   await page.goto("/");
   await selectHost(page);
-  await expect(page.locator(".preview-badge")).toHaveText("SERVICE OFFLINE");
+  await expect(dataStatus(page, "Service offline")).toBeVisible();
   await navigate(page, 'Home');
-  await expect(page.locator(".metric-value").first()).toHaveText("—%");
-  await expect(page.locator(".connections")).not.toContainText("43.2");
+  await expect(
+    page.getByRole("region", { name: "Resources" }).locator("strong").first(),
+  ).toHaveText("—");
+  await expect(
+    page.getByRole("region", { name: "Device status" }),
+  ).not.toContainText("°F");
 });
 
 test("switching back to preview discards an in-flight live response", async ({
@@ -103,7 +113,7 @@ test("switching back to preview discards an in-flight live response", async ({
   await started;
   await page.getByLabel("Dashboard data").selectOption("preview");
   release();
-  await expect(page.locator(".preview-badge")).toHaveText("SIMULATED DATA");
+  await expect(dataStatus(page, "Simulated data")).toBeVisible();
   await navigate(page, 'Home');
-  await expect(page.locator(".device-label")).toContainText("RASPBERRY PI 5");
+  await expect(page.locator(".device-label")).toContainText("Raspberry Pi 5");
 });
