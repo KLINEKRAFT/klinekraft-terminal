@@ -32,6 +32,8 @@ type Event = {
   severity: string;
   text: string;
   issued: number;
+  /** Epoch seconds after which the alert no longer applies. */
+  expires?: number | null;
   stale: boolean;
   url: string;
   source: string;
@@ -65,9 +67,23 @@ function FeedAge({ feed }: { feed?: { stale: boolean; updated?: number } }) {
     </p>
   );
 }
+/** After this long without a successful /api/briefing answer the live
+ * ticker is withdrawn: saved alerts are too old to present as current. */
+const CONTACT_LIMIT_MS = 5 * 60 * 1000;
+export function lastCheckedLabel(ms: number) {
+  const minutes = Math.floor(ms / 60000);
+  return minutes < 1
+    ? "Last checked under 1 min ago"
+    : `Last checked ${minutes} min ago`;
+}
 export function Briefing({ page = false }: { page?: boolean }) {
   const [data, setData] = useState<Snapshot | null>(null),
     [error, setError] = useState(""),
+    // A failed poll keeps the last good snapshot; lastContact (ms) says how
+    // old it is. Separate from `error`, which reports failed user actions.
+    [offline, setOffline] = useState(false),
+    [lastContact, setLastContact] = useState(0),
+    [now, setNow] = useState(() => Date.now()),
     [open, setOpen] = useState(false),
     [index, setIndex] = useState(0),
     [paused, setPaused] = useState(false),
@@ -88,10 +104,16 @@ export function Briefing({ page = false }: { page?: boolean }) {
         });
         if (active) {
           setData(value);
-          setError("");
+          setOffline(false);
+          const at = Date.now();
+          setLastContact(at);
+          setNow(at);
         }
       } catch {
-        if (active) setError("Live feeds unavailable");
+        if (active) {
+          setOffline(true);
+          setNow(Date.now());
+        }
       }
     }
     void load();
@@ -104,20 +126,34 @@ export function Briefing({ page = false }: { page?: boolean }) {
       window.removeEventListener("briefing-updated", load);
     };
   }, []);
+  // Re-evaluate alert expiry and contact age even when polls keep failing.
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(timer);
+  }, []);
   useEffect(() => {
     if (open) dialog.current?.showModal();
-    else dialog.current?.close();
+    else {
+      dialog.current?.close();
+      // A failed Acknowledge/Save message belongs to that visit; polls no
+      // longer clear it, so drop it when the dialog closes.
+      setError("");
+    }
   }, [open]);
   useEffect(() => {
     if (paused) return;
     const timer = setInterval(() => setIndex((v) => v + 1), 10000);
     return () => clearInterval(timer);
   }, [paused]);
+  const contactAge = lastContact ? now - lastContact : Infinity;
+  const inContact = contactAge <= CONTACT_LIMIT_MS;
+  // Each alert leaves on its own 'expires' time, even while polls fail.
+  const events = (data?.events || []).filter(
+    (e) => !(e.expires && e.expires * 1000 <= now),
+  );
   const active =
-    !error && data?.settings.enabled
-      ? data.events.filter(
-          (e) => !e.stale && !data.acknowledged?.includes(e.id),
-        )
+    inContact && data?.settings.enabled
+      ? events.filter((e) => !e.stale && !data.acknowledged?.includes(e.id))
       : [];
   const urgent = active.filter(
     (e) => e.severity === "Extreme" || e.severity === "Severe",
@@ -132,6 +168,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
         body: JSON.stringify({ id }),
       });
       window.dispatchEvent(new window.Event("briefing-updated"));
+      setError("");
       setData((v) =>
         v ? { ...v, acknowledged: [...(v.acknowledged || []), id] } : v,
       );
@@ -141,6 +178,20 @@ export function Briefing({ page = false }: { page?: boolean }) {
   }
   async function save() {
     if (!draft) return;
+    if (
+      (
+        [
+          "latitude",
+          "longitude",
+          "radiusMiles",
+          "magnitude",
+          "globalMagnitude",
+        ] as const
+      ).some((key) => !Number.isFinite(draft[key]))
+    ) {
+      setError("Enter a number in every location and magnitude field.");
+      return;
+    }
     setSaving(true);
     try {
       await localJSON("/api/briefing/settings", {
@@ -165,19 +216,31 @@ export function Briefing({ page = false }: { page?: boolean }) {
         <button
           className="icon-button alert-bell"
           aria-label={`Events and science${active.length ? `: ${active.length} unread` : ""}`}
-          title={error || "Events & science"}
+          title={offline ? "Live feeds unavailable" : "Events & science"}
           onClick={() => setOpen(true)}
         >
           <Bell size={17} />
-          {active.length > 0 && <small>{active.length}</small>}
-          {error && <small>!</small>}
+          {active.length > 0 ? (
+            <small>{active.length}</small>
+          ) : (
+            offline && <small>!</small>
+          )}
         </button>
       )}
       {!page && item && data?.settings.ticker && (
-        <div className="event-ticker" data-severity={item.severity}>
+        <div
+          className="event-ticker"
+          data-severity={item.severity}
+          data-stale={offline || undefined}
+        >
           <button onClick={() => setOpen(true)}>
             <span>{item.kind}</span> {item.title}
           </button>
+          {offline && (
+            <small className="event-ticker-stamp">
+              {lastCheckedLabel(contactAge)}
+            </small>
+          )}
           <button
             aria-label={paused ? "Resume event ticker" : "Pause event ticker"}
             onClick={() => setPaused((v) => !v)}
@@ -201,14 +264,22 @@ export function Briefing({ page = false }: { page?: boolean }) {
         {!page && (
           <header>
             <h2>Events & science</h2>
-            {!page && (
-              <button aria-label="Close events" onClick={() => setOpen(false)}>
-                <X size={18} />
-              </button>
-            )}
+            <button
+              className="k-btn k-btn--quiet k-btn--icon"
+              aria-label="Close events"
+              onClick={() => setOpen(false)}
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
           </header>
         )}
-        <nav className="briefing-tabs" aria-label="Field Briefing views">
+        {/* A plain group, not <nav>: global "nav button" rules are for the
+            sidebar and would override the .k-tabs primitive. */}
+        <div
+          className="k-tabs briefing-views"
+          role="group"
+          aria-label="Field Briefing views"
+        >
           {["Weather", "Radar", "Events", "Science"].map((name) => (
             <button
               key={name}
@@ -217,7 +288,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
             >
               {name}
               {name === "Events" && active.length > 0 && (
-                <small>{active.length}</small>
+                <span className="briefing-count">{active.length}</span>
               )}
             </button>
           ))}
@@ -230,17 +301,26 @@ export function Briefing({ page = false }: { page?: boolean }) {
               if (data) setDraft(data.settings);
             }}
           >
-            <Settings2 size={17} />
+            <Settings2 size={18} aria-hidden="true" />
           </button>
-        </nav>
+        </div>
         <div
           className={
             tab === "Radar" ? "briefing-body radar-body" : "briefing-body"
           }
         >
-          {error && (
+          {offline && (
             <p className="briefing-warning" role="status">
-              {error}. Showing saved readings.
+              Live feeds unavailable. Showing saved readings
+              {lastContact
+                ? ` · ${lastCheckedLabel(contactAge).toLowerCase()}`
+                : ""}
+              .
+            </p>
+          )}
+          {error && (
+            <p className="briefing-warning" role="alert">
+              {error}
             </p>
           )}
           {!data && (
@@ -259,7 +339,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
               )}
               {tab === "Weather" && (
                 <>
-                  {data.events
+                  {events
                     .filter(
                       (e) =>
                         !e.stale &&
@@ -283,10 +363,14 @@ export function Briefing({ page = false }: { page?: boolean }) {
                   <WeatherOverview
                     feed={{
                       ...data.feeds.forecast,
-                      stale: !!error || data.feeds.forecast?.stale,
+                      stale: offline || data.feeds.forecast?.stale,
                     }}
                     location={data.settings.location}
                     onRadar={() => setTab("Radar")}
+                    onSettings={() => {
+                      setTab("Settings");
+                      setDraft(data.settings);
+                    }}
                   />
                 </>
               )}
@@ -307,6 +391,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                       (kind) => (
                         <button
                           key={kind}
+                          className="k-btn"
                           aria-pressed={filter === kind}
                           onClick={() => setFilter(kind)}
                         >
@@ -314,14 +399,15 @@ export function Briefing({ page = false }: { page?: boolean }) {
                         </button>
                       ),
                     )}
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={unreadOnly}
-                        onChange={(e) => setUnreadOnly(e.target.checked)}
-                      />
+                    <button
+                      type="button"
+                      role="switch"
+                      className="k-switch"
+                      aria-checked={unreadOnly}
+                      onClick={() => setUnreadOnly((value) => !value)}
+                    >
                       Unread only
-                    </label>
+                    </button>
                   </div>
                   <p className="briefing-caption">
                     {data.settings.location} · nearby quakes within{" "}
@@ -336,14 +422,36 @@ export function Briefing({ page = false }: { page?: boolean }) {
                       incomplete.
                     </p>
                   )}
-                  {!data.events.filter(
+                  {!events.filter(
                     (e) =>
                       (filter === "All" || e.kind === filter) &&
                       (!unreadOnly || !data.acknowledged?.includes(e.id)),
                   ).length && (
-                    <p className="event-empty">No reports match this view.</p>
+                    <div className="k-empty event-empty">
+                      <h3>
+                        {filter === "All" && !unreadOnly
+                          ? "No reports right now"
+                          : "No reports match this view"}
+                      </h3>
+                      <p>
+                        {filter === "All" && !unreadOnly
+                          ? "Saved feeds have nothing to report for your area or worldwide."
+                          : "Other reports may be hidden by this filter."}
+                      </p>
+                      {(filter !== "All" || unreadOnly) && (
+                        <button
+                          className="k-btn"
+                          onClick={() => {
+                            setFilter("All");
+                            setUnreadOnly(false);
+                          }}
+                        >
+                          Show all reports
+                        </button>
+                      )}
+                    </div>
                   )}
-                  {data.events
+                  {events
                     .filter(
                       (e) =>
                         (filter === "All" || e.kind === filter) &&
@@ -370,6 +478,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                             <SourceLink url={e.url}>{e.source} ↗</SourceLink>
                           </DetailsPanel>
                           <button
+                            className="k-btn"
                             disabled={data.acknowledged?.includes(e.id)}
                             onClick={() => void acknowledge(e.id)}
                           >
@@ -446,29 +555,32 @@ export function Briefing({ page = false }: { page?: boolean }) {
                       }}
                       className="briefing-settings"
                     >
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={draft.enabled}
-                          onChange={(e) =>
-                            setDraft({ ...draft, enabled: e.target.checked })
-                          }
-                        />
+                      <button
+                        type="button"
+                        role="switch"
+                        className="k-switch briefing-switch"
+                        aria-checked={draft.enabled}
+                        onClick={() =>
+                          setDraft({ ...draft, enabled: !draft.enabled })
+                        }
+                      >
                         Fetch live feeds
-                      </label>
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={draft.ticker}
-                          onChange={(e) =>
-                            setDraft({ ...draft, ticker: e.target.checked })
-                          }
-                        />
+                      </button>
+                      <button
+                        type="button"
+                        role="switch"
+                        className="k-switch briefing-switch"
+                        aria-checked={draft.ticker}
+                        onClick={() =>
+                          setDraft({ ...draft, ticker: !draft.ticker })
+                        }
+                      >
                         Event ticker
-                      </label>
-                      <label>
+                      </button>
+                      <label className="k-label briefing-wide">
                         Location name
                         <input
+                          className="k-field"
                           value={draft.location}
                           onChange={(e) =>
                             setDraft({ ...draft, location: e.target.value })
@@ -484,7 +596,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                           "globalMagnitude",
                         ] as const
                       ).map((key) => (
-                        <label key={key}>
+                        <label className="k-label" key={key}>
                           {
                             {
                               latitude: "Latitude",
@@ -495,32 +607,49 @@ export function Briefing({ page = false }: { page?: boolean }) {
                             }[key]
                           }
                           <input
+                            className="k-field"
                             type="number"
                             step={key === "radiusMiles" ? "1" : "any"}
-                            value={draft[key]}
+                            required
+                            value={
+                              Number.isFinite(draft[key]) ? draft[key] : ""
+                            }
                             onChange={(e) =>
                               setDraft({
                                 ...draft,
-                                [key]: Number(e.target.value),
+                                // An emptied field must not silently become 0
+                                // (latitude 0, longitude 0 is the Atlantic).
+                                [key]:
+                                  e.target.value.trim() === ""
+                                    ? Number.NaN
+                                    : Number(e.target.value),
                               })
                             }
                           />
                         </label>
                       ))}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDraft({
-                            ...draft,
-                            location: "Tulsa, Oklahoma",
-                            latitude: 36.154,
-                            longitude: -95.993,
-                          })
-                        }
-                      >
-                        Use Tulsa
-                      </button>
-                      <button disabled={saving}>Save settings</button>
+                      <div className="briefing-form-actions">
+                        <button
+                          type="button"
+                          className="k-btn"
+                          onClick={() =>
+                            setDraft({
+                              ...draft,
+                              location: "Tulsa, Oklahoma",
+                              latitude: 36.154,
+                              longitude: -95.993,
+                            })
+                          }
+                        >
+                          Use Tulsa
+                        </button>
+                        <button
+                          className="k-btn k-btn--primary"
+                          disabled={saving}
+                        >
+                          {saving ? "Saving…" : "Save settings"}
+                        </button>
+                      </div>
                     </form>
                   )}
                   <DetailsPanel title="Source status">

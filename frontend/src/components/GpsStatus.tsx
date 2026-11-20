@@ -21,10 +21,12 @@ export function GpsStatus({
           <small>
             GPS ·{" "}
             {current
-              ? `${fix?.mode === 3 ? "3D" : "2D"} FIX`
+              ? `${fix?.mode === 3 ? "3D" : "2D"} fix`
               : fix?.connected
-                ? "SEARCHING"
-                : "OFFLINE"}
+                ? "searching"
+                : fix
+                  ? "disconnected"
+                  : "checking"}
           </small>
         </span>
       </button>
@@ -79,7 +81,9 @@ export function GpsStatus({
           A stationary compass needs a separate heading sensor.
         </p>
         <p>
-          {fix?.message || "Checking receiver…"}
+          {fix && !fix.connected && !current
+            ? "GPS receiver temporarily disconnected. Reconnect it and position returns on its own."
+            : fix?.message || "Checking receiver…"}
           {current && fix?.accuracyFeet != null
             ? ` · Estimated accuracy ${Math.round(fix.accuracyFeet)} ft.`
             : ""}{" "}

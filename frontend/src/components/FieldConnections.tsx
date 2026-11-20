@@ -34,17 +34,17 @@ export function FieldConnections() {
   useEffect(() => {
     const request = new AbortController();
     const refresh = () =>
-      Promise.all([
+      // Hotspot and radio fail independently; one must not freeze the other.
+      Promise.allSettled([
         localJSON("/api/hotspot", { signal: request.signal }),
         localJSON("/api/mesh", { signal: request.signal }),
-      ])
-        .then(([h, m]) => {
-          setHotspot(h);
-          setMesh(m);
-        })
-        .catch((e) => {
-          if (!request.signal.aborted) setError(e.message);
-        });
+      ]).then(([h, m]) => {
+        if (request.signal.aborted) return;
+        if (h.status === "fulfilled") setHotspot(h.value);
+        if (m.status === "fulfilled") setMesh(m.value);
+        const failed = [h, m].find((r) => r.status === "rejected");
+        setError(failed ? (failed.reason as Error).message : "");
+      });
     void refresh();
     const timer = setInterval(() => void refresh(), 10000);
     return () => {
@@ -76,9 +76,13 @@ export function FieldConnections() {
       aria-label="Field connections"
     >
       <h2>Field connections</h2>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p role="alert" className="field-error">
+          {error}
+        </p>
+      )}
       <DetailsPanel title={`Phone hotspot · ${hotspot?.active ? "On" : "Off"}`}>
-        <p>
+        <p className="field-muted">
           Starting disconnects this Pi from its current Wi-Fi. Join the deck
           from your phone to browse only shared Emergency references. Your notes
           and chats remain private.
@@ -88,7 +92,7 @@ export function FieldConnections() {
             <p>
               Network: <strong>{hotspot.ssid}</strong>
             </p>
-            <details>
+            <details className="field-secret">
               <summary>Show Wi-Fi password</summary>
               <code>{hotspot.password}</code>
             </details>
@@ -96,6 +100,7 @@ export function FieldConnections() {
               Open <strong>{hotspot.url}</strong> on your phone after joining.
             </p>
             <button
+              className={hotspot.active ? "k-btn" : "k-btn k-btn--primary"}
               disabled={busy}
               onClick={() =>
                 void action(`/api/hotspot/${hotspot.active ? "stop" : "start"}`)
@@ -107,18 +112,25 @@ export function FieldConnections() {
             </button>
           </>
         ) : (
-          <p>Hotspot is not configured.</p>
+          <p className="field-muted">
+            The hotspot is not configured on this deck yet.
+          </p>
         )}
       </DetailsPanel>
       <DetailsPanel
         title={`Off-grid messages · ${mesh?.connected ? "Radio connected" : "No radio connected"}`}
       >
-        <p>{mesh?.notice}</p>
+        {mesh?.notice && <p className="field-muted">{mesh.notice}</p>}
         {!mesh?.connected ? (
-          <>
-            <label>
+          <div className="field-inline">
+            <label className="k-label">
               Meshtastic USB radio
-              <select value={port} onChange={(e) => setPort(e.target.value)}>
+              <select
+                className="k-select"
+                value={port}
+                disabled={!mesh?.ports.length}
+                onChange={(e) => setPort(e.target.value)}
+              >
                 <option value="">Choose attached radio</option>
                 {mesh?.ports.map((p) => (
                   <option key={p}>{p}</option>
@@ -126,80 +138,92 @@ export function FieldConnections() {
               </select>
             </label>
             <button
+              className="k-btn k-btn--primary"
               disabled={busy || !port}
               onClick={() => void action("/api/mesh/connect", { port })}
             >
               Connect radio
             </button>
             {!mesh?.ports.length && (
-              <p>
+              <p className="field-muted field-inline-note">
                 Attach a configured Meshtastic USB radio. The Pi’s built-in
                 Wi-Fi and Bluetooth cannot transmit LoRa messages.
               </p>
             )}
-          </>
+          </div>
         ) : (
           <button
+            className="k-btn"
             disabled={busy}
             onClick={() => void action("/api/mesh/disconnect")}
           >
             Disconnect radio
           </button>
         )}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void action("/api/mesh/send", { text: message, destination });
-          }}
-        >
-          <label>
-            Recipient
-            <select
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-            >
-              <option value="^all">Broadcast · primary channel</option>
-              {mesh?.nodes.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Message
-            <textarea
-              maxLength={200}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-          </label>
-          <p>
-            Uses the radio’s existing channel settings. Delivery and privacy
-            depend on that configuration.
-          </p>
-          <button
-            disabled={
-              busy ||
-              !mesh?.connected ||
-              !message.trim() ||
-              new TextEncoder().encode(message).length > 200
-            }
+        {mesh?.connected && (
+          <form
+            className="field-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void action("/api/mesh/send", { text: message, destination });
+            }}
           >
-            Send over radio
-          </button>
-        </form>
-        <ul>
-          {mesh?.messages.map((m) => (
-            <li key={m.id}>
-              <small>
-                {m.direction} · {m.peer} · {new Date(m.stamp).toLocaleString()}
-              </small>
-              <p>{m.text}</p>
-              <small>{m.status}</small>
-            </li>
-          ))}
-        </ul>
+            <label className="k-label">
+              Recipient
+              <select
+                className="k-select"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+              >
+                <option value="^all">Broadcast · primary channel</option>
+                {mesh?.nodes.map((n) => (
+                  <option key={n.id} value={n.id}>
+                    {n.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="k-label">
+              Message
+              <textarea
+                className="k-field"
+                rows={3}
+                maxLength={200}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+            </label>
+            <p className="field-muted">
+              Uses the radio’s existing channel settings. Delivery and privacy
+              depend on that configuration.
+            </p>
+            <button
+              className="k-btn k-btn--primary"
+              disabled={
+                busy ||
+                !mesh?.connected ||
+                !message.trim() ||
+                new TextEncoder().encode(message).length > 200
+              }
+            >
+              Send over radio
+            </button>
+          </form>
+        )}
+        {!!mesh?.messages.length && (
+          <ul className="field-messages">
+            {mesh.messages.map((m) => (
+              <li key={m.id}>
+                <small>
+                  {m.direction} · {m.peer} ·{" "}
+                  {new Date(m.stamp).toLocaleString()}
+                </small>
+                <p>{m.text}</p>
+                <small>{m.status}</small>
+              </li>
+            ))}
+          </ul>
+        )}
       </DetailsPanel>
     </section>
   );

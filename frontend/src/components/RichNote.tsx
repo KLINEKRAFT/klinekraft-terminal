@@ -1,4 +1,22 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import {
+  Bold,
+  Heading2,
+  Italic,
+  List,
+  ListOrdered,
+  ListTodo,
+  Redo2,
+  RemoveFormatting,
+  Underline,
+  Undo2,
+} from "lucide-react";
+import {
+  Fragment,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 const marker = "<!--kk-rich-v1-->";
 const allowed = new Set([
   "B",
@@ -100,76 +118,87 @@ export function RichNote({
     document.execCommand(command, false, value);
     changed();
   }
+  const keep = (e: { preventDefault: () => void }) => e.preventDefault();
+  const tools: [string, string, ReactNode, () => void][] = [
+    ["Bold", "Bold (Ctrl+B)", <Bold size={18} />, () => format("bold")],
+    ["Italic", "Italic (Ctrl+I)", <Italic size={18} />, () => format("italic")],
+    [
+      "Underline",
+      "Underline (Ctrl+U)",
+      <Underline size={18} />,
+      () => format("underline"),
+    ],
+    ["Heading", "Heading", <Heading2 size={18} />, () => format("formatBlock", "h2")],
+    [
+      "Bullets",
+      "Bulleted list",
+      <List size={18} />,
+      () => format("insertUnorderedList"),
+    ],
+    [
+      "Numbered list",
+      "Numbered list",
+      <ListOrdered size={18} />,
+      () => format("insertOrderedList"),
+    ],
+    [
+      "Checklist",
+      "Checklist item",
+      <ListTodo size={18} />,
+      () => format("insertText", "☐ "),
+    ],
+    [
+      "Plain text",
+      "Clear formatting",
+      <RemoveFormatting size={18} />,
+      () => {
+        format("removeFormat");
+        format("formatBlock", "div");
+      },
+    ],
+  ];
   return (
     <div className="rich-note">
       <div className="note-format" role="toolbar" aria-label="Note formatting">
         <button
           type="button"
+          className="k-btn k-btn--quiet k-btn--icon"
           aria-label="Undo"
           title="Undo (Ctrl+Z)"
           disabled={cursor.current === 0}
-          onMouseDown={(e) => e.preventDefault()}
+          onMouseDown={keep}
           onClick={() => undo(-1)}
         >
-          ↶
+          <Undo2 size={18} />
         </button>
         <button
           type="button"
+          className="k-btn k-btn--quiet k-btn--icon"
           aria-label="Redo"
           title="Redo (Ctrl+Shift+Z)"
           disabled={cursor.current === history.current.length - 1}
-          onMouseDown={(e) => e.preventDefault()}
+          onMouseDown={keep}
           onClick={() => undo(1)}
         >
-          ↷
+          <Redo2 size={18} />
         </button>
-        {(
-          [
-            ["Bold", "bold", "B"],
-            ["Italic", "italic", "I"],
-            ["Underline", "underline", "U"],
-            ["Bullets", "insertUnorderedList", "•"],
-            ["Numbered list", "insertOrderedList", "1."],
-          ] as const
-        ).map(([label, cmd, text]) => (
-          <button
-            key={cmd}
-            type="button"
-            aria-label={label}
-            title={label}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => format(cmd)}
-          >
-            {text}
-          </button>
+        {tools.map(([label, title, icon, run], index) => (
+          <Fragment key={label}>
+            {(index === 0 || index === 3 || index === 7) && (
+              <span className="note-format-gap" aria-hidden="true" />
+            )}
+            <button
+              type="button"
+              className="k-btn k-btn--quiet k-btn--icon"
+              aria-label={label}
+              title={title}
+              onMouseDown={keep}
+              onClick={run}
+            >
+              {icon}
+            </button>
+          </Fragment>
         ))}
-        <button
-          type="button"
-          title="Heading"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => format("formatBlock", "h2")}
-        >
-          Aa
-        </button>
-        <button
-          type="button"
-          title="Checklist"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => format("insertText", "☐ ")}
-        >
-          ☐
-        </button>
-        <button
-          type="button"
-          title="Plain text"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => {
-            format("removeFormat");
-            format("formatBlock", "div");
-          }}
-        >
-          Tx
-        </button>
       </div>
       <div
         ref={editor}

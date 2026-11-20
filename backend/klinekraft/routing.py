@@ -52,6 +52,9 @@ def route(body: Route):
             with database() as c:
                 init(c)
                 c.execute('INSERT INTO saved_routes(id,created,profile,payload) VALUES(?,?,?,?)', (str(uuid4()),datetime.now(timezone.utc).isoformat(),body.profile,json.dumps(result)))
+                # Each route can be up to 4 MB; keep only the newest so the SD card
+                # and every backup do not grow without bound.
+                c.execute('DELETE FROM saved_routes WHERE id NOT IN (SELECT id FROM saved_routes ORDER BY created DESC LIMIT ?)', (SAVED_ROUTE_LIMIT,))
             return result
         except urllib.error.HTTPError:
             raise HTTPException(422,'No route found. Choose points on roads or trails within installed coverage, or plan a shorter leg.')
@@ -61,6 +64,8 @@ def route(body: Route):
             raise HTTPException(502,'The routing engine returned an unreadable route.')
     finally: busy.release()
 
+
+SAVED_ROUTE_LIMIT = 50
 
 def init(c):
     c.execute('CREATE TABLE IF NOT EXISTS saved_routes (id TEXT PRIMARY KEY, created TEXT NOT NULL, profile TEXT NOT NULL, payload TEXT NOT NULL)')

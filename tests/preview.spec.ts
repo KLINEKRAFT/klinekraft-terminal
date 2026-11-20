@@ -17,7 +17,7 @@ for (const [width, height] of [
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     await page.route("**/*", (route) =>
-      route.request().url().startsWith("http://127.0.0.1:4173")
+      new URL(route.request().url()).hostname === "127.0.0.1"
         ? route.continue()
         : route.abort(),
     );
@@ -30,8 +30,12 @@ for (const [width, height] of [
       }),
     ).toBeVisible();
     await expect(
-      page.getByText("SIMULATED DATA", { exact: true }),
+      page.getByRole("img", { name: "Simulated data", exact: true }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Device status", exact: true }),
+    ).toBeInViewport();
+    await expect(page.getByLabel("Quick notes")).toBeInViewport();
     const dimensions = await page.evaluate(() => ({
       width: document.documentElement.scrollWidth,
       height: document.documentElement.scrollHeight,
@@ -46,7 +50,9 @@ for (const [width, height] of [
     expect(errors).toEqual([]);
   });
 }
-test("navigation, commands and settings remain honest", async ({ page }) => {
+test("navigation, search shortcuts and settings remain honest", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.goto("/");
   await page.route("**/api/games", (route) =>
@@ -56,30 +62,45 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
   );
   await navigate(page, "Games");
   await expect(
-    page.getByText("Your library is ready for its first games.", {
-      exact: false,
-    }),
+    page.getByRole("heading", { name: "No games yet", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("bash scripts/setup-games.sh", { exact: false }),
   ).toBeVisible();
   await navigate(page, "Home");
-  await page
-    .getByLabel("Workspace command", { exact: true })
-    .fill("play paperboy; touch /tmp/unwanted");
-  await page.getByRole("button", { name: "Run workspace command" }).click();
+  // The old command bar is gone; search is the single way to jump by name.
+  await expect(page.getByLabel("Workspace command")).toHaveCount(0);
   await expect(
-    page.getByRole("status", { name: "Command result" }),
-  ).toContainText("Typed commands never launch an emulator");
-  await navigate(page, "Home");
-  await page
-    .getByLabel("Workspace command", { exact: true })
-    .fill("system status");
+    page.getByRole("button", { name: "Go Home", exact: true }),
+  ).toHaveCount(0);
+  await page.keyboard.press("/");
+  const search = page.getByRole("searchbox", {
+    name: "Search Terminal",
+    exact: true,
+  });
+  await expect(search).toBeFocused();
+  await search.fill("processes");
   await page.keyboard.press("Enter");
   await expect(
     page.getByRole("heading", { name: "System", exact: true }),
   ).toBeVisible();
   await navigate(page, "Settings");
-  const toggle = page.getByRole("checkbox", { name: /Automatic updates/ });
-  await toggle.uncheck();
+  const toggle = page.getByRole("switch", { name: "Automatic updates" });
+  await expect(toggle).toBeChecked();
+  await toggle.click();
   await expect(toggle).not.toBeChecked();
+  const dark = page.getByRole("switch", { name: "Dark mode", exact: true });
+  await expect(dark).toHaveAttribute("aria-checked", "false");
+  await dark.click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(
+    page.getByRole("button", { name: "Dark mode", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  // Typing "/" in a field types a slash; it never steals focus for search.
+  const url = page.getByLabel("Default launch URL");
+  await url.fill("a/b");
+  await expect(url).toHaveValue("a/b");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.keyboard.press("Control+k");
   await expect(
     page.getByRole("searchbox", { name: "Search Terminal", exact: true }),
@@ -92,7 +113,7 @@ test("navigation, commands and settings remain honest", async ({ page }) => {
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
-test("all navigation sections render and unknown commands stay bounded", async ({
+test("all navigation sections render with one consistent header", async ({
   page,
 }) => {
   await page.goto("/");
@@ -112,11 +133,7 @@ test("all navigation sections render and unknown commands stay bounded", async (
     ).toBeVisible();
   }
   await navigate(page, "Home");
-  await page
-    .getByLabel("Workspace command", { exact: true })
-    .fill("constructor");
-  await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("status", { name: "Command result" }),
-  ).toContainText("This is not a shell");
+    page.getByRole("button", { name: "Search Terminal", exact: true }),
+  ).toBeVisible();
 });

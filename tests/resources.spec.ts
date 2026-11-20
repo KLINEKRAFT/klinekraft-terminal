@@ -39,7 +39,7 @@ test("live graphs accumulate unique samples and System shows read-only processes
   await page.goto("/");
   await expect(page.getByText("↓ 2.5 kB/s")).toBeVisible();
   await expect
-    .poll(() => page.locator(".metric .graph-line").first().getAttribute("d"), {
+    .poll(() => page.locator(".deck-resource .graph-line").first().getAttribute("d"), {
       timeout: 8000,
     })
     .toContain("L");
@@ -57,7 +57,7 @@ test("live graphs accumulate unique samples and System shows read-only processes
     "READ ONLY",
   );
   await navigate(page, "Home");
-  await expect(page.locator(".metric .graph-line").first()).not.toHaveAttribute(
+  await expect(page.locator(".deck-resource .graph-line").first()).not.toHaveAttribute(
     "d",
     "",
   );

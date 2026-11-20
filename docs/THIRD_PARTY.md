@@ -7,3 +7,5 @@ Research does not constitute code reuse. RetroArch and Kiwix are planned separat
 Archivo Expanded Regular is bundled from the user-supplied Archivo archive. Its SIL OFL license is retained at `frontend/public/licenses/archivo.txt`; the original static font is served locally without modification.
 
 Offline maps use MapLibre GL JS (BSD-3-Clause) and the PMTiles JavaScript reader (BSD-3-Clause). Map data comes from Protomaps / OpenStreetMap, with attribution displayed in the map. Noto Sans map glyphs use SIL OFL; the license is retained at `assets/maps/Noto-Sans-OFL.txt` and installed beside the glyphs. See `offline-maps.md` for data sources and extraction details.
+
+The built-in fallback map outline at `frontend/public/maps/us-states.geojson` is U.S. Census Bureau cartographic boundary geometry (public domain), taken from us-atlas 3.0.1 by Michael Bostock (ISC). It was converted to GeoJSON, rounded and trimmed to lower 48 + Alaska; the ISC license and provenance are retained at `frontend/public/maps/LICENSE.txt`. The map credits "U.S. Census Bureau" in its attribution control.

@@ -60,6 +60,39 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
 
+test("search finds apps by everyday alias and opens them", async ({
+  page,
+}) => {
+  await expect(page.getByLabel("Workspace command")).toHaveCount(0);
+  for (const [alias, app, heading] of [
+    ["calc", "Calculator", "Calculator"],
+    ["maps", "GPS / Maps", "GPS / Maps"],
+    ["radar", "Field Briefing", "Field Briefing"],
+    ["wifi", "Network", "Network"],
+    ["sos", "Emergency", "Emergency"],
+    ["weather", "Field Briefing", "Field Briefing"],
+  ]) {
+    await page.keyboard.press("Control+k");
+    const search = page.getByRole("searchbox", { name: "Search Terminal" });
+    await expect(search).toBeFocused();
+    await search.fill(alias);
+    const result = page
+      .getByRole("dialog")
+      .getByRole("button", { name: `Apps ${app}`, exact: true });
+    await expect(result).toBeVisible();
+    await result.click();
+    await expect(
+      page.getByRole("heading", { level: 1, name: heading, exact: true }),
+    ).toHaveCount(1);
+  }
+  // "/" opens search from anywhere that is not a text field.
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.keyboard.press("/");
+  await expect(
+    page.getByRole("searchbox", { name: "Search Terminal" }),
+  ).toBeFocused();
+});
+
 test("local search finds notes, documents and places and opens the selected content", async ({
   page,
 }) => {
@@ -112,20 +145,20 @@ test("partial outages preserve available results; Escape restores focus", async 
 test("secondary panels start closed and share one-open behavior", async ({
   page,
 }) => {
-  await navigate(page, "Library");
-  const library = page.getByRole("region", { name: "Research library" });
-  const filters = library
-    .locator("details")
-    .filter({ has: page.locator("summary", { hasText: /^Filters$/ }) });
-  const importing = library.locator("details").filter({
-    has: page.locator("summary", { hasText: /^Import documents$/ }),
-  });
-  await expect(filters).not.toHaveAttribute("open", "");
-  await filters.locator("summary").click();
-  await expect(library.getByLabel("Document format")).toBeVisible();
-  await importing.locator("summary").click();
-  await expect(filters).not.toHaveAttribute("open", "");
-  await expect(importing).toHaveAttribute("open", "");
+  await navigate(page, "Network");
+  const panel = (title: RegExp) =>
+    page
+      .locator("details.details-panel")
+      .filter({ has: page.locator("summary", { hasText: title }) });
+  const hotspot = panel(/^Phone hotspot/);
+  const radio = panel(/^Off-grid messages/);
+  await expect(hotspot).not.toHaveAttribute("open", "");
+  await expect(radio).not.toHaveAttribute("open", "");
+  await hotspot.locator("summary").click();
+  await expect(hotspot).toHaveAttribute("open", "");
+  await radio.locator("summary").click();
+  await expect(hotspot).not.toHaveAttribute("open", "");
+  await expect(radio).toHaveAttribute("open", "");
 });
 
 test("Kiwix articles open with local illustrations and source context", async ({

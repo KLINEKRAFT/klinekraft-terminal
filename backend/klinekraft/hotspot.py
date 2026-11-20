@@ -46,8 +46,12 @@ def start():
 
 @router.post('/stop')
 def stop():
-    settings=config()
-    run(['systemctl','--user','stop','klinekraft-field-library.service'])
-    active=settings['uuid'] in run(['nmcli','-t','-f','UUID','connection','show','--active']).splitlines()
-    if active:run(['nmcli','connection','down','uuid',settings['uuid']])
-    return status(Response())
+    # Share the start() lock so Stop cannot interleave with a 40-second bring-up.
+    if not operation.acquire(blocking=False): raise HTTPException(409,'A Wi-Fi change is already in progress.')
+    try:
+        settings=config()
+        run(['systemctl','--user','stop','klinekraft-field-library.service'])
+        active=settings['uuid'] in run(['nmcli','-t','-f','UUID','connection','show','--active']).splitlines()
+        if active:run(['nmcli','connection','down','uuid',settings['uuid']])
+        return status(Response())
+    finally:operation.release()

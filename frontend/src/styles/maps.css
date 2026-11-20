@@ -1,0 +1,760 @@
+/* maps area styles — built on ui.css tokens and .k-* primitives.
+   GPS / Maps (OfflineMaps, MapCollections) and Field Briefing → Radar. */
+
+.atlas-workspace,
+.weather-radar {
+  --map-accent: var(--accent-fg);
+  --map-shadow: 0 2px 12px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+/* ── Workspace ───────────────────────────────────────────────────────── */
+.atlas-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+}
+.atlas-workspace [hidden] {
+  display: none !important;
+}
+.atlas-workspace:fullscreen {
+  height: 100dvh;
+  padding: var(--space-3);
+  background: var(--paper);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────── */
+.atlas-toolbar {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+.atlas-toolbar .k-btn {
+  padding: 0 var(--space-3);
+}
+.atlas-toolbar-spacer {
+  flex: 1;
+}
+
+/* ── Map stage and overlays ──────────────────────────────────────────── */
+.atlas-stage {
+  position: relative;
+  flex: 1;
+  min-height: 220px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--panel);
+}
+.atlas-stage .offline-map-canvas {
+  position: absolute;
+  inset: 0;
+}
+.atlas-panel,
+.atlas-gps-status,
+.atlas-mode,
+.atlas-status,
+.atlas-install,
+.radar-stamp,
+.radar-zoom,
+.radar-center,
+.radar-key,
+.radar-error,
+.radar-loading {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  box-shadow: var(--map-shadow);
+}
+
+/* Tool panel (Find / Places / Route / Layers) */
+.atlas-panel {
+  position: absolute;
+  z-index: 3;
+  top: var(--space-2);
+  bottom: var(--space-6);
+  left: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 300px;
+  max-width: calc(100% - 64px);
+  padding: var(--space-3);
+  overflow: auto;
+  scrollbar-width: thin;
+  color: var(--ink);
+  font: var(--text-sm) / 1.4 var(--sans);
+}
+.atlas-panel > header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: calc(-1 * var(--space-1)) 0 0;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--line);
+}
+.atlas-panel > header > strong {
+  flex: 1;
+  font: 600 var(--text-md) var(--sans);
+}
+.atlas-panel .k-field,
+.atlas-panel .k-select {
+  width: 100%;
+  min-width: 0;
+}
+.atlas-panel .k-eyebrow {
+  display: block;
+}
+.atlas-note,
+.atlas-panel p {
+  margin: 0;
+  color: var(--muted);
+  font: var(--text-xs) / 1.5 var(--sans);
+  overflow-wrap: anywhere;
+}
+.atlas-info {
+  color: var(--muted);
+  font: var(--text-xs) / 1.5 var(--sans);
+}
+.atlas-info summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--control-h);
+  cursor: pointer;
+}
+.atlas-info p + p {
+  margin-top: var(--space-2);
+}
+.map-collections,
+.map-collections > div,
+.atlas-saved {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.atlas-search {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.atlas-search label {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.atlas-search label svg {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--muted);
+  pointer-events: none;
+}
+.atlas-search .k-field {
+  padding-left: calc(var(--space-6) + var(--space-1));
+}
+.atlas-empty.k-empty {
+  margin: var(--space-2) auto;
+  padding: var(--space-3);
+}
+.atlas-empty.k-empty > svg {
+  color: var(--map-accent);
+}
+.atlas-results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.atlas-results li button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--control-h-lg);
+  padding: var(--space-2) var(--space-1);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  font: var(--text-sm) / 1.3 var(--sans);
+  text-align: left;
+  cursor: pointer;
+}
+.atlas-results li button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+.atlas-results li button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.atlas-results li button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.atlas-results li button > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.atlas-results li small {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.atlas-results li svg {
+  flex: none;
+  color: var(--map-accent);
+}
+.atlas-results li button > span:last-child {
+  color: var(--muted);
+}
+.atlas-collections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.atlas-collections .k-btn {
+  justify-content: space-between;
+  padding: 0 var(--space-2) 0 var(--space-3);
+  font-size: var(--text-xs);
+  white-space: normal;
+  text-align: left;
+}
+.atlas-collections small,
+.atlas-basemaps small {
+  color: var(--muted);
+  font: var(--text-xs) var(--mono);
+}
+
+/* Route */
+.atlas-route {
+  display: grid;
+  gap: var(--space-3);
+}
+.route-endpoint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.route-endpoint > span {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--map-accent);
+  color: var(--paper);
+  font: 600 var(--text-xs) var(--mono);
+}
+.route-endpoint > div {
+  flex: 1;
+  min-width: 0;
+}
+.route-endpoint small {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.route-endpoint strong {
+  font: 500 var(--text-sm) var(--sans);
+  overflow-wrap: anywhere;
+}
+.atlas-route .route-swap {
+  justify-self: end;
+}
+
+/* Layers */
+.atlas-layers {
+  display: grid;
+  gap: var(--space-3);
+}
+.atlas-basemaps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.atlas-basemaps .k-btn {
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: 56px;
+}
+.atlas-switch {
+  justify-content: space-between;
+  width: 100%;
+}
+.atlas-coordinates {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+}
+.atlas-coordinates .k-field {
+  flex: 1;
+}
+
+/* Mode badge, GPS chip, transient status and the install card */
+.atlas-mode {
+  position: absolute;
+  z-index: 1;
+  bottom: var(--space-2);
+  left: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  color: var(--muted);
+  font: 500 var(--text-xs) var(--mono);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+.atlas-stage .maplibregl-ctrl-bottom-left {
+  bottom: var(--space-6);
+}
+.atlas-gps-status {
+  position: absolute;
+  z-index: 2;
+  top: var(--space-2);
+  right: calc(var(--control-h) + var(--space-5));
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: min(420px, calc(100% - 380px));
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  overflow: hidden;
+  color: var(--ink);
+  font: var(--text-xs) var(--sans);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.atlas-gps-status .k-status-dot {
+  flex: none;
+}
+.atlas-notices {
+  position: absolute;
+  z-index: 4;
+  right: var(--space-2);
+  bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  width: min(452px, calc(100% - 2 * var(--space-2)));
+  pointer-events: none;
+}
+.atlas-notices > * {
+  pointer-events: auto;
+}
+.atlas-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  border-left: 3px solid var(--map-accent);
+  font: var(--text-xs) / 1.5 var(--sans);
+}
+.atlas-status > span {
+  flex: 1;
+}
+/* Street maps not installed: one quiet row; the how-to opens on demand. */
+.atlas-install.k-card {
+  position: relative;
+  max-width: 320px;
+  padding: 0 var(--space-3);
+  background: var(--paper);
+}
+.atlas-install:has(details[open]) {
+  max-width: 100%;
+  padding-bottom: var(--space-3);
+}
+.atlas-install > .k-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.atlas-install summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-h);
+  /* Room for the copy button that sits in the row's right corner. */
+  padding-right: calc(var(--control-h) - var(--space-2));
+  cursor: pointer;
+  list-style: none;
+  font: var(--text-xs) var(--sans);
+  white-space: nowrap;
+}
+.atlas-install summary::-webkit-details-marker {
+  display: none;
+}
+.atlas-install summary strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.atlas-install summary span {
+  color: var(--accent-fg);
+  font-weight: 500;
+}
+.atlas-install summary span::after {
+  content: "›";
+  display: inline-block;
+  margin-left: var(--space-1);
+  transition: transform 0.15s;
+}
+.atlas-install details[open] summary span::after {
+  transform: rotate(90deg);
+}
+.atlas-install summary:focus-visible {
+  outline: 2px solid var(--accent-fg);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+.atlas-install details > :not(summary) {
+  margin-top: var(--space-2);
+}
+.atlas-install p {
+  margin: 0;
+  color: var(--muted);
+  font: var(--text-xs) / 1.5 var(--sans);
+}
+.atlas-command {
+  display: block;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--ink);
+  font: var(--text-xs) / 1.5 var(--mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+/* Selected pin */
+.atlas-pinbar {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-h-lg);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+}
+.atlas-pinbar > div {
+  flex: 1;
+  min-width: 0;
+}
+.atlas-pinbar strong {
+  display: block;
+  overflow: hidden;
+  font: 600 var(--text-sm) var(--sans);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.atlas-pinbar a {
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.atlas-save > summary {
+  list-style: none;
+}
+.atlas-save > summary::-webkit-details-marker {
+  display: none;
+}
+.atlas-save > form {
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  bottom: calc(100% + var(--space-2));
+  display: grid;
+  gap: var(--space-3);
+  width: 300px;
+  max-width: 90vw;
+  background: var(--paper);
+  box-shadow: var(--map-shadow);
+}
+.atlas-save .k-field {
+  width: 100%;
+}
+.atlas-save p {
+  margin: 0;
+  color: var(--muted);
+  font: var(--text-xs) / 1.5 var(--sans);
+}
+
+/* Save this spot */
+.gps-save-spot {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.gps-save-spot .k-field {
+  flex: 1;
+  min-width: 160px;
+}
+.gps-save-spot > span {
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.gps-position-dot {
+  width: 16px;
+  height: 16px;
+  border: 3px solid white;
+  border-radius: var(--radius-pill);
+  background: var(--accent-fg);
+  box-shadow: 0 0 0 2px var(--accent-fg);
+}
+/* Map pins (mapBase pinMarker): CSS fill overrides MapLibre's attribute,
+   so a pin recolors with the theme instead of keeping its creation color. */
+.k-map-pin svg > g > g:nth-child(2) {
+  fill: var(--accent-fg);
+}
+.k-map-pin--selection svg > g > g:nth-child(2) {
+  fill: var(--orange);
+}
+
+/* ── MapLibre controls, themed to match ──────────────────────────────── */
+.atlas-stage .maplibregl-ctrl-group,
+.weather-radar .maplibregl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  box-shadow: var(--map-shadow);
+}
+.atlas-stage .maplibregl-ctrl-group button,
+.weather-radar .maplibregl-ctrl-group button {
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.atlas-stage .maplibregl-ctrl-group button + button,
+.weather-radar .maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--line);
+}
+.atlas-stage .maplibregl-ctrl-group button:hover,
+.weather-radar .maplibregl-ctrl-group button:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.atlas-stage .maplibregl-ctrl.maplibregl-ctrl-attrib,
+.weather-radar .maplibregl-ctrl.maplibregl-ctrl-attrib {
+  background: color-mix(in srgb, var(--paper) 85%, transparent);
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.atlas-stage .maplibregl-ctrl-attrib a,
+.weather-radar .maplibregl-ctrl-attrib a {
+  color: inherit;
+}
+.atlas-stage .maplibregl-ctrl-attrib-button,
+.weather-radar .maplibregl-ctrl-attrib-button {
+  padding: 0;
+  border: 0;
+}
+.atlas-stage .maplibregl-ctrl-scale,
+.weather-radar .maplibregl-ctrl-scale {
+  border-color: var(--muted);
+  background: color-mix(in srgb, var(--paper) 85%, transparent);
+  color: var(--ink);
+  font: var(--text-xs) var(--sans);
+}
+:root[data-theme="dark"] .atlas-stage .maplibregl-ctrl-icon,
+:root[data-theme="dark"] .atlas-stage .maplibregl-ctrl-attrib-button,
+:root[data-theme="dark"] .weather-radar .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
+:root[data-theme="dark"] .atlas-stage .maplibregl-popup-content {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* ── Field Briefing → Radar ──────────────────────────────────────────── */
+/* The Radar tab body hands its whole height to the map. */
+.briefing-body.radar-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+.briefing-dialog:not(.briefing-page) .radar-body {
+  height: 450px;
+}
+.weather-radar {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+}
+.radar-stage {
+  position: relative;
+  flex: 1;
+  min-height: 220px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--panel);
+}
+/* MapLibre's lazy stylesheet also sets position:relative; keep it filled. */
+.weather-radar .radar-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.radar-stamp {
+  position: absolute;
+  z-index: 2;
+  top: var(--space-2);
+  left: var(--space-2);
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  gap: var(--space-1) var(--space-2);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  pointer-events: none;
+}
+.radar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--map-accent);
+}
+.radar-stamp strong {
+  font: 600 var(--text-sm) var(--sans);
+}
+.radar-stamp small {
+  grid-column: 2;
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.radar-zoom {
+  position: absolute;
+  z-index: 2;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: grid;
+  overflow: hidden;
+}
+.radar-zoom .k-btn,
+.radar-center.k-btn {
+  border: 0;
+  border-radius: 0;
+  background: var(--paper);
+}
+.radar-zoom .k-btn + .k-btn {
+  border-top: 1px solid var(--line);
+}
+.radar-center.k-btn {
+  position: absolute;
+  z-index: 2;
+  top: calc(2 * var(--control-h) + var(--space-4));
+  right: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.radar-key {
+  position: absolute;
+  z-index: 1;
+  right: var(--space-2);
+  bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.radar-key i {
+  width: 72px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  /* RainViewer's light → heavy palette, as drawn on the map. */
+  background: linear-gradient(90deg, #b2e1ff, #0083ff, #003cb5, #00004a);
+}
+.radar-error {
+  position: absolute;
+  z-index: 3;
+  bottom: calc(var(--space-6) + var(--space-6));
+  left: var(--space-2);
+  max-width: min(480px, 75%);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--orange);
+  font: var(--text-sm) / 1.4 var(--sans);
+}
+.radar-loading {
+  position: absolute;
+  z-index: 2;
+  bottom: var(--space-6);
+  left: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.weather-radar .maplibregl-ctrl-bottom-left {
+  bottom: 0;
+}
+.radar-controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+.radar-timeline {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.radar-timeline input {
+  flex: 1;
+  min-width: 50px;
+  accent-color: var(--map-accent);
+}
+.radar-timeline span {
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.radar-footnote {
+  flex: none;
+  margin: 0;
+  color: var(--muted);
+  font: var(--text-xs) / 1.4 var(--sans);
+}
+
+/* ── Narrow and reduced-motion ───────────────────────────────────────── */
+@media (max-width: 700px) {
+  .atlas-workspace {
+    height: calc(100dvh - 100px);
+  }
+  .atlas-toolbar .k-btn {
+    padding: 0 var(--space-2);
+  }
+  .atlas-gps-status {
+    max-width: calc(100% - 80px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atlas-workspace *,
+  .weather-radar * {
+    scroll-behavior: auto;
+  }
+  .atlas-install summary span::after {
+    transition: none;
+  }
+}

@@ -1,6 +1,14 @@
-import { DetailsPanel } from "./DetailsPanel";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowUpRight, X, Search, Maximize2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  Globe,
+  Maximize2,
+  RotateCw,
+  Search,
+  SearchX,
+  X,
+} from "lucide-react";
 import { isHostedDemo } from "../runtime";
 export type WikiReference = { path: string; title: string };
 type Article = WikiReference & {
@@ -11,18 +19,36 @@ type Article = WikiReference & {
   truncated: boolean;
 };
 export async function localJSON(url: string, init: RequestInit = {}) {
+  // The hosted web demo has no Pi service. Fail fast instead of sending
+  // requests that can only 404 (and would leak noise into the console).
+  if (isHostedDemo)
+    throw Object.assign(Error("Available on the deck, not in the web demo."), {
+      status: 0,
+    });
   const response = await fetch(url, {
     ...init,
     headers: { ...init.headers, "X-Klinekraft-Client": "local-ui" },
     cache: "no-store",
   });
   const data = await response.json().catch(() => null);
-  if (!response.ok)
-    throw Error(
-      typeof data?.detail === "string"
-        ? data.detail
-        : "The local service is unavailable. Update or restart Klinekraft.",
+  if (!response.ok) {
+    if (typeof data?.detail === "string")
+      throw Object.assign(Error(data.detail), { status: response.status });
+    // FastAPI validation errors (422) send a list. They mean the input was
+    // rejected, not that the service is down — say so instead of "restart".
+    if (Array.isArray(data?.detail)) {
+      const first = data.detail[0]?.msg;
+      throw Error(
+        typeof first === "string"
+          ? `Not saved: ${first.replace(/^Value error, /, "")}`
+          : "Not saved: check the size or format of what you entered.",
+      );
+    }
+    throw Object.assign(
+      Error("The local service is unavailable. Update or restart Klinekraft."),
+      { status: response.status },
     );
+  }
   return data;
 }
 export function WikiImage({
@@ -150,7 +176,7 @@ export function ArticleDialog({
     >
       <div ref={surface} className="knowledge-surface">
         <header className="knowledge-toolbar">
-          <span className="eyebrow">
+          <span className="k-eyebrow">
             {current.path.startsWith("/content/wikipedia_")
               ? "WIKIPEDIA"
               : "KIWIX"}{" "}
@@ -159,6 +185,7 @@ export function ArticleDialog({
           <div>
             {back.length > 0 && (
               <button
+                className="k-btn k-btn--quiet"
                 onClick={() => {
                   setCurrent(back.at(-1)!);
                   setBack(back.slice(0, -1));
@@ -168,13 +195,18 @@ export function ArticleDialog({
               </button>
             )}
             <button
+              className="k-btn k-btn--quiet k-btn--icon"
               onClick={() => void fullscreen()}
               aria-label="Fullscreen article"
             >
-              <Maximize2 size={16} />
+              <Maximize2 size={16} aria-hidden="true" />
             </button>
-            <button onClick={onClose} aria-label="Close article">
-              <X size={18} />
+            <button
+              className="k-btn k-btn--quiet k-btn--icon"
+              onClick={onClose}
+              aria-label="Close article"
+            >
+              <X size={18} aria-hidden="true" />
             </button>
           </div>
         </header>
@@ -184,22 +216,22 @@ export function ArticleDialog({
           {!article && !error && <p role="status">Opening article…</p>}
           {article && (
             <>
-              <div className="browser-actions">
+              <div className="lib-actions">
                 {onAsk && (
                   <button
-                    className="browser-button"
+                    className="k-btn k-btn--primary"
                     onClick={() => onAsk(article)}
                   >
                     Ask Shackleton
                   </button>
                 )}
                 <a
-                  className="browser-button"
+                  className="k-btn"
                   href={`http://127.0.0.1:8081${article.path}`}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Original layout <ArrowUpRight size={13} />
+                  Original layout <ArrowUpRight size={14} aria-hidden="true" />
                 </a>
               </div>
               {article.path.startsWith("/content/wikipedia_") ? (
@@ -292,10 +324,10 @@ export function ArticleDialog({
     </dialog>
   );
 }
+type Book = { name: string; title: string; path: string };
+type ReaderStatus = { ready: boolean; archives: string[] };
 export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
-  const [books, setBooks] = useState<
-    { name: string; title: string; path: string }[]
-  >([]);
+  const [books, setBooks] = useState<Book[] | null>(null);
   const [book, setBook] = useState("");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<
@@ -303,28 +335,43 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
   >([]);
   const [selected, setSelected] = useState<WikiReference | null>(null);
   const [error, setError] = useState("");
+  // Set when the reader cannot list archives: says whether any are saved.
+  const [offline, setOffline] = useState<ReaderStatus | null>(null);
   const [busy, setBusy] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [searched, setSearched] = useState("");
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     if (isHostedDemo) return;
     const controller = new AbortController();
     setError("");
+    setOffline(null);
+    setBooks(null);
     void localJSON("/api/wiki/books", {
       signal: AbortSignal.any([controller.signal, AbortSignal.timeout(12000)]),
     })
       .then((data) => {
-        if (!controller.signal.aborted) {
-          setBooks(data.books);
-          setBook((current) =>
-            data.books.some((b: { name: string }) => b.name === current)
-              ? current
-              : "",
-          );
-        }
+        if (controller.signal.aborted) return;
+        setBooks(data.books);
+        setBook((current) =>
+          data.books.some((b: Book) => b.name === current) ? current : "",
+        );
+        if (!data.books.length) setOffline({ ready: true, archives: [] });
       })
-      .catch((e) => {
-        if (!controller.signal.aborted) setError(e.message);
+      .catch(async (e) => {
+        if (controller.signal.aborted) return;
+        // The reader is down. Ask the API whether archives are installed so
+        // the setup message is accurate instead of a raw service error.
+        try {
+          const status = await localJSON("/api/wiki", {
+            signal: controller.signal,
+          });
+          if (!controller.signal.aborted) {
+            setBooks([]);
+            setOffline(status);
+          }
+        } catch {
+          if (!controller.signal.aborted) setError(e.message);
+        }
       });
     return () => controller.abort();
   }, [revision]);
@@ -343,118 +390,178 @@ export function WikiBrowser({ onAsk }: { onAsk: (a: WikiReference) => void }) {
         setError(
           `Some archives are unavailable: ${data.unavailable.join(", ")}.`,
         );
-      setSearched(true);
+      setSearched(query.trim());
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
+  const ready = !!books?.length;
   return (
-    <section className="browser-panel" aria-label="Offline Wikipedia">
-      <h2>Wikipedia</h2>
-      <p className="browser-help">
-        Search your local archive. Read here, even offline.
-      </p>
+    <section className="lib-wiki" aria-label="Offline Wikipedia">
+      <h2 className="sr-only">Wikipedia</h2>
       {isHostedDemo ? (
-        <p>Available in the local Pi app.</p>
+        <div className="k-empty">
+          <Globe size={32} aria-hidden="true" />
+          <h3>Wikipedia, offline</h3>
+          <p>Offline Wikipedia runs in the local Pi app.</p>
+        </div>
       ) : (
         <>
-          <form className="wiki-search" onSubmit={search}>
-            <label className="sr-only" htmlFor="wiki-query">
-              Search Wikipedia
-            </label>
-            <input
-              id="wiki-query"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Find an article"
-              maxLength={200}
-            />
-            <button
-              className="browser-button"
-              disabled={busy || !books.length || !query.trim()}
-            >
-              <Search size={15} />
-              {busy ? "Searching…" : "Search"}
-            </button>
-          </form>
-          {books.length > 1 && (
-            <label className="wiki-book">
-              Archive
-              <select
-                value={book}
+          {ready && (
+            <form className="lib-toolbar" onSubmit={search}>
+              <label className="sr-only" htmlFor="wiki-query">
+                Search Wikipedia
+              </label>
+              <input
+                id="wiki-query"
+                className="k-field lib-toolbar-grow"
+                type="search"
+                value={query}
                 onChange={(e) => {
-                  setBook(e.target.value);
-                  setResults([]);
-                  setSearched(false);
+                  setQuery(e.target.value);
+                  // Clearing the box goes back to browsing the archives.
+                  if (!e.target.value.trim()) {
+                    setResults([]);
+                    setSearched("");
+                  }
                 }}
+                placeholder="Find an article"
+                maxLength={200}
+              />
+              {books.length > 1 && (
+                <select
+                  className="k-select"
+                  aria-label="Archive"
+                  value={book}
+                  onChange={(e) => {
+                    setBook(e.target.value);
+                    setResults([]);
+                    setSearched("");
+                  }}
+                >
+                  <option value="">All archives</option>
+                  {books.map((b) => (
+                    <option key={b.name} value={b.name}>
+                      {b.title}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <button
+                className="k-btn k-btn--primary"
+                disabled={busy || !query.trim()}
               >
-                <option value="">All archives</option>
-                {books.map((b) => (
-                  <option key={b.name} value={b.name}>
-                    {b.title}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <Search size={16} aria-hidden="true" />
+                {busy ? "Searching…" : "Search"}
+              </button>
+              <button
+                type="button"
+                className="k-btn k-btn--quiet k-btn--icon"
+                aria-label="Refresh archives"
+                title="Refresh archives"
+                onClick={() => setRevision((r) => r + 1)}
+              >
+                <RotateCw size={16} aria-hidden="true" />
+              </button>
+            </form>
           )}
           {error && (
-            <p role="alert" className="browser-warning">
+            <p role="alert" className="lib-alert">
               {error}
             </p>
           )}
-          <div className="browser-actions">
-            {books.find((b) => b.name === book) && (
-              <button
-                className="browser-button"
-                onClick={() => {
-                  const b = books.find((b) => b.name === book)!;
-                  setSelected({ path: b.path, title: b.title });
-                }}
-              >
-                Browse archive
-              </button>
-            )}
-            <button
-              className="browser-button"
-              onClick={() => setRevision((r) => r + 1)}
-            >
-              Refresh reader
-            </button>
-          </div>
-          {searched && !results.length && (
-            <p className="browser-help">
-              No matching articles. Try a shorter topic or a different archive.
+          {!books && !error && (
+            <p role="status" className="lib-note">
+              Checking the offline reader…
             </p>
           )}
-          <ul className="wiki-results">
-            {results.map((r) => (
-              <li key={r.path}>
-                <button onClick={() => setSelected(r)}>
-                  {r.title}
-                  <ArrowUpRight size={14} />
-                </button>
-                {r.bookTitle && <small>{r.bookTitle}</small>}
-                <p>{r.snippet}</p>
-              </li>
-            ))}
-          </ul>
-          <DetailsPanel title="About the archives" className="content-details">
-            <p>
-              Reading view simplifies the original layout. Equations, complex
-              tables and some image formats may need the original reader.
+          {offline && (
+            <div className="k-empty">
+              <Globe size={32} aria-hidden="true" />
+              {offline.archives.length ? (
+                <>
+                  <h3>Your archive is saved. The reader is not responding.</h3>
+                  <p>
+                    Start the offline reader from the Pi’s Terminal, then check
+                    again.
+                  </p>
+                  <code>systemctl --user restart klinekraft-wiki.service</code>
+                </>
+              ) : (
+                <>
+                  <h3>Wikipedia, offline</h3>
+                  <p>
+                    Download a starter collection once, then search and read
+                    articles anywhere, with no connection. Run this in the Pi’s
+                    Terminal, then check again.
+                  </p>
+                  <code>bash scripts/setup-local-content.sh</code>
+                </>
+              )}
+              <button
+                type="button"
+                className="k-btn"
+                onClick={() => setRevision((r) => r + 1)}
+              >
+                <RotateCw size={16} aria-hidden="true" /> Check again
+              </button>
+            </div>
+          )}
+          {ready && !searched && !results.length && (
+            <ul className="lib-archives" aria-label="Installed archives">
+              {books.map((b) => (
+                <li key={b.name}>
+                  <button
+                    type="button"
+                    className="k-card"
+                    aria-label={`Browse ${b.title}`}
+                    onClick={() => setSelected({ path: b.path, title: b.title })}
+                  >
+                    <BookOpen size={20} aria-hidden="true" />
+                    <strong>{b.title}</strong>
+                    <span>Browse from the main page</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {searched && !busy && !results.length && (
+            <div className="k-empty">
+              <SearchX size={32} aria-hidden="true" />
+              <h3>No articles match “{searched}”</h3>
+              <p>
+                {books && books.length > 1 && book
+                  ? "Try a shorter topic, or search all archives."
+                  : "Try a shorter or different topic."}
+              </p>
+            </div>
+          )}
+          {!!results.length && (
+            <ul className="wiki-results">
+              {results.map((r) => (
+                <li key={r.path}>
+                  <button onClick={() => setSelected(r)}>
+                    {r.title}
+                    <ArrowUpRight size={14} aria-hidden="true" />
+                  </button>
+                  {r.bookTitle && <small>{r.bookTitle}</small>}
+                  <p>{r.snippet}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+          {ready && (
+            <p className="lib-caption">
+              Reading view simplifies the original layout. Equations and
+              complex tables may need the{" "}
+              <a href="http://127.0.0.1:8081/" target="_blank" rel="noreferrer">
+                original reader
+              </a>
+              .
             </p>
-            <a href="http://127.0.0.1:8081/" target="_blank" rel="noreferrer">
-              Open Kiwix
-            </a>
-            {!books.length && (
-              <pre>
-                cd ~/klinekraft-terminal{"\n"}bash
-                scripts/setup-local-content.sh
-              </pre>
-            )}
-          </DetailsPanel>
+          )}
         </>
       )}
       {selected && (

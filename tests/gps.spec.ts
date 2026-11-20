@@ -17,10 +17,19 @@ test("GPS home compass, saved spots, route start and lost fix", async ({ page })
       await r.fulfill({json:saved});
     } else await r.fulfill({json:[]});
   });
+  // Hermetic: no street region installed; GPS works over the built-in outline.
+  await page.route("**/api/maps", r => r.fulfill({json:{available:false}}));
   await page.goto("/");
   await navigate(page, "Home");
   await page.getByLabel("GPS and compass information").click();
   await expect(page.locator(".gps-details")).toContainText("11/15 satellites");
+  // The popover opens rightward and upward from the GPS cell, fully on screen.
+  await expect(page.locator(".gps-home .info-content")).toBeInViewport({ ratio: 1 });
+  const info = await page.locator(".gps-home .info-content").boundingBox();
+  expect(info!.x).toBeGreaterThanOrEqual(0);
+  expect(info!.y).toBeGreaterThanOrEqual(0);
+  expect(info!.x + info!.width).toBeLessThanOrEqual(1024);
+  expect(info!.y + info!.height).toBeLessThanOrEqual(600);
   await page.keyboard.press("Escape");
   await expect(page.getByLabel("Travel direction unavailable")).toBeVisible();
   course = 90;
@@ -28,10 +37,9 @@ test("GPS home compass, saved spots, route start and lost fix", async ({ page })
   await page.screenshot({path:"test-results/gps-home.png"});
   expect(await page.locator("main").evaluate(e => e.scrollHeight <= e.clientHeight)).toBe(true);
   const tools = await page.locator(".home-tools").boundingBox();
-  const command = await page.locator(".command-area").boundingBox();
-  expect(tools!.y + tools!.height).toBeLessThanOrEqual(command!.y);
+  expect(tools!.y + tools!.height).toBeLessThanOrEqual(600);
 
-  await page.getByRole("button", {name:/GPS · 3D FIX/}).click();
+  await page.getByRole("button", {name:/GPS · 3D fix/}).click();
   await expect(page.locator(".gps-position-dot")).toBeVisible({timeout:20000});
   await page.getByRole("button", {name:"Follow", exact:true}).click();
   await expect(page.getByRole("button", {name:"Follow", exact:true})).toHaveAttribute("aria-pressed","true");

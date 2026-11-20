@@ -57,8 +57,8 @@ function readPreferences(): Preferences {
   }
 }
 export function AwayLaunch() {
-  return <button className="away-launch" onClick={() => window.dispatchEvent(new Event("klinekraft-open-away"))}>
-    <Moon size={15} /> Away <span>↗</span>
+  return <button className="k-btn" onClick={() => window.dispatchEvent(new Event("klinekraft-open-away"))}>
+    <Moon size={15} /> Away
   </button>;
 }
 type DesktopStatus = { installed: boolean; preferences: Preferences; displayBlankMinutes: number; blank?: boolean };

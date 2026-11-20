@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { ArrowUpRight, Bookmark as BookmarkIcon, Plus } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ArrowUpRight, Bookmark as BookmarkIcon, Globe, Plus } from "lucide-react";
 import { browserUrl, type Bookmark, type BrowserStore } from "../bookmarks";
 
 export function BrowserLibrary({
@@ -16,7 +16,31 @@ export function BrowserLibrary({
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  // Closing the form returns focus to the button that opened it. The
+  // empty-state Add button unmounts while the form is open, so fall back to
+  // whichever Add button is on screen again.
+  const opener = useRef<HTMLElement | null>(null);
+  const toolbarAdd = useRef<HTMLButtonElement>(null);
+  const emptyAdd = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
+  useEffect(() => {
+    if (adding || !restoreFocus.current) return;
+    restoreFocus.current = false;
+    const target = opener.current?.isConnected
+      ? opener.current
+      : (toolbarAdd.current ?? emptyAdd.current);
+    target?.focus();
+  }, [adding, data.bookmarks]);
+  function close() {
+    restoreFocus.current = true;
+    setAdding(false);
+    setEditing(null);
+  }
   function edit(item?: Bookmark) {
+    opener.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     setEditing(item ?? null);
     setAdding(true);
     setTitle(item?.title ?? "");
@@ -44,98 +68,105 @@ export function BrowserLibrary({
           ? data.bookmarks.map((b) => (b.id === editing.id ? item : b))
           : [...data.bookmarks, item],
       });
-      setAdding(false);
-      setEditing(null);
+      close();
       setMessage("Bookmark saved.");
     } catch (cause) {
       setError((cause as Error).message);
     }
   }
+  const empty = !data.bookmarks.length;
   return (
-    <section className="browser-panel" aria-labelledby="bookmarks-title">
-      <div className="browser-heading">
-        <div>
-          <span className="eyebrow">YOUR WEB SHORTCUTS</span>
-          <h2 id="bookmarks-title">Browser bookmarks</h2>
-        </div>
-        <button
-          className="browser-button"
-          onClick={() => edit()}
-          disabled={adding || data.bookmarks.length >= 100}
-        >
-          <Plus size={15} /> Add bookmark
-        </button>
-      </div>
-      <div className="browser-launch">
-        <div>
-          <strong>Default launch page</strong>
+    <section className="lib-bookmarks" aria-labelledby="bookmarks-title">
+      <h2 id="bookmarks-title" className="sr-only">
+        Browser bookmarks
+      </h2>
+      <div className="lib-toolbar lib-launch">
+        <Globe size={18} aria-hidden="true" />
+        <div className="lib-launch-text">
+          <strong>Launch page</strong>
           <span>{data.launchUrl || "Choose a starting page in Settings."}</span>
         </div>
         {data.launchUrl ? (
           <a
-            className="browser-button"
+            className="k-btn"
             href={data.launchUrl}
             target="_blank"
             rel="noopener noreferrer"
           >
-            Open launch page <ArrowUpRight size={15} />
+            Open launch page <ArrowUpRight size={16} aria-hidden="true" />
           </a>
         ) : (
-          <button className="browser-button" onClick={openSettings}>
+          <button className="k-btn" onClick={openSettings}>
             Set launch URL
           </button>
         )}
+        {!empty && (
+          <button
+            ref={toolbarAdd}
+            className="k-btn k-btn--primary"
+            onClick={() => edit()}
+            disabled={adding || data.bookmarks.length >= 100}
+          >
+            <Plus size={16} aria-hidden="true" /> Add bookmark
+          </button>
+        )}
       </div>
-      <p className="browser-help">
-        Opens in a new browser tab. Saved on this browser only; websites may
-        need internet access.
-      </p>
       {warning && (
-        <p role="alert" className="browser-warning">
+        <p role="alert" className="lib-alert">
           {warning}
         </p>
       )}
       {adding && (
-        <form className="bookmark-form" onSubmit={submit}>
+        <form
+          className="k-card lib-form"
+          onSubmit={submit}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              close();
+            }
+          }}
+        >
           <h3>{editing ? "Edit bookmark" : "New bookmark"}</h3>
-          <label>
-            Name
-            <input
-              autoFocus
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              maxLength={80}
-              required
-            />
-          </label>
-          <label>
-            Web address
-            <input
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://example.com"
-              maxLength={2048}
-              required
-              autoCapitalize="none"
-              spellCheck={false}
-            />
-          </label>
+          <div className="lib-form-row">
+            <label className="k-label">
+              Name
+              <input
+                className="k-field"
+                autoFocus
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                maxLength={80}
+                required
+              />
+            </label>
+            <label className="k-label lib-grow">
+              Web address
+              <input
+                className="k-field"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://example.com"
+                maxLength={2048}
+                required
+                autoCapitalize="none"
+                spellCheck={false}
+              />
+            </label>
+          </div>
           {error && (
-            <p role="alert" className="browser-warning">
+            <p role="alert" className="lib-alert">
               {error}
             </p>
           )}
-          <div className="browser-actions">
-            <button className="browser-button primary" type="submit">
+          <div className="lib-actions">
+            <button className="k-btn k-btn--primary" type="submit">
               Save bookmark
             </button>
             <button
-              className="browser-button"
+              className="k-btn k-btn--quiet"
               type="button"
-              onClick={() => {
-                setAdding(false);
-                setEditing(null);
-              }}
+              onClick={close}
             >
               Cancel
             </button>
@@ -143,76 +174,94 @@ export function BrowserLibrary({
         </form>
       )}
       {message && (
-        <p role="status" className="browser-help">
+        <p role="status" className="lib-note">
           {message}
         </p>
       )}
-      {data.bookmarks.length ? (
-        <ul className="bookmark-list">
-          {data.bookmarks.map((item) => (
-            <li key={item.id}>
-              <BookmarkIcon size={18} aria-hidden="true" />
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Open ${item.title} in a new tab`}
-              >
-                <strong>{item.title}</strong>
-                <span>{item.url}</span>
-              </a>
-              <div className="browser-actions">
-                <button
-                  className="browser-button"
-                  aria-label={`${item.pinned ? "Unpin" : "Pin"} ${item.title}`}
-                  aria-pressed={item.pinned === true}
-                  onClick={() =>
-                    save({
-                      ...data,
-                      bookmarks: data.bookmarks.map((b) =>
-                        b.id === item.id ? { ...b, pinned: !b.pinned } : b,
-                      ),
-                    })
-                  }
-                >
-                  {item.pinned ? "Unpin" : "Pin to Home"}
-                </button>
-                <button
-                  className="browser-button"
-                  aria-label={`Edit ${item.title}`}
-                  onClick={() => edit(item)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="browser-button"
-                  aria-label={`Remove ${item.title}`}
-                  onClick={() => {
-                    save({
-                      ...data,
-                      bookmarks: data.bookmarks.filter((b) => b.id !== item.id),
-                    });
-                    if (editing?.id === item.id) {
-                      setAdding(false);
-                      setEditing(null);
-                    }
-                    setMessage(`Removed ${item.title}.`);
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
+      {empty ? (
         !adding && (
-          <div className="bookmark-empty">
-            <BookmarkIcon size={26} />
-            <h3>A place for your regular stops.</h3>
-            <p>Add your first bookmark to keep a useful website close by.</p>
+          <div className="k-empty">
+            <BookmarkIcon size={32} aria-hidden="true" />
+            <h3>Keep your regular stops close</h3>
+            <p>
+              Save the websites you visit often and pin the best ones to Home.
+              They open in a new tab when you are online.
+            </p>
+            <button
+              ref={emptyAdd}
+              className="k-btn k-btn--primary"
+              onClick={() => edit()}
+            >
+              <Plus size={16} aria-hidden="true" /> Add bookmark
+            </button>
           </div>
         )
+      ) : (
+        <>
+          <ul className="bookmark-list">
+            {data.bookmarks.map((item) => (
+              <li key={item.id}>
+                <BookmarkIcon size={18} aria-hidden="true" />
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Open ${item.title} in a new tab`}
+                >
+                  <strong>{item.title}</strong>
+                  <span>{item.url}</span>
+                </a>
+                <div className="lib-actions">
+                  <button
+                    className="k-btn"
+                    aria-label={`${item.pinned ? "Unpin" : "Pin"} ${item.title}`}
+                    aria-pressed={item.pinned === true}
+                    onClick={() =>
+                      save({
+                        ...data,
+                        bookmarks: data.bookmarks.map((b) =>
+                          b.id === item.id ? { ...b, pinned: !b.pinned } : b,
+                        ),
+                      })
+                    }
+                  >
+                    {item.pinned ? "Unpin" : "Pin to Home"}
+                  </button>
+                  <button
+                    className="k-btn k-btn--quiet"
+                    aria-label={`Edit ${item.title}`}
+                    onClick={() => edit(item)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="k-btn k-btn--quiet"
+                    aria-label={`Remove ${item.title}`}
+                    onClick={() => {
+                      save({
+                        ...data,
+                        bookmarks: data.bookmarks.filter(
+                          (b) => b.id !== item.id,
+                        ),
+                      });
+                      if (editing?.id === item.id) {
+                        setAdding(false);
+                        setEditing(null);
+                      }
+                      setMessage(`Removed ${item.title}.`);
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="lib-caption">
+            Bookmarks open in a new tab and are saved in this browser only.
+            Websites need an internet connection.
+          </p>
+        </>
       )}
     </section>
   );
@@ -246,10 +295,11 @@ export function BrowserSettings({ store }: { store: BrowserStore }) {
         Open this page from Library. It opens in a new tab only when you choose
         it.
       </p>
-      <form className="bookmark-form" onSubmit={submit}>
-        <label>
+      <form className="lib-form" onSubmit={submit}>
+        <label className="k-label">
           Default launch URL
           <input
+            className="k-field"
             value={url}
             onChange={(e) => {
               setUrl(e.target.value);
@@ -261,12 +311,12 @@ export function BrowserSettings({ store }: { store: BrowserStore }) {
             spellCheck={false}
           />
         </label>
-        <div className="browser-actions">
-          <button className="browser-button primary" type="submit">
+        <div className="lib-actions">
+          <button className="k-btn k-btn--primary" type="submit">
             Save launch URL
           </button>
           <button
-            className="browser-button"
+            className="k-btn k-btn--quiet"
             type="button"
             onClick={() => {
               store.save({ ...store.data, launchUrl: "" });

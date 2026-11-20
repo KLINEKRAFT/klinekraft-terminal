@@ -1,4 +1,13 @@
-import { Trash2, RotateCcw, History } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  History,
+  NotebookPen,
+  Plus,
+  RotateCcw,
+  SearchX,
+  Trash2,
+} from "lucide-react";
 import { Info } from "./Info";
 import { usHolidays } from "../holidays";
 import { RichNote, noteText } from "./RichNote";
@@ -53,6 +62,9 @@ export function Organizer({
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
   const [saveError, setSaveError] = useState(false);
+  // A 409 means the Pi copy changed elsewhere (another tab or device). Without
+  // an explicit way out, every switch/New/Trash retries the same failing save.
+  const [conflict, setConflict] = useState(false);
   const [status, setStatus] = useState("");
   const [month, setMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -107,6 +119,7 @@ export function Organizer({
 
   function edit(next: Item | null, changed = true) {
     setSaveError(false);
+    setConflict(false);
     setStatus("");
     latest.current = next;
     setDraft(next);
@@ -170,11 +183,38 @@ export function Organizer({
       return current === snapshot;
     } catch (error) {
       setSaveError(true);
+      setConflict((error as { status?: number }).status === 409);
       setStatus("Not saved — " + (error as Error).message);
       return false;
     } finally {
       saving.current = false;
       setBusy(false);
+    }
+  }
+  async function keepMineAsCopy() {
+    const mine = latest.current;
+    if (!mine) return;
+    setConflict(false);
+    edit({
+      ...mine,
+      id: crypto.randomUUID(),
+      revision: 0,
+      title: `${mine.title.trim() || "Untitled"} (my copy)`,
+    });
+    await save();
+  }
+  async function loadPiVersion() {
+    const mine = latest.current;
+    if (!mine) return;
+    try {
+      const all: Item[] = await localJSON(`/api/organizer?kind=${kind}`);
+      setItems(all);
+      setConflict(false);
+      edit(all.find((item) => item.id === mine.id) ?? blank(), false);
+      setStatus("Loaded the version saved on the Pi.");
+    } catch (error) {
+      setSaveError(true);
+      setStatus((error as Error).message);
     }
   }
   async function open(next: Item | null) {
@@ -282,7 +322,7 @@ export function Organizer({
         (item.title + " " + item.body)
           .toLowerCase()
           .includes(query.toLowerCase()) &&
-        (kind === "note" || !!query || item.day === day),
+        (kind === "note" || !!query || trash || item.day === day),
     )
     .sort((a, b) =>
       kind === "event"
@@ -303,6 +343,100 @@ export function Organizer({
         1 - month.getDay() + index,
       ),
   );
+  const noun = kind === "note" ? "note" : "event";
+  const friendlyDay = (value: string, weekday: "long" | "short" = "long") =>
+    new Date(`${value}T12:00`).toLocaleDateString("en-US", {
+      weekday,
+      month: weekday,
+      day: "numeric",
+    });
+  const friendlyTime = (value: string) =>
+    value
+      ? new Date(`2000-01-01T${value}`).toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+        })
+      : "All day";
+  const today = dayString(new Date());
+  // One short, stable word or two in the editor's corner says where the
+  // words are; anything longer (why a save failed, what was loaded) goes in
+  // its title or in the notice line under the title, so the title keeps room.
+  const okStatus = /^(Saved|Moved|Restored|Loaded|Recovered)\b/.test(status);
+  const saveState: {
+    text: string;
+    tone: "ok" | "warn" | "off" | "";
+    title?: string;
+  } = busy
+    ? { text: "Saving…", tone: "warn" }
+    : saveError
+      ? { text: "Not saved", tone: "off" }
+      : dirty
+        ? { text: "Edited", tone: "warn", title: status || undefined }
+        : status && !okStatus
+          ? // A failed list load also lands in status: never show it green.
+            { text: "Not synced", tone: "off" }
+          : /^Moved\b/.test(status)
+            ? { text: "Moved to Trash", tone: "ok" }
+            : /^Restored\b/.test(status)
+              ? { text: "Restored", tone: "ok" }
+              : status || (draft && draft.revision > 0)
+                ? {
+                    text: "Saved on Pi",
+                    tone: "ok",
+                    title: status ? status : undefined,
+                  }
+                : { text: "", tone: "" };
+  const notice = conflict
+    ? "Changed on the Pi from another tab or device."
+    : saveError || (status && !okStatus)
+      ? status.replace(/^Not saved — /, "")
+      : "";
+  const relativeDay = (value: string) => {
+    const offset = Math.round(
+      (new Date(`${value}T12:00`).getTime() -
+        new Date(`${today}T12:00`).getTime()) /
+        86400000,
+    );
+    return offset === 0
+      ? "today"
+      : offset === 1
+        ? "tomorrow"
+        : offset === -1
+          ? "yesterday"
+          : `on ${friendlyDay(value, "short")}`;
+  };
+  const emptyList = () => {
+    if (query)
+      return (
+        <div className="k-empty">
+          <SearchX size={28} aria-hidden="true" />
+          <h3>No matches</h3>
+          <p>
+            Nothing {trash ? "in Trash" : `in your ${noun}s`} mentions “{query}
+            ”.
+          </p>
+        </div>
+      );
+    if (trash)
+      return (
+        <div className="k-empty">
+          <Trash2 size={28} aria-hidden="true" />
+          <h3>Trash is empty</h3>
+          <p>Removed {noun}s wait here until you restore them.</p>
+        </div>
+      );
+    if (kind === "event")
+      return (
+        <p className="organizer-hint">Nothing scheduled {relativeDay(day)}.</p>
+      );
+    return (
+      <div className="k-empty">
+        <NotebookPen size={28} aria-hidden="true" />
+        <h3>No notes yet</h3>
+        <p>Start typing on the right. Notes save to the Pi as you write.</p>
+      </div>
+    );
+  };
   if (isHostedDemo)
     return (
       <p>
@@ -311,34 +445,18 @@ export function Organizer({
     );
   return (
     <section
-      className="organizer"
+      className={`organizer organizer--${kind}`}
       aria-label={kind === "note" ? "Notes workspace" : "Calendar workspace"}
     >
       {kind === "event" && (
         <div className="calendar">
-          <div className="organizer-toolbar">
-            <button
-              aria-label="Previous month"
-              onClick={() =>
-                setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))
-              }
-            >
-              ←
-            </button>
+          <div className="calendar-head">
             <h2>
               {month.toLocaleDateString(undefined, {
                 month: "long",
                 year: "numeric",
               })}
             </h2>
-            <button
-              aria-label="Next month"
-              onClick={() =>
-                setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))
-              }
-            >
-              →
-            </button>
             <Info label="Calendar information">
               <p>
                 US federal holidays, observed dates and common observances.
@@ -353,6 +471,8 @@ export function Organizer({
               </a>
             </Info>
             <button
+              type="button"
+              className="k-btn"
               onClick={() => {
                 const now = new Date();
                 setMonth(new Date(now.getFullYear(), now.getMonth(), 1));
@@ -360,6 +480,28 @@ export function Organizer({
               }}
             >
               Today
+            </button>
+            <button
+              type="button"
+              className="k-btn k-btn--icon"
+              aria-label="Previous month"
+              title="Previous month"
+              onClick={() =>
+                setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))
+              }
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              className="k-btn k-btn--icon"
+              aria-label="Next month"
+              title="Next month"
+              onClick={() =>
+                setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))
+              }
+            >
+              <ChevronRight size={18} />
             </button>
           </div>
           <div className="calendar-grid">
@@ -373,9 +515,11 @@ export function Organizer({
               ).length;
               return (
                 <button
+                  type="button"
                   key={key}
                   aria-label={`${key}${count ? `, ${count} events` : ""}`}
                   aria-pressed={day === key}
+                  aria-current={key === today ? "date" : undefined}
                   className={
                     date.getMonth() === month.getMonth() ? "" : "other-month"
                   }
@@ -384,14 +528,14 @@ export function Organizer({
                     setQuery("");
                   }}
                 >
-                  {date.getDate()}
+                  <span className="calendar-date">{date.getDate()}</span>
                   {holidays[key]?.map((name) => (
                     <small className="holiday" key={name} title={name}>
                       {name}
                     </small>
                   ))}
                   {count > 0 && (
-                    <small>
+                    <small className="calendar-count">
                       {count} event{count === 1 ? "" : "s"}
                     </small>
                   )}
@@ -401,13 +545,22 @@ export function Organizer({
           </div>
         </div>
       )}
-      {kind === "event" && holidays[day] && (
-        <div className="holiday-agenda">{holidays[day].join(" · ")}</div>
-      )}
       <div className="organizer-columns">
         <aside className="organizer-list">
-          <div className="organizer-toolbar">
+          <div className="organizer-list-head">
+            {kind === "event" && (
+              <div className="organizer-day">
+                <h3>
+                  {query ? "All dates" : trash ? "Trash" : friendlyDay(day)}
+                </h3>
+                {!query && !trash && holidays[day] && (
+                  <p className="holiday-agenda">{holidays[day].join(" · ")}</p>
+                )}
+              </div>
+            )}
             <button
+              type="button"
+              className="k-btn k-btn--primary organizer-new"
               disabled={busy}
               onClick={() =>
                 void open({
@@ -421,112 +574,81 @@ export function Organizer({
                   archived: false,
                 })
               }
-              aria-label={kind === "note" ? "New note" : "New event"}
             >
-              +
+              <Plus size={18} aria-hidden="true" />
+              {kind === "note" ? "New note" : "New event"}
             </button>
-            <button
-              aria-pressed={trash}
-              onClick={() => setTrash((value) => !value)}
+            <label className="sr-only" htmlFor={`organizer-search-${kind}`}>
+              Search {noun}s
+            </label>
+            <input
+              id={`organizer-search-${kind}`}
+              className="k-field organizer-search"
+              type="search"
+              placeholder={`Search ${noun}s`}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <div
+              className="organizer-filter"
+              role="group"
+              aria-label={`Show ${noun}s`}
             >
-              {trash ? "Show active" : "Trash"}
-            </button>
-          </div>
-          <label className="sr-only" htmlFor="organizer-search">
-            Search {kind === "note" ? "notes" : "events"}
-          </label>
-          <input
-            id="organizer-search"
-            type="search"
-            placeholder="Search…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-          {!visible.length && (
-            <p>
-              {kind === "event" && !query
-                ? `No events for ${day}.`
-                : "No items in this view."}
-            </p>
-          )}
-          {visible.map((item) => (
-            <div className="organizer-row" key={item.id}>
-              <button
-                className="organizer-item"
-                key={item.id}
-                disabled={busy}
-                aria-pressed={draft?.id === item.id}
-                onClick={() => void open(item)}
-              >
-                <strong>{item.title}</strong>
-                <span>
-                  {kind === "event"
-                    ? `${item.day} · ${item.time || "All day"}`
-                    : noteText(item.body).slice(0, 100) || "Empty note"}
-                </span>
-              </button>
-              <button
-                className="note-trash"
-                disabled={busy}
-                aria-label={`${item.archived ? "Restore" : "Trash"} ${item.title}`}
-                title={item.archived ? "Restore from Trash" : "Move to Trash"}
-                onClick={() => void archive(item)}
-              >
-                {item.archived ? <RotateCcw size={16} /> : <Trash2 size={16} />}
-              </button>
-            </div>
-          ))}
-        </aside>
-        <div className="organizer-editor">
-          <div className="organizer-savebar">
-            <p className="save-state" role="status">
-              {busy
-                ? "Saving…"
-                : saveError
-                  ? status
-                  : dirty
-                    ? "Edited"
-                    : status
-                      ? "Saved"
-                      : ""}
-            </p>
-            {draft && draft.revision > 0 && (
               <button
                 type="button"
-                disabled={busy}
-                onClick={() => void showHistory()}
-                aria-expanded={versions !== null}
-                title="Saved versions"
+                className="k-btn"
+                aria-pressed={!trash}
+                onClick={() => setTrash(false)}
               >
-                <History size={16} /> History
+                All
               </button>
-            )}
+              <button
+                type="button"
+                className="k-btn"
+                aria-pressed={trash}
+                onClick={() => setTrash(true)}
+              >
+                Trash
+              </button>
+            </div>
           </div>
-          {versions !== null && (
-            <section className="note-history" aria-label="Saved versions">
-              <h3>Saved versions</h3>
-              {!versions.length && <p>No earlier saved versions yet.</p>}
-              {versions.map((version) => (
-                <details key={version.revision}>
-                  <summary>
-                    Version {version.revision} · backed up{" "}
-                    {new Date(version.saved_at).toLocaleString()}
-                  </summary>
-                  <strong>{version.item.title}</strong>
-                  <p className="note-history-preview">
-                    {noteText(version.item.body) || "Empty note"}
-                  </p>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void restoreVersion(version.item)}
-                  >
-                    Restore this version
-                  </button>
-                </details>
-              ))}
-            </section>
-          )}
+          <div className="organizer-items">
+            {!visible.length && emptyList()}
+            {visible.map((item) => (
+              <div className="organizer-row" key={item.id}>
+                <button
+                  type="button"
+                  className="organizer-item"
+                  disabled={busy}
+                  aria-pressed={draft?.id === item.id}
+                  onClick={() => void open(item)}
+                >
+                  <strong>{item.title}</strong>
+                  <span>
+                    {kind === "event"
+                      ? `${query || item.day !== day ? `${friendlyDay(item.day ?? day, "short")} · ` : ""}${friendlyTime(item.time)}`
+                      : noteText(item.body).slice(0, 100) || "Empty note"}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="k-btn k-btn--quiet k-btn--icon note-trash"
+                  disabled={busy}
+                  aria-label={`${item.archived ? "Restore" : "Trash"} ${item.title}`}
+                  title={item.archived ? "Restore from Trash" : "Move to Trash"}
+                  onClick={() => void archive(item)}
+                >
+                  {item.archived ? (
+                    <RotateCcw size={16} />
+                  ) : (
+                    <Trash2 size={16} />
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+        </aside>
+        <div className="organizer-editor">
           {draft ? (
             <form
               onSubmit={(event) => {
@@ -534,23 +656,136 @@ export function Organizer({
                 void save();
               }}
             >
-              <label>
-                <span className="sr-only">Title</span>
-                <input
-                  placeholder="Title"
-                  required
-                  maxLength={200}
-                  value={draft.title}
-                  onChange={(event) =>
-                    edit({ ...draft, title: event.target.value })
-                  }
-                />
-              </label>
+              <div className="organizer-head">
+                <label className="organizer-title">
+                  <span className="sr-only">Title</span>
+                  <input
+                    placeholder={kind === "note" ? "Title" : "Event title"}
+                    required
+                    maxLength={200}
+                    value={draft.title}
+                    onChange={(event) =>
+                      edit({ ...draft, title: event.target.value })
+                    }
+                  />
+                </label>
+                <div className="organizer-savebar">
+                  <p
+                    className="save-state"
+                    role="status"
+                    title={saveState.title}
+                    data-tone={saveState.tone || undefined}
+                  >
+                    {saveState.tone && (
+                      <span
+                        className="k-status-dot"
+                        data-state={saveState.tone}
+                        aria-hidden="true"
+                      />
+                    )}
+                    {saveState.text}
+                  </p>
+                  {draft.revision > 0 &&
+                    (kind === "event" ? (
+                      <button
+                        type="button"
+                        className="k-btn k-btn--quiet k-btn--icon"
+                        disabled={busy}
+                        onClick={() => void showHistory()}
+                        aria-expanded={versions !== null}
+                        aria-label="History"
+                        title="Saved versions"
+                      >
+                        <History size={18} aria-hidden="true" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="k-btn k-btn--quiet"
+                        disabled={busy}
+                        onClick={() => void showHistory()}
+                        aria-expanded={versions !== null}
+                        title="Saved versions"
+                      >
+                        <History size={16} aria-hidden="true" /> History
+                      </button>
+                    ))}
+                </div>
+              </div>
+              {notice && (
+                <div
+                  className="organizer-notice"
+                  role={saveError ? "alert" : undefined}
+                >
+                  <p>{notice}</p>
+                  {conflict ? (
+                    <>
+                      <button
+                        type="button"
+                        className="k-btn"
+                        disabled={busy}
+                        onClick={() => void keepMineAsCopy()}
+                      >
+                        Keep mine as a copy
+                      </button>
+                      <button
+                        type="button"
+                        className="k-btn"
+                        disabled={busy}
+                        onClick={() => void loadPiVersion()}
+                      >
+                        Load Pi version
+                      </button>
+                    </>
+                  ) : (
+                    saveError &&
+                    dirty && (
+                      <button
+                        type="submit"
+                        className="k-btn"
+                        disabled={
+                          busy ||
+                          (!draft.title.trim() && !noteText(draft.body).trim())
+                        }
+                      >
+                        Try again
+                      </button>
+                    )
+                  )}
+                </div>
+              )}
+              {versions !== null && (
+                <section className="note-history" aria-label="Saved versions">
+                  <h3 className="k-eyebrow">Saved versions</h3>
+                  {!versions.length && <p>No earlier saved versions yet.</p>}
+                  {versions.map((version) => (
+                    <details key={version.revision}>
+                      <summary>
+                        Version {version.revision} · backed up{" "}
+                        {new Date(version.saved_at).toLocaleString()}
+                      </summary>
+                      <strong>{version.item.title}</strong>
+                      <p className="note-history-preview">
+                        {noteText(version.item.body) || "Empty note"}
+                      </p>
+                      <button
+                        type="button"
+                        className="k-btn"
+                        disabled={busy}
+                        onClick={() => void restoreVersion(version.item)}
+                      >
+                        Restore this version
+                      </button>
+                    </details>
+                  ))}
+                </section>
+              )}
               {kind === "event" && (
-                <div className="organizer-toolbar">
-                  <label>
+                <div className="event-when">
+                  <label className="k-label">
                     Date
                     <input
+                      className="k-field"
                       type="date"
                       required
                       value={draft.day ?? ""}
@@ -559,9 +794,10 @@ export function Organizer({
                       }
                     />
                   </label>
-                  <label>
+                  <label className="k-label">
                     Time (optional)
                     <input
+                      className="k-field"
                       type="time"
                       value={draft.time}
                       onChange={(event) =>
@@ -578,40 +814,26 @@ export function Organizer({
                   onChange={(body) => edit({ ...latest.current!, body })}
                 />
               ) : (
-                <label>
+                <label className="k-label event-details">
                   Details
                   <textarea
+                    className="k-field"
                     value={draft.body}
                     maxLength={100000}
+                    placeholder="Where, who, what to bring"
                     onChange={(event) =>
                       edit({ ...latest.current!, body: event.target.value })
                     }
                   />
                 </label>
               )}
-              <div className="organizer-toolbar">
-                <button
-                  type="submit"
-                  disabled={
-                    busy ||
-                    (!draft.title.trim() && !noteText(draft.body).trim())
-                  }
-                >
-                  {busy ? "Saving…" : "Save on Pi"}
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void open(blank())}
-                >
-                  New
-                </button>
-              </div>
             </form>
           ) : (
-            <button onClick={() => edit(blank(), false)} aria-label="New note">
-              +
-            </button>
+            <div className="k-empty">
+              <NotebookPen size={28} aria-hidden="true" />
+              <h3>Nothing open</h3>
+              <p>Pick a {noun} on the left or start a new one.</p>
+            </div>
           )}
         </div>
       </div>

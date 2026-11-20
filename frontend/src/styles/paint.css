@@ -1,0 +1,498 @@
+/* paint area styles — built on ui.css tokens and .k-* primitives.
+   Layout: one title row, one tool-options row, the tool rail beside the
+   canvas (the hero), and one colour + status strip along the bottom. */
+
+.paint {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  color: var(--ink);
+  font: var(--text-sm) var(--sans);
+}
+.paint > * {
+  flex: none;
+}
+.paint :is(button, summary, select, input):focus-visible,
+.recent-colors button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ── Title row ─────────────────────────────────────────────────────── */
+.paint-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.paint-title {
+  flex: 0 1 320px;
+  min-width: 140px;
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+.paint-save-status {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.paint-group {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* ── Dropdown menus (File, Canvas) ─────────────────────────────────── */
+.paint-menu {
+  position: relative;
+  flex: none;
+}
+.paint-menu-trigger {
+  /* File and Canvas are stacked right-aligned; one shared width keeps a
+     panel opened beside one trigger clear of the other. */
+  width: 104px;
+  justify-content: space-between;
+  gap: var(--space-1);
+  padding: 0 var(--space-3);
+}
+.paint-menu-trigger svg {
+  color: var(--muted);
+  transition: transform 120ms ease;
+}
+.paint-menu-trigger[aria-expanded="true"] {
+  border-color: var(--accent-fg);
+}
+.paint-menu-trigger[aria-expanded="true"] svg {
+  color: var(--accent-fg);
+  transform: rotate(180deg);
+}
+.paint-menu-panel[hidden] {
+  display: none;
+}
+.paint-menu-panel,
+.paint .paint-context,
+.paint-more-panel,
+.recent-colors {
+  z-index: 150;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 18%, transparent);
+}
+:root[data-theme="dark"]
+  :is(.paint .paint-context, .paint-more-panel, .recent-colors) {
+  background: var(--panel);
+}
+:root[data-theme="dark"] .paint-menu-panel,
+:root[data-theme="dark"] .paint-help .info-content {
+  background: var(--panel);
+}
+.paint-menu-panel {
+  /* Open beside the trigger, not below it: a panel dropping down from File
+     would cover the Canvas trigger underneath and swallow taps meant for it. */
+  position: absolute;
+  right: calc(100% + var(--space-1));
+  top: 0;
+  display: grid;
+  width: 230px;
+  gap: var(--space-1);
+  padding: var(--space-1);
+}
+.paint-menu-panel > .k-btn,
+.paint .paint-context > .k-btn {
+  justify-content: flex-start;
+  padding: 0 var(--space-3);
+  font-weight: 400;
+}
+.paint-menu-panel > .k-btn svg,
+.paint .paint-context > .k-btn svg {
+  flex: none;
+  color: var(--muted);
+}
+.paint-menu-panel > .k-select {
+  width: 100%;
+}
+.paint-menu-panel > hr {
+  width: 100%;
+  margin: var(--space-1) 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+.paint-menu-note {
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+/* ── Tool options row ──────────────────────────────────────────────── */
+.paint-options {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: var(--control-h);
+}
+.paint-options > label {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--muted);
+  font: 500 var(--text-xs) var(--sans);
+}
+.paint-options .k-select {
+  color: var(--ink);
+}
+.paint-text-option {
+  flex: 0 1 300px !important;
+  min-width: 160px;
+}
+.paint-text-option > .k-field {
+  flex: 1;
+  min-width: 0;
+}
+.paint-hint--notice {
+  color: var(--ink);
+  font-weight: 500;
+}
+.paint-hint {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ── Editor: tool rail + canvas ────────────────────────────────────── */
+.paint-editor {
+  display: grid;
+  flex: 1 1 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.paint-toolbox {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, var(--control-h));
+  grid-auto-rows: var(--control-h);
+  align-content: start;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-right: 1px solid var(--line);
+  background: var(--paper);
+}
+.paint-toolbox > .k-btn {
+  border-color: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+.paint-toolbox > .k-btn:hover:not(:disabled) {
+  color: var(--ink);
+}
+.paint-toolbox > .k-btn[aria-pressed="true"] {
+  border-color: var(--logo-blue);
+  background: var(--logo-blue);
+  /* White on the logo-blue fill, as .k-btn--primary (no on-accent token). */
+  color: #fff;
+}
+.paint-help {
+  display: grid;
+  grid-column: 1 / -1;
+  place-items: center;
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--line);
+}
+.paint-help .info-popover > summary {
+  width: var(--control-h);
+  height: var(--control-h);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  font-size: var(--text-md);
+}
+.paint-help .info-popover > summary:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink);
+}
+/* The help panel opens beside the whole rail, not over its right column:
+   the wrapper and popover are static so it anchors to .paint-toolbox. */
+.paint-help,
+.paint-help .info-popover {
+  position: static;
+}
+.paint-help .info-content {
+  left: calc(100% + var(--space-2));
+  right: auto;
+  top: auto;
+  bottom: var(--space-2);
+  border-radius: var(--radius-md);
+  font: var(--text-sm) / 1.5 var(--sans);
+}
+.paint-help .info-content p {
+  margin: 0 0 var(--space-2);
+}
+.paint-help .info-content p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+.paint-surface {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-3);
+  overflow: auto;
+  background: var(--panel);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--ink) 14%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 12px 12px;
+  scrollbar-width: thin;
+}
+.paint-surface:focus-visible {
+  outline: 2px solid var(--accent-fg);
+  outline-offset: -2px;
+}
+.paint-canvas-wrap {
+  position: relative;
+  flex: none;
+  margin: auto;
+  line-height: 0;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--ink) 22%, transparent),
+    0 8px 24px color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.paint canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  cursor: crosshair;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+.paint-selection {
+  position: absolute;
+  border: 1px dashed #000;
+  outline: 1px dashed #fff;
+  pointer-events: none;
+}
+
+/* ── Canvas right-click menu ───────────────────────────────────────── */
+.paint .paint-context {
+  position: fixed;
+  display: grid;
+  width: 210px;
+  gap: var(--space-1);
+  padding: var(--space-1);
+}
+
+/* ── Bottom strip: colours, readout, zoom ──────────────────────────── */
+.paint-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  color: var(--muted);
+  font: var(--text-xs) var(--sans);
+}
+.paint-colors {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+}
+.paint-swatch {
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: var(--space-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--field);
+  cursor: pointer;
+}
+.paint-swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.paint-swatch::-webkit-color-swatch {
+  border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+  border-radius: var(--radius-sm);
+}
+.paint-swatch::-moz-color-swatch {
+  border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+  border-radius: var(--radius-sm);
+}
+/* Palette: eight full-size (36px) swatches plus a "More colors" popover. */
+.paint-palette {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: var(--space-2);
+}
+.paint .paint-color {
+  position: relative;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.paint .paint-color[aria-pressed="true"] {
+  z-index: 1;
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent-fg);
+}
+.paint-more-colors {
+  position: relative;
+  display: grid;
+}
+.paint-more-colors > .k-btn {
+  color: var(--muted);
+}
+.paint-more-colors > .k-btn[aria-expanded="true"],
+.paint-more-colors > .k-btn[aria-pressed="true"] {
+  border-color: var(--accent-fg);
+  background: transparent;
+  color: var(--accent-fg);
+}
+.paint-more-panel {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  display: grid;
+  grid-template-columns: repeat(4, var(--control-h));
+  gap: var(--space-2);
+  padding: var(--space-2);
+  transform: translateX(-50%);
+}
+.color-wheel-control {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-left: var(--space-1);
+}
+.paint .color-wheel,
+.paint .color-wheel:hover {
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: radial-gradient(circle, #fff, transparent 68%),
+    conic-gradient(red, #ff0, #0f0, #0ff, #00f, #f0f, red);
+  cursor: crosshair;
+}
+.recent-colors {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+}
+.recent-colors > button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.recent-colors > .recent-colors-close {
+  display: grid;
+  place-items: center;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+.recent-colors > .recent-colors-close:hover {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--ink);
+}
+.paint-readout {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.paint-zoom {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 500;
+}
+.paint-zoom .k-select {
+  color: var(--ink);
+}
+
+/* ── Expanded: Paint takes over the page area, app nav stays ───────── */
+.paint.paint-expanded {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  height: 100%;
+  padding: 0;
+  background: var(--paper);
+}
+main:has(.paint-expanded) > .page-header {
+  display: none;
+}
+
+/* ── Narrow screens: stack rail above the canvas ───────────────────── */
+@media (max-width: 760px) {
+  .paint-bar,
+  .paint-options,
+  .paint-footer {
+    flex-wrap: wrap;
+  }
+  .paint-hint {
+    flex-basis: 100%;
+    white-space: normal;
+  }
+  .paint-editor {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(240px, 1fr);
+  }
+  .paint-toolbox {
+    grid-template-columns: repeat(auto-fill, var(--control-h));
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .paint-help {
+    grid-column: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .paint-palette {
+    flex-wrap: wrap;
+    margin-left: 0;
+  }
+  .paint-colors {
+    flex-wrap: wrap;
+  }
+}

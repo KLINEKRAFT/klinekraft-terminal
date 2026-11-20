@@ -1,6 +1,7 @@
 import { DetailsPanel } from "./DetailsPanel";
 import { DocumentReader, type DocumentSource } from "./DocumentReader";
 import { useEffect, useState, type FormEvent } from "react";
+import { ArrowLeft, Download, NotebookPen, SearchX, Trash2 } from "lucide-react";
 import { isHostedDemo } from "../runtime";
 import { ArticleDialog, localJSON } from "./WikiReader";
 import { downloadJSON } from "./useConversations";
@@ -41,34 +42,53 @@ export function NotebookSave({ turn }: { turn: Turn }) {
 
   return (
     <DetailsPanel title="Save to notebook">
-      <form className="research-fields" onSubmit={save}>
-        <label>
-          Project{" "}
+      <form className="lib-form" onSubmit={save}>
+        <label className="k-label">
+          Project
           <input
+            className="k-field"
             value={project}
             maxLength={80}
             required
             onChange={(event) => setProject(event.target.value)}
           />
         </label>
-        <label>
-          Note{" "}
+        <label className="k-label">
+          Note
           <textarea
+            className="k-field"
             value={note}
             maxLength={4000}
             onChange={(event) => setNote(event.target.value)}
           />
         </label>
-        <button type="submit" disabled={saving || !project.trim()}>
-          Save entry
-        </button>
+        <div className="lib-actions">
+          <button
+            type="submit"
+            className="k-btn k-btn--primary"
+            disabled={saving || !project.trim()}
+          >
+            Save entry
+          </button>
+        </div>
       </form>
-      {status && <p role="status">{status}</p>}
+      {status && (
+        <p role="status" className="lib-note">
+          {status}
+        </p>
+      )}
     </DetailsPanel>
   );
 }
 
-export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
+export function Notebook({
+  onAsk,
+  onStart,
+}: {
+  onAsk: (file: File) => void;
+  /** Opens Shackleton so the user can save a first answer. */
+  onStart?: () => void;
+}) {
   function ask(entry: Entry) {
     const citations = entry.turn.sources.map(
       (source) =>
@@ -178,30 +198,85 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
   }
 
   if (isHostedDemo) return null;
+  const projects = [...new Set(entries.map((entry) => entry.project))].sort();
+  const visible = entries.filter(
+    (entry) => !project || entry.project === project,
+  );
+  const searchable = !!entries.length || !!query;
+  function toggleTrash() {
+    setTrash((value) => !value);
+    setCursor(null);
+    setEntries([]);
+    setHasMore(false);
+    setProject("");
+    setEditing(null);
+  }
   return (
-    <section
-      className="settings-panel research-library"
-      aria-label="Project notebook"
-    >
-      <h2>Project notebook</h2>
-      <button
-        disabled={saving}
-        onClick={() => {
-          setTrash((value) => !value);
-          setCursor(null);
-          setEntries([]);
-          setHasMore(false);
-          setProject("");
-          setEditing(null);
-        }}
-      >
-        {trash ? "Back to notebook" : "Trash"}
-      </button>
+    <section className="lib-notebook" aria-label="Project notebook">
+      <h2 className="sr-only">Project notebook</h2>
+      <div className="lib-toolbar">
+        {searchable && (
+          <input
+            className="k-field lib-toolbar-grow"
+            type="search"
+            aria-label="Search notebook"
+            placeholder={trash ? "Search trash" : "Search saved answers"}
+            value={query}
+            maxLength={200}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setCursor(null);
+              setProject("");
+              setEntries([]);
+            }}
+          />
+        )}
+        {projects.length > 1 && (
+          <select
+            className="k-select"
+            aria-label="Project"
+            value={project}
+            onChange={(event) => setProject(event.target.value)}
+          >
+            <option value="">All projects</option>
+            {projects.map((name) => (
+              <option key={name}>{name}</option>
+            ))}
+          </select>
+        )}
+        {!!entries.length && (
+          <button
+            className="k-btn k-btn--quiet"
+            disabled={loading}
+            aria-label="Export loaded entries"
+            onClick={() => downloadJSON(visible, "klinekraft-notebook.json")}
+          >
+            <Download size={16} aria-hidden="true" /> Export
+          </button>
+        )}
+        <button
+          className="k-btn k-btn--quiet lib-toolbar-end"
+          disabled={saving}
+          onClick={toggleTrash}
+        >
+          {trash ? (
+            <>
+              <ArrowLeft size={16} aria-hidden="true" /> Back to notebook
+            </>
+          ) : (
+            <>
+              <Trash2 size={16} aria-hidden="true" /> Trash
+            </>
+          )}
+        </button>
+      </div>
       {editing && (
-        <form className="research-fields" onSubmit={updateEntry}>
-          <label>
-            Edit project{" "}
+        <form className="k-card lib-form" onSubmit={updateEntry}>
+          <h3>Edit entry</h3>
+          <label className="k-label">
+            Edit project
             <input
+              className="k-field"
               required
               maxLength={80}
               value={editing.project}
@@ -210,9 +285,10 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
               }
             />
           </label>
-          <label>
-            Edit note{" "}
+          <label className="k-label">
+            Edit note
             <textarea
+              className="k-field"
               maxLength={4000}
               value={editing.note}
               onChange={(event) =>
@@ -220,104 +296,128 @@ export function Notebook({ onAsk }: { onAsk: (file: File) => void }) {
               }
             />
           </label>
-          <button disabled={saving || !editing.project.trim()}>
-            Save changes
-          </button>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => setEditing(null)}
-          >
-            Cancel
-          </button>
+          <div className="lib-actions">
+            <button
+              className="k-btn k-btn--primary"
+              disabled={saving || !editing.project.trim()}
+            >
+              Save changes
+            </button>
+            <button
+              type="button"
+              className="k-btn k-btn--quiet"
+              disabled={saving}
+              onClick={() => setEditing(null)}
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       )}
-      <label>
-        Search notebook{" "}
-        <input
-          type="search"
-          value={query}
-          maxLength={200}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setCursor(null);
-            setProject("");
-            setEntries([]);
-          }}
-        />
-      </label>
-      {!!entries.length && (
-        <button
-          disabled={loading}
-          onClick={() =>
-            downloadJSON(
-              entries.filter((entry) => !project || entry.project === project),
-              "klinekraft-notebook.json",
-            )
-          }
-        >
-          Export loaded entries
-        </button>
-      )}
-      {error && <p role="alert">{error}</p>}
-      {entries.length ? (
-        <label>
-          Project{" "}
-          <select
-            value={project}
-            onChange={(event) => setProject(event.target.value)}
-          >
-            <option value="">All projects</option>
-            {[...new Set(entries.map((entry) => entry.project))]
-              .sort()
-              .map((name) => (
-                <option key={name}>{name}</option>
-              ))}
-          </select>
-        </label>
-      ) : (
-        <p>
-          {loading
-            ? "Loading notebook…"
-            : query
-              ? "No matching entries."
-              : "Save an assistant answer to start a project."}
+      {error && (
+        <p role="alert" className="lib-alert">
+          {error}
         </p>
       )}
-      {entries
-        .filter((entry) => !project || entry.project === project)
-        .map((entry) => (
-          <details key={entry.id}>
-            <summary>
-              {entry.turn.question} · {entry.project}
-            </summary>
-            {entry.note && <p>{entry.note}</p>}
-            <p className="ai-answer">{entry.turn.answer}</p>
-            <button disabled={saving} onClick={() => setEditing(entry)}>
-              Edit note
-            </button>
-            <button disabled={saving} onClick={() => void moveEntry(entry)}>
-              {trash ? "Restore" : "Move to trash"}
-            </button>
-            <button type="button" onClick={() => ask(entry)}>
-              Ask about this entry
-            </button>
-            {!!entry.turn.sources.length && (
-              <ul>
-                {entry.turn.sources.map((source) => (
-                  <li key={source.id}>
-                    <button onClick={() => void open(source)}>
-                      [{source.id}] {source.title}
-                      {source.page ? ` · page ${source.page}` : ""}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+      {!entries.length &&
+        (loading ? (
+          <p role="status" className="lib-note">
+            Loading notebook…
+          </p>
+        ) : error ? null : query ? (
+          <div className="k-empty">
+            <SearchX size={32} aria-hidden="true" />
+            <h3>No entries match “{query}”</h3>
+            <p>Try another word from the question, answer or note.</p>
+          </div>
+        ) : trash ? (
+          <div className="k-empty">
+            <Trash2 size={32} aria-hidden="true" />
+            <h3>Trash is empty</h3>
+            <p>Entries you move to trash wait here until you restore them.</p>
+          </div>
+        ) : (
+          <div className="k-empty">
+            <NotebookPen size={32} aria-hidden="true" />
+            <h3>Keep the answers worth keeping</h3>
+            <p>
+              When Shackleton answers, choose Save to notebook under the reply
+              and file it under a project. Saved answers keep their sources.
+            </p>
+            {onStart ? (
+              <button
+                type="button"
+                className="k-btn k-btn--primary"
+                onClick={onStart}
+              >
+                Ask Shackleton
+              </button>
+            ) : (
+              <code>Shackleton → answer → Save to notebook</code>
             )}
-          </details>
+          </div>
         ))}
+      {!!visible.length && (
+        <ul className="lib-entries">
+          {visible.map((entry) => (
+            <li key={entry.id}>
+              <details className="lib-entry">
+                <summary>
+                  <span className="lib-entry-question">
+                    {entry.turn.question}
+                  </span>
+                  <span className="lib-chip">{entry.project}</span>
+                </summary>
+                <div className="lib-entry-body">
+                  {entry.note && <p className="lib-entry-note">{entry.note}</p>}
+                  <p className="ai-answer">{entry.turn.answer}</p>
+                  {!!entry.turn.sources.length && (
+                    <ul className="lib-sources" aria-label="Sources">
+                      {entry.turn.sources.map((source) => (
+                        <li key={source.id}>
+                          <button
+                            className="k-btn k-btn--quiet"
+                            onClick={() => void open(source)}
+                          >
+                            [{source.id}] {source.title}
+                            {source.page ? ` · page ${source.page}` : ""}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="lib-actions">
+                    <button
+                      type="button"
+                      className="k-btn"
+                      onClick={() => ask(entry)}
+                    >
+                      Ask about this entry
+                    </button>
+                    <button
+                      className="k-btn k-btn--quiet"
+                      disabled={saving}
+                      onClick={() => setEditing(entry)}
+                    >
+                      Edit note
+                    </button>
+                    <button
+                      className="k-btn k-btn--quiet"
+                      disabled={saving}
+                      onClick={() => void moveEntry(entry)}
+                    >
+                      {trash ? "Restore" : "Move to trash"}
+                    </button>
+                  </div>
+                </div>
+              </details>
+            </li>
+          ))}
+        </ul>
+      )}
       {hasMore && !!entries.length && (
         <button
+          className="k-btn lib-more"
           disabled={loading}
           onClick={() => setCursor(entries[entries.length - 1].id)}
         >

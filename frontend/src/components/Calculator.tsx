@@ -1,5 +1,14 @@
+import { ArrowLeftRight } from "lucide-react";
 import { Info } from "./Info";
 import { useState } from "react";
+import {
+  conversions,
+  convertFields,
+  switchQuantity,
+  type ConversionId,
+  type Side,
+  type UnitValues,
+} from "../units";
 
 export function calculate(expression: string): number {
   const normalized = expression
@@ -58,7 +67,92 @@ export function calculate(expression: string): number {
   if (cursor !== tokens.length) throw Error("Check the expression.");
   if (!Number.isFinite(result))
     throw Error("Result is outside the supported range.");
-  return Number(result.toPrecision(12));
+  // 15 significant digits removes float noise (0.1 + 0.2) without rounding
+  // large whole numbers: 999999999999 + 2 must be 1000000000001.
+  return Number(result.toPrecision(15));
+}
+
+const conversionKey = "klinekraft.calculator.conversion";
+
+function UnitConverter() {
+  const [id, setId] = useState<ConversionId>(() => {
+    try {
+      const saved = localStorage.getItem(conversionKey);
+      if (conversions.some((c) => c.id === saved)) return saved as ConversionId;
+    } catch {
+      /* Remembering the last quantity is only a convenience. */
+    }
+    return "temperature";
+  });
+  const [values, setValues] = useState<UnitValues>({ us: "", metric: "" });
+  // The side the person last typed on: its number is the one that carries
+  // over when the quantity changes (the other side is only derived).
+  const [source, setSource] = useState<Side>("us");
+  const conversion = conversions.find((c) => c.id === id)!;
+  function type(side: Side, text: string) {
+    setSource(side);
+    setValues(convertFields(id, side, text));
+  }
+  function choose(next: ConversionId) {
+    setId(next);
+    try {
+      localStorage.setItem(conversionKey, next);
+    } catch {
+      /* Keep working without remembering the choice. */
+    }
+    setValues(switchQuantity(next, values, source));
+  }
+  return (
+    <section
+      className="k-card unit-converter"
+      aria-labelledby="converter-title"
+    >
+      <div className="unit-converter-head">
+        <h2 className="k-eyebrow" id="converter-title">
+          Convert
+        </h2>
+        <select
+          className="k-select"
+          aria-label="Quantity"
+          value={id}
+          onChange={(event) => choose(event.target.value as ConversionId)}
+        >
+          {conversions.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label} · {c.us.symbol} ↔ {c.metric.symbol}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="unit-pair">
+        {(["us", "metric"] as const).map((side, index) => (
+          <div className="unit-side" key={side}>
+            {index === 1 && (
+              <ArrowLeftRight
+                className="unit-swap"
+                size={20}
+                aria-hidden="true"
+              />
+            )}
+            <label className="unit-field">
+              <span className="sr-only">{conversion[side].name}</span>
+              <input
+                className="k-field"
+                inputMode="decimal"
+                autoComplete="off"
+                value={values[side]}
+                onChange={(event) => type(side, event.target.value)}
+              />
+              <span className="unit-symbol" aria-hidden="true">
+                {conversion[side].symbol}
+              </span>
+            </label>
+          </div>
+        ))}
+      </div>
+      <p className="unit-rule">{conversion.rule}</p>
+    </section>
+  );
 }
 
 export function Calculator() {
@@ -111,25 +205,42 @@ export function Calculator() {
       evaluate();
       return;
     }
+    // After "=", an operator continues from the answer (2+3 = then ×4 = 20)
+    // and a digit starts a new calculation, like a desk calculator.
+    const continuing = result !== "" && key !== "AC" && key !== "⌫";
+    const operator = ["÷", "×", "−", "-", "+", "%", "*", "/"].includes(key);
     setResult("");
     setExpression((value) =>
       key === "AC"
         ? ""
         : key === "⌫"
           ? value.slice(0, -1)
-          : (value + key).slice(0, 200),
+          : ((continuing ? (operator ? result : "") : value) + key).slice(
+              0,
+              200,
+            ),
     );
   }
   return (
     <section className="calculator" aria-label="Calculator">
       <div className="calculator-machine">
+        <div className="calculator-info">
+          <Info label="Calculator help">
+            <p>
+              % divides a number by 100. Enter calculates. Tap a history entry
+              to reuse it.
+            </p>
+          </Info>
+        </div>
         <form
           onSubmit={(event) => {
             event.preventDefault();
             evaluate();
           }}
         >
-          <label htmlFor="calculation">Expression</label>
+          <label htmlFor="calculation" className="sr-only">
+            Expression
+          </label>
           <input
             id="calculation"
             value={expression}
@@ -142,7 +253,9 @@ export function Calculator() {
               setError("");
             }}
           />
-          <output aria-live="polite">{error || result || "0"}</output>
+          <output aria-live="polite" data-error={error ? "true" : undefined}>
+            {error || result || "0"}
+          </output>
         </form>
         <div className="calculator-keys">
           {[
@@ -170,7 +283,14 @@ export function Calculator() {
           ].map((key) => (
             <button
               key={key}
-              className={key === "=" ? "calculator-equals" : ""}
+              type="button"
+              className={
+                key === "="
+                  ? "calculator-equals"
+                  : /[0-9.]/.test(key)
+                    ? "calculator-digit"
+                    : "calculator-op"
+              }
               aria-label={
                 key === "⌫" ? "Backspace" : key === "AC" ? "Clear" : key
               }
@@ -180,30 +300,39 @@ export function Calculator() {
             </button>
           ))}
         </div>
-        <Info label="Calculator help">
-          <p>
-            % divides a number by 100. Enter calculates. Click a history entry
-            to reuse it.
-          </p>
-        </Info>
       </div>
-      <aside className="calculator-history">
-        <h2>History</h2>
-
-        {history.map((item, index) => (
-          <button
-            key={index}
-            onClick={() => {
-              setExpression(item.expression);
-              setResult(item.result);
-              setError("");
-            }}
-          >
-            <span>{item.expression}</span>
-            <strong>= {item.result}</strong>
-          </button>
-        ))}
-      </aside>
+      <div className="calculator-side">
+        <UnitConverter />
+        <section
+          className="k-card calculator-history"
+          aria-labelledby="calculator-history-title"
+        >
+          <h2 className="k-eyebrow" id="calculator-history-title">
+            History
+          </h2>
+          {history.length ? (
+            <ol>
+              {history.map((item, index) => (
+                <li key={index}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExpression(item.expression);
+                      setResult(item.result);
+                      setError("");
+                    }}
+                  >
+                    <span>{item.expression}</span>
+                    <strong>= {item.result}</strong>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p>Results you calculate appear here.</p>
+          )}
+        </section>
+      </div>
     </section>
   );
 }

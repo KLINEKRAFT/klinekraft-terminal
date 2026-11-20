@@ -51,7 +51,9 @@ export function HomeTools({
           <h2>
             <Pin size={13} /> Pinned bookmarks
           </h2>
-          <button onClick={openLibrary}>Manage</button>
+          <button className="k-btn k-btn--quiet" onClick={openLibrary}>
+            Manage
+          </button>
         </div>
         {pins.length ? (
           <ul>
@@ -73,7 +75,7 @@ export function HomeTools({
           <p>
             Keep your regular stops close.
             <br />
-            <button onClick={openLibrary}>
+            <button className="k-btn k-btn--quiet" onClick={openLibrary}>
               Pin a bookmark from Library <ArrowUpRight size={12} />
             </button>
           </p>
@@ -98,6 +100,7 @@ export function HomeTools({
         </div>
         <textarea
           id="quick-note"
+          className="k-field"
           value={note.text}
           onChange={(e) => note.change(e.target.value)}
           placeholder="Write a quick note…"

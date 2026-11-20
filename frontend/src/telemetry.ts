@@ -87,7 +87,7 @@ function parseSnapshot(value: unknown): Reading {
   return data as unknown as Reading;
 }
 
-export function useTelemetry(paused: boolean, now: number) {
+export function useTelemetry(paused: boolean) {
   const [mode, changeMode] = useState<DataMode>(() => {
     if (isHostedDemo) return "preview";
     try {
@@ -104,6 +104,19 @@ export function useTelemetry(paused: boolean, now: number) {
   const [receivedAt, setReceivedAt] = useState(0);
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [storageWarning, setStorageWarning] = useState("");
+  // Staleness is checked on its own slow timer. Setting the same boolean is a
+  // no-op for React, so the app only re-renders when the state flips.
+  const [overdue, setOverdue] = useState(false);
+  useEffect(() => {
+    if (mode !== "host" || paused || !receivedAt) {
+      setOverdue(false);
+      return;
+    }
+    const check = () => setOverdue(Date.now() - receivedAt > 10000);
+    check();
+    const timer = setInterval(check, 2000);
+    return () => clearInterval(timer);
+  }, [mode, paused, receivedAt]);
 
   const setMode = (next: DataMode) => {
     if (next === mode || (isHostedDemo && next === "host")) return;
@@ -183,7 +196,7 @@ export function useTelemetry(paused: boolean, now: number) {
   const stale =
     mode === "host" &&
     host !== null &&
-    (host.stale || connection === "error" || now - receivedAt > 10000);
+    (host.stale || connection === "error" || overdue);
   const label =
     mode === "preview"
       ? paused

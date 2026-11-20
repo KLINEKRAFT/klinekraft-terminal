@@ -29,13 +29,17 @@ type Readiness = {
 export function EmergencyDashboard({
   navigate,
   onAsk,
+  initialTopic,
 }: {
   navigate: (section: Section) => void;
   onAsk: (file: File) => void;
+  initialTopic?: string;
 }) {
   const [readiness, setReadiness] = useState<Readiness | null>(null);
   const [error, setError] = useState("");
-  const [topic, setTopic] = useState("power outage");
+  const [topic, setTopic] = useState(
+    initialTopic && emergencyGuides[initialTopic] ? initialTopic : "power outage",
+  );
   useEffect(() => {
     const request = new AbortController();
     localJSON("/api/emergency/status", { signal: request.signal })

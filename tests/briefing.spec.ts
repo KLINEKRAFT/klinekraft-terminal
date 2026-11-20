@@ -147,42 +147,130 @@ test("Shackleton renders readable Markdown safely and preserves external citatio
   ).toHaveAttribute("href", "https://openalex.org/W1");
 });
 
-test("severe reports take priority and a lost service hides the live ticker", async ({
-  page,
-}) => {
-  let offline = false;
+async function routeBriefing(
+  page: import("@playwright/test").Page,
+  events: object[],
+  state: { offline: boolean },
+) {
   await page.route("**/api/briefing", (r) =>
-    offline
+    state.offline
       ? r.fulfill({ status: 503, json: { detail: "offline" } })
       : r.fulfill({
           json: {
             settings,
-            events: [
-              fresh,
-              {
-                ...fresh,
-                id: "severe",
-                title: "Severe test warning",
-                severity: "Severe",
-              },
-            ],
+            events,
             acknowledged: [],
             feeds: { weather: { stale: false, updated: Date.now() / 1000 } },
           },
         }),
   );
+}
+const severe = {
+  ...fresh,
+  id: "severe",
+  title: "Severe test warning",
+  severity: "Severe",
+};
+
+test("severe reports take priority and stay visible, marked stale, after a failed poll", async ({
+  page,
+}) => {
+  const state = { offline: false };
   await page.clock.install();
+  const now = Date.now() / 1000;
+  await routeBriefing(
+    page,
+    [
+      { ...fresh, expires: now + 3600 },
+      { ...severe, expires: now + 3600 },
+    ],
+    state,
+  );
   await page.goto("/");
-  await expect(page.locator(".event-ticker")).toContainText(
-    "Severe test warning",
-  );
+  const ticker = page.locator(".event-ticker");
+  await expect(ticker).toContainText("Severe test warning");
+  await expect(ticker).not.toHaveAttribute("data-stale");
+  await expect(ticker).not.toContainText("Last checked");
+  // Severe outranks the moderate advisory through a rotation.
   await page.clock.fastForward(11000);
-  await expect(page.locator(".event-ticker")).toContainText(
-    "Severe test warning",
-  );
-  offline = true;
+  await expect(ticker).toContainText("Severe test warning");
+  state.offline = true;
   await page.clock.fastForward(30000);
-  await expect(page.locator(".event-ticker")).toHaveCount(0);
+  // One failed poll keeps the last good alert, visibly marked as not live.
+  await expect(ticker).toContainText("Severe test warning");
+  await expect(ticker).toHaveAttribute("data-stale", "true");
+  await expect(ticker.locator(".event-ticker-stamp")).toHaveText(
+    "Last checked under 1 min ago",
+  );
+  await expect(
+    page.getByRole("button", { name: /Events and science: 2 unread/ }),
+  ).toBeVisible();
+  await page.clock.fastForward(90000);
+  await expect(ticker.locator(".event-ticker-stamp")).toHaveText(
+    /^Last checked 2 min ago$/,
+  );
+  // Contact returns: the stamp goes away.
+  state.offline = false;
+  await page.clock.fastForward(30000);
+  await expect(ticker).not.toHaveAttribute("data-stale");
+  await expect(ticker.locator(".event-ticker-stamp")).toHaveCount(0);
+});
+
+test("the ticker is withdrawn after more than 5 minutes without contact", async ({
+  page,
+}) => {
+  const state = { offline: false };
+  await page.clock.install();
+  const now = Date.now() / 1000;
+  await routeBriefing(page, [{ ...severe, expires: now + 7200 }], state);
+  await page.goto("/");
+  const ticker = page.locator(".event-ticker");
+  await expect(ticker).toContainText("Severe test warning");
+  state.offline = true;
+  // Four and a half minutes of failed polls: still shown, stale.
+  await page.clock.fastForward(270000);
+  await expect(ticker).toContainText("Severe test warning");
+  await expect(ticker.locator(".event-ticker-stamp")).toHaveText(
+    "Last checked 4 min ago",
+  );
+  // Past five minutes: no live ticker and no unread count.
+  await page.clock.fastForward(60000);
+  await expect(ticker).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Events and science", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".alert-bell small")).toHaveText("!");
+});
+
+test("an alert past its expires time disappears even while the service is down", async ({
+  page,
+}) => {
+  const state = { offline: false };
+  await page.clock.install();
+  const now = Date.now() / 1000;
+  await routeBriefing(
+    page,
+    [
+      { ...fresh, title: "Long advisory", expires: now + 3600 },
+      { ...severe, expires: now + 90 },
+    ],
+    state,
+  );
+  await page.goto("/");
+  const ticker = page.locator(".event-ticker");
+  await expect(ticker).toContainText("Severe test warning");
+  state.offline = true;
+  await page.clock.fastForward(31000);
+  await expect(ticker).toContainText("Severe test warning");
+  await expect(ticker).toHaveAttribute("data-stale", "true");
+  // The severe warning's own expiry passes while polls still fail.
+  await page.clock.fastForward(75000);
+  await expect(ticker).not.toContainText("Severe test warning");
+  await expect(ticker).toContainText("Long advisory");
+  await expect(ticker).toHaveAttribute("data-stale", "true");
+  await expect(
+    page.getByRole("button", { name: /Events and science: 1 unread/ }),
+  ).toBeVisible();
 });
 
 test("Field Briefing defaults to Tulsa weather and separates events from science", async ({

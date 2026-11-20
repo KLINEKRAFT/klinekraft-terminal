@@ -11,6 +11,7 @@ export type MapLocation = {
   note?: string;
 };
 import { localJSON } from "./WikiReader";
+import { overlayColors } from "./mapBase";
 type Catalog = {
   updated: string;
   groups: { id: string; name: string; note: string }[];
@@ -69,14 +70,15 @@ export function MapCollections({
       (view.getSource("catalog") as GeoJSONSource).setData(data);
     else {
       view.addSource("catalog", { type: "geojson", data });
+      const colors = overlayColors();
       view.addLayer({
         id: "catalog-points",
         type: "circle",
         source: "catalog",
         paint: {
           "circle-radius": 5,
-          "circle-color": "#123aff",
-          "circle-stroke-color": "#fff",
+          "circle-color": colors.accent,
+          "circle-stroke-color": colors.ring,
           "circle-stroke-width": 1.5,
         },
       });
@@ -148,7 +150,7 @@ export function MapCollections({
             disabled={!view}
             onClick={() => go([p.longitude, p.latitude], p.name, p)}
           >
-            <MapPin size={15} />
+            <MapPin size={16} aria-hidden="true" />
             <span>
               {p.name}
               <small>
@@ -172,8 +174,9 @@ export function MapCollections({
           }}
         >
           <label>
-            <Search size={16} />
+            <Search size={16} aria-hidden="true" />
             <input
+              className="k-field"
               aria-label="US address"
               placeholder="Place name or street address"
               value={query}
@@ -187,26 +190,36 @@ export function MapCollections({
               }}
             />
           </label>
-          <button disabled={!view || busy || query.trim().length < 3}>
+          <button
+            className="k-btn k-btn--primary"
+            disabled={!view || busy || query.trim().length < 3}
+          >
             {busy ? "Searching…" : "Find address"}
           </button>
         </form>
-        {status && <p role="status">{status}</p>}
+        {status && (
+          <p className="atlas-note" role="status">
+            {status}
+          </p>
+        )}
         {list(results)}
         {locals.length > 0 && (
           <>
-            <span className="atlas-subtitle">On this deck</span>
+            <span className="k-eyebrow">On this deck</span>
             {list(locals)}
           </>
         )}
         {!query && (
-          <div className="atlas-empty">
-            <Search size={24} />
-            <p>Find a park, saved place or US street address.</p>
+          <div className="k-empty atlas-empty">
+            <Search size={24} aria-hidden="true" />
+            <h3>Search offline places</h3>
+            <p>Parks, saved places, or a US street address.</p>
           </div>
         )}
         {query && locals.length === 0 && !results.length && !busy && (
-          <p>No matching saved places. Use Find address for a street lookup.</p>
+          <p className="atlas-note">
+            No matching saved places. Use Find address for a street lookup.
+          </p>
         )}
         <details className="atlas-info">
           <summary>Search info</summary>
@@ -221,6 +234,7 @@ export function MapCollections({
           {catalog?.groups.map((g) => (
             <button
               key={g.id}
+              className="k-btn"
               aria-pressed={group === g.id}
               onClick={() => {
                 setGroup(group === g.id ? "" : g.id);
@@ -238,6 +252,7 @@ export function MapCollections({
         {group && (
           <>
             <input
+              className="k-field"
               aria-label="Search map collection"
               placeholder="Filter collection…"
               value={collectionQuery}
@@ -246,12 +261,10 @@ export function MapCollections({
                 setLimit(40);
               }}
             />
-            <div className="atlas-subtitle">
-              {places.length} locations · offline
-            </div>
+            <div className="k-eyebrow">{places.length} locations · offline</div>
             {list(places.slice(0, limit))}
             {places.length > limit && (
-              <button onClick={() => setLimit((v) => v + 40)}>
+              <button className="k-btn" onClick={() => setLimit((v) => v + 40)}>
                 Show more locations
               </button>
             )}

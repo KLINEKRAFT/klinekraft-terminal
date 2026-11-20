@@ -1,19 +1,31 @@
 import { useEffect, useRef, useState } from "react";
+import { X } from "lucide-react";
 export function ColorWheel({
   color,
   onChange,
   recent,
+  open: history,
+  onOpenChange: setHistory,
 }: {
   color: string;
   onChange: (color: string) => void;
   recent: string[];
+  // The owner controls the recent-colors popover so it can close it on
+  // Escape and outside presses, and keep only one popover open at a time.
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const [history, setHistory] = useState(false);
   const wheel = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState({left: 0, top: 0});
   function showHistory(open: boolean) {
     const rect = wheel.current?.getBoundingClientRect();
-    if (rect) setPosition({left: Math.max(4, Math.min(rect.right + 8, innerWidth - 240)), top: Math.min(rect.top, innerHeight - 50)});
+    // Open above the wheel (it sits in the bottom colour strip), clamped to
+    // the viewport so every recent swatch stays reachable.
+    if (rect)
+      setPosition({
+        left: Math.max(4, Math.min(rect.left, innerWidth - 300)),
+        top: Math.max(4, rect.top - 60),
+      });
     setHistory(open);
   }
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null),
@@ -57,14 +69,19 @@ export function ColorWheel({
     );
   }
   return (
-    <div className="color-wheel-control">
+    <div className="color-wheel-control" data-paint-popover="recent">
       <button
         ref={wheel}
+        data-paint-trigger=""
+        aria-expanded={history}
         type="button"
         className="color-wheel"
         aria-label="Color wheel; hold for recent colors"
-        title="Choose color · hold for recent colors"
+        title={`Tap the wheel to pick a color (now ${color}) · hold or right-click for recent colors`}
         onPointerDown={(e) => {
+          // Right-click opens recent colors (onContextMenu); only a primary
+          // press picks a color.
+          if (e.button !== 0) return;
           e.currentTarget.setPointerCapture(e.pointerId);
           held.current = false;
           timer.current = setTimeout(() => {
@@ -73,6 +90,7 @@ export function ColorWheel({
           }, 450);
         }}
         onPointerUp={(e) => {
+          if (e.button !== 0) return;
           if (timer.current) clearTimeout(timer.current);
           if (!held.current) pick(e);
         }}
@@ -90,23 +108,25 @@ export function ColorWheel({
           }
         }}
       />
-      <input
-        aria-label="Foreground color"
-        type="color"
-        value={color}
-        onChange={(e) => onChange(e.target.value)}
-      />
       {history && (
-        <div className="recent-colors" style={{position: 'fixed', ...position, bottom: 'auto'}}>
+        <div
+          className="recent-colors"
+          role="group"
+          aria-label="Recent colors"
+          style={{ position: "fixed", ...position, bottom: "auto" }}
+        >
           <button
+            type="button"
+            className="recent-colors-close"
             aria-label="Close recent colors"
             onClick={() => setHistory(false)}
           >
-            ×
+            <X size={16} aria-hidden />
           </button>
           {recent.map((value) => (
             <button
               key={value}
+              type="button"
               aria-label={`Recent ${value}`}
               style={{ background: value }}
               onClick={() => {

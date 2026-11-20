@@ -1,4 +1,6 @@
 import { Terminal } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useGps, type GpsFix } from "../hooks/useGps";
 import { isHostedDemo } from "../runtime";
 import type { Reading } from "../preview";
 import { amount, type DataMode } from "../telemetry";
@@ -21,17 +23,19 @@ export function TelemetrySettings({
   return (
     <section className="settings-panel">
       <h2>Workspace preferences</h2>
-      <label className="setting-row">
+      <div className="pref-row">
         <span>
-          <strong>Dashboard data</strong>
-          <small>
+          <strong id="pref-data-title">Dashboard data</strong>
+          <small id="pref-data-note">
             {isHostedDemo
               ? "Web demo · simulated data. Live readings require the local app on your Mac or Raspberry Pi."
-              : "Live computer is the default. Your data-mode choice is saved in this browser."}
+              : "Live computer is the default. Your choice is saved in this browser."}
           </small>
         </span>
         <select
+          className="k-select"
           aria-label="Dashboard data"
+          aria-describedby="pref-data-note"
           disabled={isHostedDemo}
           value={mode}
           onChange={(event) => setMode(event.target.value as DataMode)}
@@ -39,32 +43,67 @@ export function TelemetrySettings({
           <option value="preview">Preview · simulated</option>
           {!isHostedDemo && <option value="host">Live computer</option>}
         </select>
-      </label>
-      <label className="setting-row">
+      </div>
+      <div className="pref-row">
         <span>
           <strong>Automatic updates</strong>
-          <small>
-            Refresh approximately every 3 seconds. Preferences last this
-            session.
+          <small id="pref-updates-note">
+            Refresh approximately every 3 seconds. Lasts this session.
           </small>
         </span>
-        <input
-          type="checkbox"
-          checked={!paused}
-          onChange={(event) => setPaused(!event.target.checked)}
+        <button
+          type="button"
+          role="switch"
+          className="k-switch"
+          aria-label="Automatic updates"
+          aria-describedby="pref-updates-note"
+          aria-checked={!paused}
+          onClick={() => setPaused(!paused)}
         />
-      </label>
-      {storageWarning && <p role="status">{storageWarning}</p>}
+      </div>
+      {storageWarning && (
+        <p role="status" className="pref-note">
+          {storageWarning}
+        </p>
+      )}
       {label !== "LIVE COMPUTER" && (
-        <p role="status">
+        <p role="status" className="pref-note">
           {label}.{" "}
           {mode === "host"
             ? "Start the Python service on your computer to connect. Missing sensors remain unavailable."
             : "Preview runs without Python or hardware. No machine readings are collected by the UI."}
         </p>
       )}
-      <p>The clock uses local time. Temperatures are shown in Fahrenheit.</p>
+      <p className="pref-note">
+        The clock uses local time. Temperatures are shown in Fahrenheit.
+      </p>
     </section>
+  );
+}
+
+// The deck has a GPS unit; when it is unplugged that is a temporary state,
+// never "unsupported". Tell a missing receiver apart from a stopped service so
+// the owner is not sent to re-plug hardware when gpsd is the fault.
+function GpsReadout() {
+  const gps = useGps();
+  const fix = gps.fix as (GpsFix & { service?: boolean }) | null;
+  if (gps.current)
+    return (
+      <>
+        {fix?.mode === 3 ? "3D" : "2D"} fix
+        {fix?.satellitesUsed != null
+          ? ` · ${fix.satellitesUsed} satellites`
+          : ""}
+      </>
+    );
+  if (!fix) return <>Checking…</>;
+  if (fix.connected) return <>Connected · searching for satellites</>;
+  if (fix.service === true)
+    return <>Disconnected · reconnect the deck GPS unit</>;
+  return fix.service === false ? (
+    <>GPS service not running · start gpsd on the Pi</>
+  ) : (
+    <>Deck service unreachable · retrying</>
   );
 }
 
@@ -76,8 +115,23 @@ export function SystemPanel({
   label: string;
 }) {
   const measured = reading.source === "host";
+  // This panel lives inside a collapsed <details>. Only poll GPS while that
+  // disclosure is open so a closed panel costs the Pi nothing.
+  const root = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const details = root.current?.closest("details");
+    if (!details) {
+      setVisible(true);
+      return;
+    }
+    const sync = () => setVisible(details.open);
+    sync();
+    details.addEventListener("toggle", sync);
+    return () => details.removeEventListener("toggle", sync);
+  }, []);
   return (
-    <section className="settings-panel">
+    <section className="settings-panel" ref={root}>
       <h2 className="sr-only">
         System overview <span className="inline-badge">{label}</span>
       </h2>
@@ -113,7 +167,16 @@ export function SystemPanel({
               ? (reading.batteryStatus ?? "Not configured")
               : `${reading.batteryPercent.toFixed(0)}% estimated · ${reading.batteryVoltage?.toFixed(2)} V`,
           ],
-          ["GPS", "Unavailable · integration not configured"],
+          [
+            "GPS",
+            isHostedDemo ? (
+              "Available on the installed deck"
+            ) : visible ? (
+              <GpsReadout />
+            ) : (
+              "Checking…"
+            ),
+          ],
           [
             "Last sample",
             reading.sampledAt
@@ -125,7 +188,7 @@ export function SystemPanel({
                 : "Simulated fixture",
           ],
         ].map(([name, value]) => (
-          <div key={name}>
+          <div key={name as string}>
             <dt>{name}</dt>
             <dd>{value}</dd>
           </div>

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { navigate } from "../tests/navigation";
 
 test("hosted demo keeps navigation working without a local service", async ({
   page,
@@ -20,10 +21,10 @@ test("hosted demo keeps navigation working without a local service", async ({
     "web demo cannot open desktop utilities",
   );
   await page.getByRole("button", { name: "Close Tools" }).click();
-  await expect(page.getByText("SIMULATED DATA", { exact: true })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Simulated data", exact: true })).toBeVisible();
   for (const name of [
     "Games",
-    "AI assistant",
+    "Shackleton",
     "GPS / Maps",
     "Library",
     "Files",
@@ -31,13 +32,11 @@ test("hosted demo keeps navigation working without a local service", async ({
     "System",
     "Settings",
   ]) {
-    await page
-      .getByRole("navigation")
-      .getByRole("button", { name: new RegExp(name) })
-      .click();
+    await navigate(page, name);
+    // Shackleton keeps its heading for screen readers only.
     await expect(
-      page.getByRole("heading", { name, exact: true }),
-    ).toBeVisible();
+      page.getByRole("heading", { level: 1, name, exact: true }),
+    ).toHaveCount(1);
   }
   await expect(page.getByLabel("Dashboard data")).toBeDisabled();
   await expect(page.locator('option[value="host"]')).toHaveCount(0);
