@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import { Pause, Play, LocateFixed, RefreshCw, Plus, Minus } from "lucide-react";
-import { createLocalMap } from "./mapBase";
+import { createLocalMap, mapColor, type Region } from "./mapBase";
 import { localJSON } from "./WikiReader";
 type Frame = { time: number; path: string };
 type Manifest = { host: string; frames: Frame[] };
@@ -30,22 +30,26 @@ export default function WeatherRadar({
     [mapError, setMapError] = useState(""),
     [tileError, setTileError] = useState(""),
     [refresh, setRefresh] = useState(0);
-  // The missing-basemap error is permanent; a later radar fetch must not clear it.
+  // A map that cannot be created is permanent; a later radar fetch must not clear it.
   const error = mapError || feedError;
   const initial = useRef({ latitude, longitude });
+  const homeZoom = useRef(6);
   useEffect(() => {
     const controller = new AbortController();
     let dispose: (() => void) | undefined;
     localJSON("/api/maps", { signal: controller.signal })
-      .then((region) => {
-        if (controller.signal.aborted) return;
-        if (!region.available)
-          throw new Error("Install the offline basemap to use radar here.");
+      // Without an installed street region (or map service) radar draws
+      // over the built-in US outline instead of failing.
+      .catch((): Region => ({ available: false }))
+      .then((region: Region) => {
+        if (controller.signal.aborted || !canvas.current) return;
+        // The outline has no detail: frame more neighbouring states on it.
+        homeZoom.current = region.available ? 6 : 5;
         const local = createLocalMap(
-          canvas.current!,
+          canvas.current,
           region,
           [initial.current.longitude, initial.current.latitude],
-          6,
+          homeZoom.current,
           10,
         );
         dispose = local.dispose;
@@ -69,8 +73,13 @@ export default function WeatherRadar({
   }, []);
   useEffect(() => {
     if (!ready || !map.current) return;
-    map.current.flyTo({ center: [longitude, latitude], zoom: 6 });
-    const marker = new maplibregl.Marker({ color: "#123aff" })
+    map.current.flyTo({
+      center: [longitude, latitude],
+      zoom: homeZoom.current,
+    });
+    const marker = new maplibregl.Marker({
+      color: mapColor("--logo-blue", "#0227ff"),
+    })
       .setLngLat([longitude, latitude])
       .addTo(map.current);
     return () => {
@@ -139,7 +148,10 @@ export default function WeatherRadar({
       maxzoom: 7,
       attribution: '<a href="https://www.rainviewer.com/">RainViewer</a>',
     });
-    const label = view.getStyle().layers.find((l) => l.type === "symbol");
+    // Radar sits under labels and the outline borders so places stay readable.
+    const label = view
+      .getStyle()
+      .layers.find((l) => l.type === "symbol" || l.id === "fallback-borders");
     view.addLayer(
       {
         id,
@@ -238,12 +250,14 @@ export default function WeatherRadar({
         </div>
         <div className="radar-zoom">
           <button
+            className="k-btn k-btn--icon"
             aria-label="Zoom radar in"
             onClick={() => map.current?.zoomIn()}
           >
             <Plus size={18} />
           </button>
           <button
+            className="k-btn k-btn--icon"
             aria-label="Zoom radar out"
             onClick={() => map.current?.zoomOut()}
           >
@@ -251,11 +265,14 @@ export default function WeatherRadar({
           </button>
         </div>
         <button
-          className="radar-center"
+          className="k-btn k-btn--icon radar-center"
           aria-label="Center radar on weather location"
           onClick={() => {
             setPlaying(false);
-            map.current?.flyTo({ center: [longitude, latitude], zoom: 6 });
+            map.current?.flyTo({
+              center: [longitude, latitude],
+              zoom: homeZoom.current,
+            });
           }}
         >
           <LocateFixed size={18} />
@@ -277,6 +294,7 @@ export default function WeatherRadar({
       </div>
       <div className="radar-controls">
         <button
+          className="k-btn k-btn--icon"
           aria-label={
             playing ? "Pause radar animation" : "Play radar animation"
           }
@@ -305,6 +323,7 @@ export default function WeatherRadar({
           <span>{frames.at(-1) ? time(frames.at(-1)!.time) : "Latest"}</span>
         </label>
         <button
+          className="k-btn"
           disabled={!frames.length || !!error}
           onClick={() => {
             setPlaying(false);
@@ -314,6 +333,7 @@ export default function WeatherRadar({
           Latest
         </button>
         <button
+          className="k-btn k-btn--icon"
           aria-label="Refresh radar"
           onClick={() => setRefresh((v) => v + 1)}
         >

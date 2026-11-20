@@ -8,12 +8,12 @@ maplibregl.setWorkerUrl(workerUrl);
 maplibregl.setWorkerCount(1);
 export type Region = {
   available: boolean;
-  title: string;
-  bounds: [number, number, number, number];
-  center: [number, number];
-  maxzoom: number;
-  bytes: number;
-  downloaded: string;
+  title?: string;
+  bounds?: [number, number, number, number];
+  center?: [number, number];
+  maxzoom?: number;
+  bytes?: number;
+  downloaded?: string;
   views?: { name: string; center: [number, number]; zoom: number }[];
 };
 const font = ["Noto Sans Regular"];
@@ -28,7 +28,7 @@ export function mapStyle(url: string, region: Region): StyleSpecification {
         attribution:
           '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> · <a href="https://protomaps.com">Protomaps</a>',
         minzoom: 0,
-        maxzoom: region.maxzoom,
+        maxzoom: region.maxzoom ?? 14,
       },
     },
     layers: [
@@ -177,8 +177,115 @@ export function mapStyle(url: string, region: Region): StyleSpecification {
   };
 }
 
+/** Public USGS imagery. Historical, online-only; works over either basemap. */
+export const satelliteSource: maplibregl.RasterSourceSpecification = {
+  type: "raster",
+  tiles: [
+    "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}",
+  ],
+  tileSize: 256,
+  maxzoom: 16,
+  attribution:
+    '<a href="https://www.usgs.gov/the-national-map-data-delivery">USGS / USDA NAIP imagery</a>',
+};
+
+/* ── Built-in fallback basemap ──────────────────────────────────────────
+   A ~250 KB US state outline bundled with the UI (frontend/public/maps).
+   It needs no installed region, no glyphs and no network, so the map is
+   never blank. Colors come from the ui.css tokens and follow light/dark. */
+export const FALLBACK_OUTLINE_URL = "/maps/us-states.geojson";
+
+function token(name: string, fallback: string) {
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+}
+/** A ui.css color token as a hex string MapLibre can paint with. */
+export const mapColor = token;
+function mix(a: string, b: string, amount: number) {
+  const channel = (hex: string, i: number) =>
+    parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
+  return (
+    "#" +
+    [0, 1, 2]
+      .map((i) =>
+        Math.round(channel(a, i) * (1 - amount) + channel(b, i) * amount)
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")
+  );
+}
+/** Fallback map colors derived from the current theme's tokens. */
+export function fallbackColors() {
+  const dark = document.documentElement.dataset.theme === "dark";
+  const paper = token("--paper", dark ? "#15191e" : "#f2f0ea");
+  const panel = token("--panel", dark ? "#252c34" : "#e4e1da");
+  const line = token("--line", dark ? "#3b4550" : "#d2cfc6");
+  const muted = token("--muted", dark ? "#b0b7c0" : "#69675f");
+  const blue = token(dark ? "--blue" : "--logo-blue", "#0227ff");
+  return dark
+    ? {
+        water: mix(paper, blue, 0.05),
+        land: panel,
+        border: mix(line, muted, 0.35),
+      }
+    : {
+        water: mix(panel, blue, 0.08),
+        land: paper,
+        border: mix(line, muted, 0.45),
+      };
+}
+export function fallbackStyle(): StyleSpecification {
+  const colors = fallbackColors();
+  return {
+    version: 8,
+    sources: {
+      outline: {
+        type: "geojson",
+        data: window.location.origin + FALLBACK_OUTLINE_URL,
+        attribution: "US outline: U.S. Census Bureau",
+      },
+    },
+    layers: [
+      {
+        id: "background",
+        type: "background",
+        paint: { "background-color": colors.water },
+      },
+      {
+        id: "fallback-land",
+        type: "fill",
+        source: "outline",
+        paint: { "fill-color": colors.land },
+      },
+      {
+        id: "fallback-borders",
+        type: "line",
+        source: "outline",
+        paint: {
+          "line-color": colors.border,
+          "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.6, 8, 1.4],
+        },
+      },
+    ],
+  };
+}
+function paintFallback(view: maplibregl.Map) {
+  if (!view.getLayer("fallback-land")) return;
+  const colors = fallbackColors();
+  view.setPaintProperty("background", "background-color", colors.water);
+  view.setPaintProperty("fallback-land", "fill-color", colors.land);
+  view.setPaintProperty("fallback-borders", "line-color", colors.border);
+}
+
 let users = 0;
 let protocol: Protocol | null = null;
+/**
+ * Creates the deck's map: the installed street region when there is one,
+ * otherwise the built-in outline. `fallback` tells the caller which.
+ */
 export function createLocalMap(
   container: HTMLDivElement,
   region: Region,
@@ -186,23 +293,26 @@ export function createLocalMap(
   zoom: number,
   maxZoom = 18,
 ) {
+  const fallback = !region.available;
   const url = window.location.origin + "/api/maps/region.pmtiles";
-  if (!protocol) {
-    protocol = new Protocol();
-    protocol.add(
-      new PMTiles(
-        new FetchSource(
-          url,
-          new Headers({ "X-Klinekraft-Client": "local-ui" }),
+  if (!fallback) {
+    if (!protocol) {
+      protocol = new Protocol();
+      protocol.add(
+        new PMTiles(
+          new FetchSource(
+            url,
+            new Headers({ "X-Klinekraft-Client": "local-ui" }),
+          ),
         ),
-      ),
-    );
-    maplibregl.addProtocol("pmtiles", protocol.tile);
+      );
+      maplibregl.addProtocol("pmtiles", protocol.tile);
+    }
+    users++;
   }
-  users++;
   const view = new maplibregl.Map({
     container,
-    style: mapStyle(url, region),
+    style: fallback ? fallbackStyle() : mapStyle(url, region),
     center,
     zoom,
     minZoom: 2,
@@ -237,18 +347,31 @@ export function createLocalMap(
     });
   });
   resize.observe(container);
+  // The outline follows the light/dark toggle without rebuilding the map.
+  const theme = new MutationObserver(() => {
+    if (!removed && view.isStyleLoaded()) paintFallback(view);
+  });
+  if (fallback)
+    theme.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
   return {
     view,
+    fallback,
     dispose() {
       if (removed) return;
       removed = true;
       resize.disconnect();
+      theme.disconnect();
       cancelAnimationFrame(frame);
       view.remove();
-      users--;
-      if (!users) {
-        maplibregl.removeProtocol("pmtiles");
-        protocol = null;
+      if (!fallback) {
+        users--;
+        if (!users) {
+          maplibregl.removeProtocol("pmtiles");
+          protocol = null;
+        }
       }
     },
   };

@@ -2,13 +2,34 @@ import { useGps, freshGps } from "../hooks/useGps";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import type * as GeoJSON from "geojson";
-import { createLocalMap, type Region } from "./mapBase";
-import { Search, MapPin, Route, Layers, X, LocateFixed } from "lucide-react";
+import {
+  createLocalMap,
+  mapColor,
+  satelliteSource,
+  type Region,
+} from "./mapBase";
+import {
+  Search,
+  MapPin,
+  Route,
+  Layers,
+  X,
+  LocateFixed,
+  Navigation,
+  Copy,
+  Check,
+} from "lucide-react";
 import { MapCollections, type MapLocation } from "./MapCollections";
 import { localJSON } from "./WikiReader";
 import { isHostedDemo } from "../runtime";
 
 type Place = { id: string; name: string; longitude: number; latitude: number };
+const TULSA: [number, number] = [-95.993, 36.154];
+// Lower 48 framed on the built-in outline.
+const US_VIEW = { center: [-97, 38.6] as [number, number], zoom: 3.3 };
+const INSTALL_COMMAND =
+  "python3 scripts/setup-maps.py --pmtiles /path/to/pmtiles --source https://build.protomaps.com/20261113.pmtiles";
+
 export default function OfflineMaps({
   initialPlace,
   onConsumePlace,
@@ -31,9 +52,15 @@ export default function OfflineMaps({
   const [startName, setStartName] = useState(""),
     [endName, setEndName] = useState("");
   const gps = useGps();
+  // The receiver can be unplugged and plugged back in at any time: an
+  // unplugged unit is "disconnected", never "unsupported".
+  const gpsDisconnected = !gps.current && gps.fix?.connected === false;
   const gpsStatus = gps.current
     ? `${gps.fix!.message}${gps.fix!.accuracyFeet != null ? ` · est. ${Math.round(gps.fix!.accuracyFeet)} ft` : ""}`
-    : `${gps.fix?.message || "Checking GPS…"}${gps.age !== null ? ` · Last fix ${gps.age}s ago` : ""}`;
+    : gpsDisconnected
+      ? `GPS disconnected · reconnect the receiver to show your position${gps.age !== null ? ` · Last fix ${gps.age}s ago` : ""}`
+      : `${gps.fix?.message || "Checking GPS…"}${gps.age !== null ? ` · Last fix ${gps.age}s ago` : ""}`;
+  const gpsState = gps.current ? "ok" : gps.fix?.connected ? "warn" : undefined;
   const [followGps, setFollowGps] = useState(false);
   const gpsMarker = useRef<maplibregl.Marker | null>(null);
   const [spotName, setSpotName] = useState("");
@@ -50,6 +77,7 @@ export default function OfflineMaps({
   const [satellite, setSatellite] = useState(false);
   const [quakeVisible, setQuakeVisible] = useState(false);
   const [quakeStatus, setQuakeStatus] = useState("");
+  const [copied, setCopied] = useState(false);
   async function toggleQuakes() {
     const view = map.current;
     if (!view || !ready) return;
@@ -75,7 +103,7 @@ export default function OfflineMaps({
           type: "circle",
           source: "earthquakes",
           paint: {
-            "circle-color": "#123aff",
+            "circle-color": mapColor("--logo-blue", "#0227ff"),
             "circle-opacity": 0.65,
             "circle-stroke-color": "#fff",
             "circle-stroke-width": 1,
@@ -120,36 +148,38 @@ export default function OfflineMaps({
     marker = useRef<maplibregl.Marker | null>(null);
   const [region, setRegion] = useState<Region | null>(null),
     [places, setPlaces] = useState<Place[]>([]),
-    [status, setStatus] = useState("Loading local map…");
+    [status, setStatus] = useState("");
+  // True while the built-in US outline stands in for the street map.
+  const fallback = region !== null && !region.available;
   const [selected, setSelected] = useState<[number, number] | null>(null),
     [name, setName] = useState(""),
     [coordinates, setCoordinates] = useState(""),
     [saving, setSaving] = useState(false);
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    if (isHostedDemo) {
-      setStatus("Offline maps are available in the installed Pi app.");
-      return;
-    }
     const controller = new AbortController();
     let active = true;
     let disposeMap: (() => void) | undefined;
-    void Promise.all([
-      localJSON("/api/maps", { signal: controller.signal }),
-      localJSON("/api/maps/places", { signal: controller.signal }),
-    ])
-      .then(([metadata, saved]: [Region, Place[]]) => {
-        if (!active) return;
+    // The map never waits on, or fails because of, saved places.
+    localJSON("/api/maps/places", { signal: controller.signal })
+      .then((saved: Place[]) => {
+        if (active) setPlaces(saved);
+      })
+      .catch(() => {});
+    void localJSON("/api/maps", { signal: controller.signal })
+      .catch((error: Error): Region => {
+        // No map service (or the hosted demo): still show the outline.
+        if (active && !controller.signal.aborted && !isHostedDemo)
+          setStatus(`Map service unavailable: ${error.message}`);
+        return { available: false };
+      })
+      .then((metadata: Region) => {
+        if (!active || !container.current) return;
         setRegion(metadata);
-        setPlaces(saved);
-        if (!metadata.available) {
-          setStatus(
-            "No offline map region is installed. On the Pi, run scripts/setup-maps.py to download street maps.",
-          );
-          return;
-        }
-        let center: [number, number] = [-95.993, 36.154],
-          zoom = 10;
+        let center: [number, number] = metadata.available
+            ? TULSA
+            : US_VIEW.center,
+          zoom = metadata.available ? 10 : US_VIEW.zoom;
         try {
           const saved = JSON.parse(
             localStorage.getItem("klinekraft.map-view.v1") || "null",
@@ -170,49 +200,44 @@ export default function OfflineMaps({
             zoom = saved.zoom;
           }
         } catch {}
-        const local = createLocalMap(
-          container.current!,
-          metadata,
-          center,
-          zoom,
-        );
-        local.view.on("moveend", () => {
+        const local = createLocalMap(container.current, metadata, center, zoom);
+        disposeMap = local.dispose;
+        const view = local.view;
+        map.current = view;
+        view.on("moveend", () => {
           try {
             localStorage.setItem(
               "klinekraft.map-view.v1",
               JSON.stringify({
-                center: local.view.getCenter().toArray(),
-                zoom: local.view.getZoom(),
+                center: view.getCenter().toArray(),
+                zoom: view.getZoom(),
               }),
             );
           } catch {}
         });
-        disposeMap = local.dispose;
-        const view = local.view;
-        map.current = view;
         view.on("dragstart", () => setFollowGps(false));
         view.addControl(new maplibregl.NavigationControl(), "top-right");
         view.addControl(new maplibregl.ScaleControl({ unit: "imperial" }));
         view.addControl(
           new maplibregl.FullscreenControl({
-            container: container.current!.closest(
+            container: container.current.closest(
               ".atlas-workspace",
             ) as HTMLElement,
           }),
         );
         view.on("load", () => {
-          if (active) {
-            setReady(true);
-            setStatus("");
-          }
+          if (active) setReady(true);
         });
         view.on("error", (event) => {
-          if (active)
-            setStatus(
-              "sourceId" in event && event.sourceId === "satellite"
-                ? "Satellite imagery could not load. Switch to Street for offline maps."
+          if (!active) return;
+          console.error("Map error", event.error);
+          setStatus(
+            "sourceId" in event && event.sourceId === "satellite"
+              ? "Satellite imagery could not load. It needs internet; switch back to the offline map."
+              : local.fallback
+                ? "The built-in outline could not load. Refresh the page."
                 : "Some map data could not load. Check the installed region and refresh.",
-            );
+          );
         });
         view.on("click", (event) => {
           const interactive = ["catalog-points", "earthquake-points"].filter(
@@ -229,14 +254,12 @@ export default function OfflineMaps({
           const p: [number, number] = [event.lngLat.lng, event.lngLat.lat];
           setSelected(p);
           marker.current?.remove();
-          marker.current = new maplibregl.Marker({ color: "#ff6a00" })
+          marker.current = new maplibregl.Marker({
+            color: mapColor("--orange", "#ff6a00"),
+          })
             .setLngLat(p)
             .addTo(view);
         });
-      })
-      .catch((error: Error) => {
-        console.error("Offline map initialization failed", error);
-        if (active) setStatus(error.message);
       });
     return () => {
       active = false;
@@ -251,22 +274,30 @@ export default function OfflineMaps({
   const go = useCallback(
     (p: [number, number], label?: string, info?: MapLocation) => {
       if (!region || !map.current) return;
-      const [west, south, east, north] = region.bounds;
-      if (p[0] < west || p[0] > east || p[1] < south || p[1] > north) {
-        setStatus("Those coordinates are outside the downloaded region.");
-      } else setStatus("");
+      if (region.available && region.bounds) {
+        const [west, south, east, north] = region.bounds;
+        if (p[0] < west || p[0] > east || p[1] < south || p[1] > north)
+          setStatus("Those coordinates are outside the downloaded region.");
+        else setStatus("");
+      }
       setFollowGps(false);
       setName(label?.slice(0, 120) || "");
       setPinInfo(info || null);
       setTool(null);
       setSelected(p);
-      map.current.jumpTo({ center: p, zoom: 14 });
+      // The outline has no street detail: a state-level view keeps context.
+      map.current.jumpTo({
+        center: p,
+        zoom: region.available || satellite ? 14 : 5,
+      });
       marker.current?.remove();
-      marker.current = new maplibregl.Marker({ color: "#ff6a00" })
+      marker.current = new maplibregl.Marker({
+        color: mapColor("--orange", "#ff6a00"),
+      })
         .setLngLat(p)
         .addTo(map.current);
     },
-    [region],
+    [region, satellite],
   );
   useEffect(() => {
     if (ready && initialPlace) {
@@ -282,21 +313,14 @@ export default function OfflineMaps({
     const view = map.current;
     if (!view || !ready) return;
     if (!view.getSource("satellite")) {
-      view.addSource("satellite", {
-        type: "raster",
-        tiles: [
-          "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}",
-        ],
-        tileSize: 256,
-        maxzoom: 16,
-        attribution:
-          '<a href="https://www.usgs.gov/the-national-map-data-delivery">USGS / USDA NAIP imagery</a>',
-      });
+      view.addSource("satellite", satelliteSource);
+      // Imagery sits above the land but below borders, labels and overlays.
       const firstOverlay = view
         .getStyle()
         .layers.find(
           (layer) =>
             layer.type === "symbol" ||
+            layer.id === "fallback-borders" ||
             layer.id === "catalog-points" ||
             layer.id === "earthquake-points" ||
             layer.id === "planned-route",
@@ -349,7 +373,10 @@ export default function OfflineMaps({
       id: "planned-route",
       type: "line",
       source: "planned-route",
-      paint: { "line-color": "#003dff", "line-width": 5 },
+      paint: {
+        "line-color": mapColor("--logo-blue", "#0227ff"),
+        "line-width": 5,
+      },
     });
     const coordinates = data.features[0].geometry.coordinates as number[][];
     const bounds = new maplibregl.LngLatBounds();
@@ -451,6 +478,15 @@ export default function OfflineMaps({
       setSpotSaving(false);
     }
   }
+  async function copyCommand() {
+    try {
+      await navigator.clipboard.writeText(INSTALL_COMMAND);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setStatus("Copy is unavailable here; type the command shown.");
+    }
+  }
   const pinLabel =
     name.trim() ||
     (selected
@@ -468,6 +504,7 @@ export default function OfflineMaps({
     setRouteSummary("");
     setTool("route");
   }
+  const basemapName = fallback ? "Outline" : "Street";
   return (
     <section className="offline-maps atlas-workspace" aria-label="Offline maps">
       <div className="atlas-toolbar" aria-label="Map tools">
@@ -481,32 +518,42 @@ export default function OfflineMaps({
         ).map(([id, Icon, title]) => (
           <button
             key={id}
+            className="k-btn k-btn--quiet"
             aria-pressed={tool === id}
             aria-controls="atlas-panel"
             onClick={() => setTool(tool === id ? null : id)}
           >
-            <Icon size={16} />
+            <Icon size={16} aria-hidden="true" />
             {title}
           </button>
         ))}
         <div className="atlas-toolbar-spacer" />
         <button
-          onClick={() => go([-95.993, 36.154], "Tulsa, Oklahoma")}
+          className="k-btn"
+          onClick={() => go(TULSA, "Tulsa, Oklahoma")}
           disabled={!ready}
         >
           Tulsa
         </button>
         <button
+          className="k-btn"
           onClick={locate}
           disabled={!ready || !gps.current}
           title={gpsStatus}
         >
-          <LocateFixed size={16} />
+          <LocateFixed size={16} aria-hidden="true" />
           GPS
+          <span
+            className="k-status-dot"
+            data-state={gpsState}
+            aria-hidden="true"
+          />
         </button>
         <button
+          className="k-btn"
           disabled={!ready || !gps.current}
           aria-pressed={followGps}
+          title={gps.current ? "Keep the map centered on GPS" : gpsStatus}
           onClick={() => {
             if (!freshGps(gps.fix)) return;
             if (!followGps) {
@@ -515,11 +562,14 @@ export default function OfflineMaps({
             } else setFollowGps(false);
           }}
         >
+          <Navigation size={16} aria-hidden="true" />
           Follow
         </button>
         <button
+          className="k-btn"
           disabled={!gps.current}
           aria-expanded={spotOpen}
+          title={gps.current ? "Save your GPS position as a place" : gpsStatus}
           onClick={() => setSpotOpen(!spotOpen)}
         >
           Save this spot
@@ -534,6 +584,7 @@ export default function OfflineMaps({
           }}
         >
           <input
+            className="k-field"
             aria-label="Spot name"
             placeholder="Car, campsite, trailhead…"
             value={spotName}
@@ -541,14 +592,25 @@ export default function OfflineMaps({
             onChange={(e) => setSpotName(e.target.value)}
             autoFocus
           />
-          <button disabled={!gps.current || !spotName.trim() || spotSaving}>
+          <button
+            className="k-btn k-btn--primary"
+            disabled={!gps.current || !spotName.trim() || spotSaving}
+          >
             {spotSaving ? "Saving…" : "Save spot"}
           </button>
-          <button type="button" onClick={() => setSpotOpen(false)}>
+          <button
+            className="k-btn k-btn--quiet"
+            type="button"
+            onClick={() => setSpotOpen(false)}
+          >
             Cancel
           </button>
           {!gps.current && (
-            <span role="status">Waiting for a fresh GPS fix.</span>
+            <span role="status">
+              {gpsDisconnected
+                ? "GPS disconnected · reconnect the receiver to save a spot."
+                : "Waiting for a fresh GPS fix."}
+            </span>
           )}
         </form>
       )}
@@ -574,23 +636,30 @@ export default function OfflineMaps({
                     ? "Plan a route"
                     : "Map layers"}
             </strong>
-            <button aria-label="Close map panel" onClick={() => setTool(null)}>
-              <X size={17} />
+            <button
+              className="k-btn k-btn--quiet k-btn--icon"
+              aria-label="Close map panel"
+              onClick={() => setTool(null)}
+            >
+              <X size={18} />
             </button>
           </header>
           {tool === "places" && places.length > 0 && (
             <section className="atlas-saved">
-              <span className="atlas-subtitle">Saved places</span>
-              {places.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => go([p.longitude, p.latitude], p.name)}
-                >
-                  <MapPin size={14} />
-                  {p.name}
-                  <span>↗</span>
-                </button>
-              ))}
+              <span className="k-eyebrow">Saved places</span>
+              <ul className="atlas-results">
+                {places.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      onClick={() => go([p.longitude, p.latitude], p.name)}
+                    >
+                      <MapPin size={16} aria-hidden="true" />
+                      <span>{p.name}</span>
+                      <span aria-hidden="true">↗</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
           <MapCollections
@@ -600,16 +669,23 @@ export default function OfflineMaps({
             mode={tool === "find" || tool === "places" ? tool : null}
           />
           <div hidden={tool !== "route"} className="atlas-route">
-            <button disabled={!gps.current || routing} onClick={gpsStart}>
+            <button
+              className="k-btn"
+              disabled={!gps.current || routing}
+              title={gps.current ? undefined : gpsStatus}
+              onClick={gpsStart}
+            >
+              <LocateFixed size={16} aria-hidden="true" />
               Use GPS as start
             </button>
             <div className="route-endpoint">
-              <span>A</span>
+              <span aria-hidden="true">A</span>
               <div>
                 <small>Start</small>
                 <strong>{startName || "Select a point on the map"}</strong>
               </div>
               <button
+                className="k-btn"
                 aria-label="Set selected point as start"
                 disabled={!selected}
                 onClick={() => endpoint("start")}
@@ -618,7 +694,7 @@ export default function OfflineMaps({
               </button>
             </div>
             <button
-              className="route-swap"
+              className="k-btn k-btn--quiet route-swap"
               disabled={!routeStart || !routeEnd}
               onClick={() => {
                 setRouteStart(routeEnd);
@@ -631,12 +707,13 @@ export default function OfflineMaps({
               ⇅ Swap endpoints
             </button>
             <div className="route-endpoint">
-              <span>B</span>
+              <span aria-hidden="true">B</span>
               <div>
                 <small>Destination</small>
                 <strong>{endName || "Select a point on the map"}</strong>
               </div>
               <button
+                className="k-btn"
                 aria-label="Set selected point as destination"
                 disabled={!selected}
                 onClick={() => endpoint("end")}
@@ -644,9 +721,10 @@ export default function OfflineMaps({
                 Set
               </button>
             </div>
-            <label>
+            <label className="k-label">
               Travel mode
               <select
+                className="k-select"
                 value={routeProfile}
                 onChange={(e) => setRouteProfile(e.target.value)}
                 disabled={routing}
@@ -657,7 +735,7 @@ export default function OfflineMaps({
               </select>
             </label>
             <button
-              className="atlas-primary"
+              className="k-btn k-btn--primary"
               disabled={!ready || !routeStart || !routeEnd || routing}
               onClick={() => void calculateRoute()}
             >
@@ -666,6 +744,7 @@ export default function OfflineMaps({
             {routeSummary && <p role="status">{routeSummary}</p>}
             {routeData && (
               <button
+                className="k-btn"
                 onClick={() => {
                   const url = URL.createObjectURL(
                     new Blob([routeData], { type: "application/geo+json" }),
@@ -680,42 +759,49 @@ export default function OfflineMaps({
                 Export route
               </button>
             )}
-            <details>
-              <summary>Saved routes</summary>
+            <label className="k-label">
+              Saved routes
               <select
+                className="k-select"
                 aria-label="Saved routes"
                 defaultValue=""
-                disabled={!ready || routing}
+                disabled={!ready || routing || !savedRoutes.length}
                 onChange={(e) => void restoreRoute(e.target.value)}
               >
-                <option value="">Choose a route</option>
+                <option value="">
+                  {savedRoutes.length ? "Choose a route" : "None saved yet"}
+                </option>
                 {savedRoutes.map((r) => (
                   <option key={r.id} value={r.id}>
                     {new Date(r.created).toLocaleString()} · {r.profile}
                   </option>
                 ))}
               </select>
-            </details>
+            </label>
             <details className="atlas-info">
               <summary>Routing info</summary>
               <p>
                 Select a place or tap the map, then assign it as Start or
-                Destination. Routes calculate and save on the Pi. Road
-                conditions and closures are unknown.
+                Destination. Routes calculate and save on the Pi with BRouter
+                and work without street maps installed. Road conditions and
+                closures are unknown.
               </p>
             </details>
           </div>
           <div hidden={tool !== "layers"} className="atlas-layers">
-            <span className="atlas-subtitle">Basemap</span>
+            <span className="k-eyebrow">Basemap</span>
             <div className="atlas-basemaps">
               <button
+                className="k-btn"
                 disabled={!ready}
                 aria-pressed={!satellite}
                 onClick={() => satellite && toggleSatellite()}
               >
-                Street<small>Offline</small>
+                {basemapName}
+                <small>Offline</small>
               </button>
               <button
+                className="k-btn"
                 disabled={!ready}
                 aria-pressed={satellite}
                 onClick={() => !satellite && toggleSatellite()}
@@ -723,57 +809,66 @@ export default function OfflineMaps({
                 Satellite<small>Online</small>
               </button>
             </div>
-            <span className="atlas-subtitle">Overlay</span>
+            <span className="k-eyebrow">Overlay</span>
             <button
+              className="k-switch atlas-switch"
+              role="switch"
+              aria-checked={quakeVisible}
               disabled={!ready}
-              aria-pressed={quakeVisible}
               onClick={() => void toggleQuakes()}
             >
-              Earthquakes <span>{quakeVisible ? "On" : "Off"}</span>
+              Earthquakes
             </button>
-            {quakeStatus && <p>{quakeStatus}</p>}
-            <span className="atlas-subtitle">Explore</span>
-            {region?.views?.map((v) => (
-              <button
-                key={v.name}
-                disabled={!ready}
-                onClick={() =>
-                  map.current?.jumpTo({ center: v.center, zoom: v.zoom })
+            {quakeStatus && <p className="atlas-note">{quakeStatus}</p>}
+            {!!region?.views?.length && (
+              <>
+                <span className="k-eyebrow">Explore</span>
+                {region.views.map((v) => (
+                  <button
+                    className="k-btn"
+                    key={v.name}
+                    disabled={!ready}
+                    onClick={() =>
+                      map.current?.jumpTo({ center: v.center, zoom: v.zoom })
+                    }
+                  >
+                    {v.name}
+                  </button>
+                ))}
+              </>
+            )}
+            <span className="k-eyebrow">Go to coordinates</span>
+            <form
+              className="atlas-coordinates"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const v = coordinates.split(",").map(Number);
+                if (
+                  v.length !== 2 ||
+                  coordinates.split(",").some((s) => !s.trim()) ||
+                  !v.every(Number.isFinite) ||
+                  Math.abs(v[0]) > 85 ||
+                  Math.abs(v[1]) > 180
+                ) {
+                  setStatus(
+                    "Enter latitude, longitude within −85…85 and −180…180.",
+                  );
+                  return;
                 }
-              >
-                {v.name}
+                go([v[1], v[0]]);
+              }}
+            >
+              <input
+                className="k-field"
+                aria-label="Go to coordinates"
+                placeholder="Latitude, longitude"
+                value={coordinates}
+                onChange={(e) => setCoordinates(e.target.value)}
+              />
+              <button className="k-btn" disabled={!ready}>
+                Go
               </button>
-            ))}
-            <details>
-              <summary>Go to coordinates</summary>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const v = coordinates.split(",").map(Number);
-                  if (
-                    v.length !== 2 ||
-                    coordinates.split(",").some((s) => !s.trim()) ||
-                    !v.every(Number.isFinite) ||
-                    Math.abs(v[0]) > 85 ||
-                    Math.abs(v[1]) > 180
-                  ) {
-                    setStatus(
-                      "Enter latitude, longitude within −85…85 and −180…180.",
-                    );
-                    return;
-                  }
-                  go([v[1], v[0]]);
-                }}
-              >
-                <input
-                  aria-label="Go to coordinates"
-                  placeholder="Latitude, longitude"
-                  value={coordinates}
-                  onChange={(e) => setCoordinates(e.target.value)}
-                />
-                <button disabled={!ready}>Go</button>
-              </form>
-            </details>
+            </form>
             <details className="atlas-info">
               <summary>Map & GPS info</summary>
               <p>
@@ -783,8 +878,8 @@ export default function OfflineMaps({
               <p>
                 Street maps: lower 48 + Alaska, no Hawaii.{" "}
                 {region?.available && Number.isFinite(region.bytes)
-                  ? `${(region.bytes / 1024 ** 3).toFixed(1)} GB saved`
-                  : "Not installed"}
+                  ? `${(region.bytes! / 1024 ** 3).toFixed(1)} GB saved`
+                  : "Not installed; the built-in US outline is shown instead"}
                 .
               </p>
               <p>
@@ -795,24 +890,73 @@ export default function OfflineMaps({
           </div>
         </aside>
         <span className="atlas-mode">
-          {satellite ? "SATELLITE · ONLINE" : "STREET · OFFLINE"}
+          {satellite
+            ? "SATELLITE · ONLINE"
+            : fallback
+              ? "US OUTLINE · OFFLINE"
+              : "STREET · OFFLINE"}
         </span>
-        {status && (
-          <div className="atlas-status" role="status">
-            <span>{status}</span>
-            <button
-              aria-label="Dismiss map status"
-              onClick={() => setStatus("")}
-            >
-              <X size={14} />
-            </button>
-          </div>
-        )}
         {gpsStatus && (
-          <span className="atlas-gps-status" role="status">
+          <span className="atlas-gps-status" role="status" title={gpsStatus}>
+            <span
+              className="k-status-dot"
+              data-state={gpsState}
+              aria-hidden="true"
+            />
             {gpsStatus}
           </span>
         )}
+        <div className="atlas-notices">
+          {status && (
+            <div className="atlas-status" role="status">
+              <span>{status}</span>
+              <button
+                className="k-btn k-btn--quiet k-btn--icon"
+                aria-label="Dismiss map status"
+                onClick={() => setStatus("")}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+          {fallback && !satellite && (
+            <section
+              className="k-card atlas-install"
+              aria-label="Install street maps"
+            >
+              {isHostedDemo ? (
+                <>
+                  <h3>Built-in US outline</h3>
+                  <p>
+                    Street maps, GPS and saved places run on the deck. This web
+                    demo shows the outline map only.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <header>
+                    <h3>Install street maps</h3>
+                    <button
+                      className="k-btn k-btn--quiet k-btn--icon"
+                      aria-label="Copy install command"
+                      title="Copy install command"
+                      onClick={() => void copyCommand()}
+                    >
+                      {copied ? <Check size={16} /> : <Copy size={16} />}
+                    </button>
+                  </header>
+                  <p>
+                    Built-in US outline only. For roads, towns and labels, run
+                    this on the Pi (about 10 GB):
+                  </p>
+                  <code className="atlas-command">
+                    {INSTALL_COMMAND.replaceAll(" --", " \\\n  --")}
+                  </code>
+                </>
+              )}
+            </section>
+          )}
+        </div>
       </div>
       {selected && (
         <div className="atlas-pinbar">
@@ -830,32 +974,42 @@ export default function OfflineMaps({
               </a>
             )}
           </div>
-          <button onClick={() => endpoint("start")}>Start</button>
-          <button onClick={() => endpoint("end")}>Destination</button>
+          <button className="k-btn" onClick={() => endpoint("start")}>
+            Start
+          </button>
+          <button className="k-btn" onClick={() => endpoint("end")}>
+            Destination
+          </button>
           <details className="atlas-save">
-            <summary>Save pin</summary>
+            <summary className="k-btn">Save pin</summary>
             <form
+              className="k-card"
               onSubmit={(e) => {
                 e.preventDefault();
                 void save();
               }}
             >
-              <label>
+              <label className="k-label">
                 Place name
                 <input
+                  className="k-field"
                   aria-label="Place name"
                   value={name}
                   maxLength={120}
                   onChange={(e) => setName(e.target.value)}
                 />
               </label>
-              <button disabled={!name.trim() || saving}>
+              <button
+                className="k-btn k-btn--primary"
+                disabled={!name.trim() || saving}
+              >
                 {saving ? "Saving…" : "Save place"}
               </button>
               {pinInfo?.note && <p>{pinInfo.note}</p>}
             </form>
           </details>
           <button
+            className="k-btn k-btn--quiet k-btn--icon"
             aria-label="Clear selected pin"
             onClick={() => {
               setSelected(null);
@@ -863,7 +1017,7 @@ export default function OfflineMaps({
               setPinInfo(null);
             }}
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
       )}

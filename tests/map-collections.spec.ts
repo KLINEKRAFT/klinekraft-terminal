@@ -1,5 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { navigate } from "./navigation";
+// Hermetic: no street region is installed, so the built-in US outline is the
+// basemap. Every map feature below must still work on it.
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/maps", (r) =>
+    r.fulfill({ json: { available: false } }),
+  );
+  await page.route("https://basemap.nationalmap.gov/**", (r) => r.abort());
+});
 test("map panels collapse after selecting a place, explicit address search and route endpoints", async ({
   page,
 }) => {
@@ -67,9 +75,14 @@ test("map panels collapse after selecting a place, explicit address search and r
     .click();
   await expect(page.locator(".atlas-mode")).toContainText("SATELLITE · ONLINE");
   await page
-    .getByRole("button", { name: "Street Offline", exact: true })
+    .getByRole("button", { name: "Outline Offline", exact: true })
     .click();
-  await expect(page.getByRole("button", { name: "GPS", exact: true })).toBeDisabled();
+  await expect(page.locator(".atlas-mode")).toContainText(
+    "US OUTLINE · OFFLINE",
+  );
+  await expect(
+    page.getByRole("button", { name: "GPS", exact: true }),
+  ).toBeDisabled();
   await expect(page.locator(".atlas-gps-status")).toContainText(
     "No fresh GPS fix",
   );
@@ -148,4 +161,67 @@ test.describe("small-screen map resources", () => {
     await expect(page.locator("canvas.maplibregl-canvas")).toHaveCount(0);
     expect(errors).toEqual([]);
   });
+});
+
+test("without a street region the map is never blank and explains how to install one", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1024, height: 560 });
+  await page.route("**/api/maps/gps", (r) =>
+    r.fulfill({
+      json: {
+        available: false,
+        connected: false,
+        message: "GPS receiver not connected",
+      },
+    }),
+  );
+  const outline = page.waitForResponse("**/maps/us-states.geojson");
+  await page.goto("/");
+  await navigate(page, "GPS / Maps");
+  expect((await outline).ok()).toBe(true);
+  // The bundled outline renders and the map becomes interactive.
+  await expect(
+    page.getByRole("button", { name: "Tulsa", exact: true }),
+  ).toBeEnabled({ timeout: 20000 });
+  await expect(page.locator(".atlas-mode")).toHaveText("US OUTLINE · OFFLINE");
+  // A permanent, non-dismissible card says what is missing and how to fix it.
+  const card = page.getByRole("region", { name: "Install street maps" });
+  await expect(card).toBeVisible();
+  await expect(card.locator("code")).toHaveText(
+    "python3 scripts/setup-maps.py \\\n  --pmtiles /path/to/pmtiles \\\n  --source https://build.protomaps.com/20261113.pmtiles",
+  );
+  await expect(page.getByLabel("Dismiss map status")).toHaveCount(0);
+  // It never covers the map controls.
+  const zoom = await page
+    .getByRole("button", { name: "Zoom in", exact: true })
+    .boundingBox();
+  const cardBox = await card.boundingBox();
+  expect(cardBox!.y).toBeGreaterThan(zoom!.y + zoom!.height);
+  // GPS stays present and reads as temporarily disconnected, not unsupported.
+  await expect(page.locator(".atlas-gps-status")).toContainText(
+    "GPS disconnected",
+  );
+  await expect(
+    page.getByRole("button", { name: "GPS", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Follow", exact: true }),
+  ).toBeVisible();
+  // Camera moves work on the outline.
+  await page.getByRole("button", { name: "Tulsa", exact: true }).click();
+  await expect(page.locator(".atlas-pinbar")).toContainText("Tulsa, Oklahoma");
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const view = JSON.parse(
+          localStorage.getItem("klinekraft.map-view.v1") || "null",
+        );
+        return !!view && Math.round(view.center[0]) === -96 && view.zoom >= 5;
+      }),
+    )
+    .toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    1024,
+  );
 });

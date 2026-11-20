@@ -17,6 +17,8 @@ test("GPS home compass, saved spots, route start and lost fix", async ({ page })
       await r.fulfill({json:saved});
     } else await r.fulfill({json:[]});
   });
+  // Hermetic: no street region installed; GPS works over the built-in outline.
+  await page.route("**/api/maps", r => r.fulfill({json:{available:false}}));
   await page.goto("/");
   await navigate(page, "Home");
   await page.getByLabel("GPS and compass information").click();
