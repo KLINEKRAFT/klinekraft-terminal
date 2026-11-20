@@ -68,6 +68,10 @@ for (const height of [600, 560])
     // Tabbing out of the popover closes it.
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
+    await expect(page.getByLabel("Internet radio",{exact:true})).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByLabel("Computer volume",{exact:true})).toBeFocused();
+    await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: "Dark mode" })).toBeFocused();
     await expect(panel).toHaveCount(0);
     for (const section of ["Home", "Shackleton", "Paint", "System"]) {

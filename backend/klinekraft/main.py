@@ -12,7 +12,10 @@ from .wiki_reader import router as wiki_reader_router
 from .assistant import router as assistant_router
 from .tools_launcher import router as tools_router
 from .conversations import router as conversations_router, database
-from . import research
+from . import research, trips
+from .audio import router as audio_router
+from .radio import router as radio_router
+from .speech import router as speech_router
 from .research import router as research_router
 from .diagnostics import router as diagnostics_router
 from .notebook import router as notebook_router
@@ -32,6 +35,8 @@ from .telemetry import HostSnapshot, TelemetryService
 async def lifespan(app: FastAPI):
     with database() as connection:
         research.init(connection)
+    trips.interrupt()
+    trip_task = asyncio.create_task(trips.monitor())
     service = TelemetryService()
     app.state.telemetry = service
     await service.start()
@@ -40,6 +45,10 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        trip_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await trip_task
+        trips.interrupt()
         briefing_task.cancel()
         with suppress(asyncio.CancelledError):
             await briefing_task
@@ -90,6 +99,10 @@ app.include_router(research_router)
 app.include_router(notebook_router)
 app.include_router(organizer_router)
 app.include_router(maps_router)
+app.include_router(trips.router)
+app.include_router(audio_router)
+app.include_router(radio_router)
+app.include_router(speech_router)
 app.include_router(routing_router)
 app.include_router(mesh_router)
 app.include_router(hotspot_router)

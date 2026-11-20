@@ -110,6 +110,7 @@ test("local article flows into cloud answer with verified source and image", asy
   ).toBeVisible();
   await page.getByRole("button", { name: "Close article" }).click();
   await page.getByTitle("Switch to dark mode").click();
+  await page.getByText("1 source",{exact:true}).click();
   await page.getByRole("button", { name: "[1] Moon", exact: true }).click();
   await page.getByRole("button", { name: "Fullscreen article" }).click();
   await expect

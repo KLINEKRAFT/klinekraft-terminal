@@ -1,3 +1,4 @@
+import { AnswerActions, useReadAloud } from "./SpeechControls";
 import { SourceLink } from "./Briefing";
 import { AnswerMarkdown } from "./AnswerMarkdown";
 import { Info } from "./Info";
@@ -61,8 +62,16 @@ export function AssistantPanel({
   onClearContext: () => void;
 }) {
   const store = useConversations(context);
+  const reader = useReadAloud();
+  const historyDialog = useRef<HTMLDialogElement>(null);
   const { turns, context: articleContext } = store.chat;
   const [historyOpen, setHistoryOpen] = useState(false);
+  useEffect(() => {
+    if (historyOpen) historyDialog.current?.showModal();
+  }, [historyOpen]);
+  useEffect(() => {
+    reader.stop();
+  }, [store.chat.id]);
   const [selectedChats, setSelectedChats] = useState<string[]>([]);
   const [rename, setRename] = useState("");
   useEffect(() => {
@@ -80,7 +89,13 @@ export function AssistantPanel({
       ? "cloud"
       : "local",
   );
-  const [referenceOnly, setReferenceOnly] = useState(true);
+  const [referenceOnly, setReferenceOnly] = useState(() => {
+    try {
+      return localStorage.getItem("klinekraft.ai.referenceOnly") === "true";
+    } catch {
+      return false;
+    }
+  });
   const ready =
     provider === "local" && referenceOnly
       ? true
@@ -223,7 +238,10 @@ export function AssistantPanel({
 
   return (
     <section
-      className="assistant-panel ai-chat"
+      className={
+        "assistant-panel ai-chat shack-chat" +
+        (!turns.length && !busy ? " shack-welcome" : "")
+      }
       aria-label="Shackleton AI assistant"
     >
       <div className="ai-chat-toolbar">
@@ -257,42 +275,59 @@ export function AssistantPanel({
         >
           History
         </button>
-        <span className="ai-toolbar-spacer" />
-        {provider === "local" && (
-          <div className="ai-mode" role="group" aria-label="Answer mode">
-            <button
-              type="button"
-              className="k-btn"
-              disabled={busy}
-              aria-pressed={referenceOnly}
-              title="Quote saved guides directly, with no AI rewriting"
-              onClick={() => setReferenceOnly(true)}
-            >
-              Excerpts
-            </button>
-            <button
-              type="button"
-              className="k-btn"
-              disabled={busy}
-              aria-pressed={!referenceOnly}
-              title="Let the offline model explain in its own words"
-              onClick={() => setReferenceOnly(false)}
-            >
-              AI answers
-            </button>
-          </div>
-        )}
         <details className="ai-options">
-          <summary
-            className="k-btn k-btn--quiet"
-            aria-label={`Chat settings · ${provider === "local" ? "Offline" : "Cloud"}`}
-          >
-            <SlidersHorizontal size={16} aria-hidden="true" />
+          <summary aria-label="Chat settings">
+            <SlidersHorizontal size={16} />
             <span>{provider === "local" ? "Offline" : "Cloud"}</span>
           </summary>
           <div className="ai-options-content">
-            <label className="k-label">
-              Answer engine
+            <label>
+              <input
+                type="checkbox"
+                checked={useResearch}
+                onChange={(e) => setUseResearch(e.target.checked)}
+                disabled={busy}
+              />
+              Use saved library references
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={useDiagnostics}
+                onChange={(e) => setUseDiagnostics(e.target.checked)}
+                disabled={busy || (provider === "local" && referenceOnly)}
+              />
+              Include Pi diagnostics
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={useWiki}
+                onChange={(e) => setUseWiki(e.target.checked)}
+                disabled={busy}
+              />{" "}
+              Use local Wikipedia
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={useEvents}
+                onChange={(e) => setUseEvents(e.target.checked)}
+              />
+              Use saved event reports
+            </label>
+            {provider === "cloud" && (
+              <label>
+                <input
+                  type="checkbox"
+                  checked={onlineResearch}
+                  onChange={(e) => setOnlineResearch(e.target.checked)}
+                />
+                Search papers online (sends search to OpenAlex / Europe PMC)
+              </label>
+            )}
+            <label>
+              Answer engine{" "}
               <select
                 className="k-select"
                 value={provider}
@@ -307,38 +342,30 @@ export function AssistantPanel({
                 <option value="cloud">Cloud · OpenAI</option>
               </select>
             </label>
-            <button
-              type="button"
-              role="switch"
-              className="k-switch"
-              aria-checked={useEvents}
-              onClick={() => setUseEvents((value) => !value)}
-            >
-              Use saved event reports
-            </button>
-            {provider === "cloud" && (
-              <button
-                type="button"
-                role="switch"
-                className="k-switch"
-                aria-checked={onlineResearch}
-                aria-describedby="ai-online-note"
-                onClick={() => setOnlineResearch((value) => !value)}
-              >
-                Search papers online
-              </button>
-            )}
-            {provider === "cloud" && (
-              <p id="ai-online-note">
-                Online paper search sends your search to OpenAlex and Europe
-                PMC.
-              </p>
+            {provider === "local" && (
+              <label>
+                <input
+                  type="checkbox"
+                  checked={referenceOnly}
+                  disabled={busy}
+                  onChange={(e) => {
+                    setReferenceOnly(e.target.checked);
+                    try {
+                      localStorage.setItem(
+                        "klinekraft.ai.referenceOnly",
+                        String(e.target.checked),
+                      );
+                    } catch {}
+                  }}
+                />{" "}
+                Quote guides directly (no AI rewriting)
+              </label>
             )}
             {provider === "local" && (
               <p>
                 {referenceOnly
-                  ? "Excerpts mode quotes saved guides immediately. Choose AI answers for explanations of general questions."
-                  : "AI answers can misread safety guidance. Use Excerpts for emergency and medical questions."}
+                  ? "Quote guides directly shows saved excerpts immediately. Uncheck it for AI explanations of general questions."
+                  : "AI answers can misread safety guidance. Use direct guide quotations for emergency and medical questions."}
               </p>
             )}
             <p>
@@ -358,7 +385,12 @@ export function AssistantPanel({
         </details>
       </div>
       {historyOpen && (
-        <aside className="ai-history" aria-label="Saved conversations">
+        <dialog
+          ref={historyDialog}
+          className="ai-history"
+          aria-label="Saved conversations"
+          onCancel={() => setHistoryOpen(false)}
+        >
           <div className="ai-history-heading">
             <input
               className="k-field"
@@ -478,7 +510,7 @@ export function AssistantPanel({
               Refresh
             </button>
           </div>
-        </aside>
+        </dialog>
       )}
       {store.error && (
         <div role="alert" className="ai-save-error">
@@ -567,8 +599,15 @@ export function AssistantPanel({
               <div className="ai-answer">
                 <AnswerMarkdown text={turn.answer} />
               </div>
-              <NotebookSave turn={turn} />
-              {turn.notice && <p className="ai-notice">{turn.notice}</p>}
+              <div className="answer-tools">
+                <AnswerActions text={turn.answer} index={i} reader={reader} />
+                <NotebookSave turn={turn} />
+                {turn.notice && (
+                  <Info label="Answer details">
+                    <p>{turn.notice}</p>
+                  </Info>
+                )}
+              </div>
               {!!turn.images.length && (
                 <div className="ai-images">
                   {turn.images.map((img) => (
@@ -632,6 +671,11 @@ export function AssistantPanel({
         </div>
       </div>
       <div className="ai-compose-area">
+        {reader.error && (
+          <p role="alert" className="browser-warning">
+            {reader.error}
+          </p>
+        )}
         {turns.length >= 200 && (
           <p>
             This conversation has reached 200 answers. Start a new chat to
@@ -758,67 +802,15 @@ export function AssistantPanel({
             </p>
           )}
           <div className="ai-compose-controls">
-            <div
-              className="ai-include"
-              role="group"
-              aria-label="Sources to include"
-            >
-              <button
-                className="k-switch"
-                type="button"
-                role="switch"
-                aria-checked={useWiki}
-                disabled={busy}
-                onClick={() => setUseWiki((v) => !v)}
-              >
-                Wikipedia
-              </button>
-              <button
-                className="k-switch"
-                type="button"
-                role="switch"
-                aria-checked={useResearch}
-                disabled={composerDisabled}
-                onClick={() => setUseResearch((value) => !value)}
-              >
-                Research
-              </button>
-              <button
-                className="k-switch"
-                type="button"
-                role="switch"
-                aria-checked={
-                  useDiagnostics && !(provider === "local" && referenceOnly)
-                }
-                title={
-                  provider === "local" && referenceOnly
-                    ? "Pi diagnostics are used by AI answers, not Excerpts"
-                    : undefined
-                }
-                disabled={
-                  composerDisabled || (provider === "local" && referenceOnly)
-                }
-                onClick={() => setUseDiagnostics((value) => !value)}
-              >
-                Pi diagnostics
-              </button>
-              {useResearch && (
-                <Info label="Reference sharing information">
-                  <p>
-                    Sending shares matching library excerpts with {recipient}.
-                  </p>
-                </Info>
-              )}
-            </div>
             <button
-              className="k-btn k-btn--quiet k-btn--icon"
+              className="ai-quiet-button"
               type="button"
               aria-label="Attach image or PDF"
               title="Attach image or PDF"
               disabled={composerDisabled || !ready}
               onClick={() => fileInput.current?.click()}
             >
-              <Paperclip size={18} aria-hidden="true" />
+              <Paperclip size={17} />
             </button>
             <button
               className="ai-send"

@@ -1,3 +1,4 @@
+import { Listen } from "./Listen";
 import {
   ChevronLeft,
   ChevronRight,
@@ -807,6 +808,7 @@ export function Organizer({
                   </label>
                 </div>
               )}
+              {kind === "note" && <Listen key={"listen-" + draft.id} title={draft.title || "Note"} text={noteText(draft.body)} />}
               {kind === "note" ? (
                 <RichNote
                   key={draft.id}

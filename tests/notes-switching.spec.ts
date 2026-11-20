@@ -50,6 +50,11 @@ for (const fail of [false, true])
     await page
       .getByRole("textbox", { name: "Note", exact: true })
       .fill("Keep this edit");
+    await page.getByRole("button",{name:"Listen",exact:true}).click();
+    const audio = page.getByRole("dialog",{name:"Alpha audio"});
+    await expect(audio.getByLabel("Passage to read")).toHaveValue("Keep this edit");
+    await audio.getByRole("button",{name:"Close",exact:true}).click();
+
     await page
       .getByRole("button", { name: "Beta Second", exact: true })
       .click();

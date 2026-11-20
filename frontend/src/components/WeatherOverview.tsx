@@ -1,3 +1,4 @@
+import { DirectListen } from "./SpeechControls";
 import {
   Cloud,
   CloudFog,
@@ -95,6 +96,33 @@ function localNow(zone: string) {
     return new Date().toISOString().slice(0, 13) + ":00";
   }
 }
+export function weatherSummary(feed: ForecastFeed | undefined, location: string) {
+  const data = feed?.data;
+  const today = localNow(data?.timezone || "America/Chicago").slice(0,10);
+  const lines = ["Weather in " + location + " today."];
+  if (!data) return lines.concat("No saved forecast is available.").join("\n\n");
+  if (feed?.stale) lines.push("This is a saved forecast. Current weather could not be confirmed.");
+  const days = data.daily;
+  const i = (days?.time || []).findIndex(value => value === today);
+  if (i >= 0) {
+    lines.push("Today: " + condition(days?.weather_code?.[i]) + ".");
+    const high = days?.temperature_2m_max?.[i], low = days?.temperature_2m_min?.[i];
+    if (finite(high) && finite(low)) lines.push("High " + Math.round(high) + ", low " + Math.round(low) + " degrees Fahrenheit.");
+    const rain = days?.precipitation_probability_max?.[i];
+    if (finite(rain)) lines.push("Chance of precipitation " + Math.round(rain) + " percent.");
+    const wind = days?.wind_speed_10m_max?.[i];
+    if (finite(wind)) lines.push("Maximum forecast wind " + Math.round(wind) + " miles per hour.");
+    if (days?.sunset?.[i]) lines.push("Sunset " + clock(days.sunset[i]) + ", local time.");
+  } else lines.push("Today's forecast is not available in this saved data.");
+  const current = data.current;
+  if (current && String(current.time || "").startsWith(today)) {
+    lines.push("Latest model estimate: " + condition(current.weather_code) + ".");
+    if (finite(current.temperature_2m)) lines.push(Math.round(current.temperature_2m) + " degrees Fahrenheit.");
+    if (finite(current.apparent_temperature)) lines.push("Feels like " + Math.round(current.apparent_temperature) + " degrees.");
+  }
+  lines.push("Check Events for weather alerts.");
+  return lines.join("\n\n");
+}
 export function WeatherOverview({
   feed,
   location,
@@ -131,6 +159,7 @@ export function WeatherOverview({
     <div className="weather-overview">
       <div className="weather-topline">
         <span className="k-eyebrow">{location}</span>
+        <DirectListen className="k-btn k-btn--quiet" label="Weather summary" text={weatherSummary(feed, location)} />
         <span className={feed?.stale ? "feed-state stale" : "feed-state"}>
           {!data
             ? "Unavailable"

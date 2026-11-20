@@ -1,3 +1,4 @@
+import { DirectListen } from "./SpeechControls";
 import { useEffect, useId, useRef, useState } from "react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import workerURL from "pdfjs-dist/build/pdf.worker.min.mjs?url";
@@ -13,6 +14,8 @@ export function DocumentReader({ source, onClose, onAsk }: {
   const [file, setFile] = useState<File | null>(null);
   const [pdf, setPDF] = useState<PDFDocumentProxy | null>(null);
   const [page, setPage] = useState(source.page || 1);
+  const [zoom, setZoom] = useState(100);
+  const [pageText, setPageText] = useState("");
   const [text, setText] = useState("");
   const [imageURL, setImageURL] = useState("");
   const [error, setError] = useState("");
@@ -72,11 +75,14 @@ export function DocumentReader({ source, onClose, onAsk }: {
     if (!pdf) return;
     let disposed = false;
     let render: ReturnType<Awaited<ReturnType<PDFDocumentProxy["getPage"]>>["render"]> | undefined;
-    setRendering(true);
+    setRendering(true); setPageText("");
     void (async () => {
       try {
         const sheet = await pdf.getPage(page);
         if (disposed || !canvas.current) return;
+        const content = await sheet.getTextContent().catch(() => ({items: []}));
+        if (disposed) return;
+        setPageText(content.items.map(item => "str" in item ? item.str + (item.hasEOL ? "\n" : " ") : "").join(""));
         const base = sheet.getViewport({ scale: 1 });
         const viewport = sheet.getViewport({ scale: Math.min(2, 1800 / Math.max(base.width, base.height)) });
         const surface = canvas.current;
@@ -100,11 +106,16 @@ export function DocumentReader({ source, onClose, onAsk }: {
       <button type="button" className="k-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous page</button>
       <span>Page {page} of {pdf.numPages}</span>
       <button type="button" className="k-btn" disabled={page >= pdf.numPages} onClick={() => setPage(p => p + 1)}>Next page</button>
+      <button type="button" className="k-btn" aria-label="Zoom out" disabled={zoom <= 25} onClick={() => setZoom(z => Math.max(25,z-25))}>−</button>
+      <button type="button" className="k-btn" aria-label="Reset zoom" onClick={() => setZoom(100)}>{zoom}%</button>
+      <button type="button" className="k-btn" aria-label="Zoom in" disabled={zoom >= 200} onClick={() => setZoom(z => Math.min(200,z+25))}>+</button>
     </nav>}
-    {(loading || rendering) && <p role="status" className="lib-note">{loading ? "Opening document…" : "Drawing page…"}</p>}
-    {error && <p role="alert" className="lib-alert">{error}</p>}
+    {!loading && !rendering && (text || pageText) && <DirectListen key={source.url + page} text={pdf ? pageText : text} />}
+    {!loading && !rendering && pdf && !pageText.trim() && <small>This page has no readable text; scanned pages need OCR.</small>}
+    {(loading || rendering) && <p role="status">{loading ? "Opening document…" : "Drawing page…"}</p>}
+    {error && <p role="alert">{error}</p>}
     <div className="document-reader-body">
-      {pdf && <canvas key={page} ref={canvas} role="img" aria-label={`Page ${page} of ${source.title}`} />}
+      {pdf && <canvas style={{width:zoom + "%",maxWidth:"none"}} key={page} ref={canvas} role="img" aria-label={`Page ${page} of ${source.title}`} />}
       {text && <pre>{text}</pre>}
       {imageURL && <img src={imageURL} alt={source.title} />}
     </div>

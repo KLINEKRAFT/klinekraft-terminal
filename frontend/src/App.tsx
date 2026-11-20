@@ -1,3 +1,8 @@
+import { SpeechSettings } from "./components/SpeechControls";
+import { useCardDismissal } from "./hooks/useCardDismissal";
+import { BriefMe } from "./components/BriefMe";
+import { RadioPlayer } from "./components/RadioPlayer";
+import { VolumeControl } from "./components/VolumeControl";
 import { GpsStatus } from "./components/GpsStatus";
 import { DetailsPanel } from "./components/DetailsPanel";
 import {
@@ -294,6 +299,7 @@ function Home({
       <div className="deck-row">
         <OutsideWeather />
         <div className="home-actions">
+          <BriefMe />
           <ToolsLauncher />
           <AwayLaunch />
         </div>
@@ -349,6 +355,7 @@ function isTyping(target: EventTarget | null) {
   );
 }
 export default function App() {
+  useCardDismissal();
   const [collapsed, setCollapsed] = useState(() =>
     savedFlag("klinekraft.navigation.drawer.v2", true),
   );
@@ -607,6 +614,8 @@ export default function App() {
             </button>
             <Briefing />
             <PowerControls />
+            <RadioPlayer />
+            <VolumeControl />
             <button
               className="k-btn k-btn--quiet k-btn--icon"
               aria-label="Dark mode"
@@ -781,6 +790,7 @@ export default function App() {
                 setPaused={setPaused}
                 label={label}
               />
+              <SpeechSettings />
               <BrowserSettings store={browser} />
             </>
           ) : section === "Files" ? (

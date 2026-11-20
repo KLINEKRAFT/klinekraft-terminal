@@ -94,3 +94,25 @@ def test_reference_mode_quotes_source_without_model_call(tmp_path,monkeypatch):
     assert 'Never run a generator inside a garage.' in result['answer']
     assert result['sources'][0]['fileId']==1
     assert result['model']=='Local reference search'
+
+
+def test_compact_local_prompt_preserves_reference_and_diagnostics(monkeypatch):
+    article = {'title':'Compass','path':'/content/test/Compass','original':None,
+               'blocks':[{'kind':'p','text':'A compass points toward magnetic north.'}],
+               'images':[{'caption':'A diagram','path':'/content/test/diagram.png'}]}
+    monkeypatch.setattr(assistant,'retrieve',lambda body:([article],''))
+    diagnostic = {'sampledAt':'2026-11-19T16:00:00Z','temperatureF':140}
+    monkeypatch.setattr(assistant.diagnostics,'collect',lambda:diagnostic)
+    def provider(messages,key,local=False):
+        assert local
+        prompt=json.loads(messages[-1]['content'])
+        assert prompt['localWikipedia'][0] == {'id':1,'title':'Compass','text':'A compass points toward magnetic north.'}
+        assert prompt['piDiagnostics']==diagnostic
+        assert prompt['question']=='Explain compass direction'
+        assert 'researchLibrary' not in prompt
+        assert list(prompt)[-1]=='question'
+        assert 'untrusted data' in messages[0]['content']
+        return {'answer':'Magnetic north [1].','sources':[1],'imageSources':[]}
+    monkeypatch.setattr(assistant,'ask_provider',provider)
+    result=assistant.ask(assistant.Question(provider='local',question='Explain compass direction',use_diagnostics=True,use_events=False))
+    assert result['sources'][0]['title']=='Compass'

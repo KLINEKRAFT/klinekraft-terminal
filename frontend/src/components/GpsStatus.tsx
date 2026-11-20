@@ -87,7 +87,7 @@ export function GpsStatus({
           {current && fix?.accuracyFeet != null
             ? ` · Estimated accuracy ${Math.round(fix.accuracyFeet)} ft.`
             : ""}{" "}
-          Location history is not recorded.
+          Trip history is recorded only when you choose Record trip in Maps.
         </p>
       </Info>
     </div>

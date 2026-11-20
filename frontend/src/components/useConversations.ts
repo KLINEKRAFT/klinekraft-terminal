@@ -52,29 +52,8 @@ export function useConversations(initialContext: WikiReference | null) {
       setError("This answer has not been saved. Retry saving or export it.");
       return;
     }
-    const request = new AbortController();
-    let id = "";
-    try {
-      id = localStorage.getItem(LAST) || "";
-    } catch {}
-    if (!id || initialContext) {
-      setLoading(false);
-      return;
-    }
-    void localJSON("/api/conversations/" + encodeURIComponent(id), {
-      signal: AbortSignal.any([request.signal, AbortSignal.timeout(10000)]),
-    })
-      .then((data) => {
-        if (!request.signal.aborted) setChat(data);
-      })
-      .catch((e) => {
-        if (!request.signal.aborted) setError(e.message);
-      })
-      .finally(() => {
-        if (!request.signal.aborted) setLoading(false);
-      });
-    return () => request.abort();
-  }, []); // Restore once; a Library article intentionally starts a fresh chat.
+    setLoading(false);
+  }, []); // Always open a fresh chat; saved chats remain in History.
   useEffect(() => {
     if (isHostedDemo) return;
     const request = new AbortController();

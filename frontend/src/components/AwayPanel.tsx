@@ -57,7 +57,7 @@ function readPreferences(): Preferences {
   }
 }
 export function AwayLaunch() {
-  return <button className="k-btn" onClick={() => window.dispatchEvent(new Event("klinekraft-open-away"))}>
+  return <button className="k-btn k-btn--quiet" onClick={() => window.dispatchEvent(new Event("klinekraft-open-away"))}>
     <Moon size={15} /> Away
   </button>;
 }

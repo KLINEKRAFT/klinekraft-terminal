@@ -12,7 +12,7 @@ export function ToolsLauncher() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button className="k-btn" onClick={() => setOpen(true)}>
+      <button className="k-btn k-btn--quiet" onClick={() => setOpen(true)}>
         <Wrench size={15} /> Tools
       </button>
       {open && <ToolsDialog onClose={() => setOpen(false)} />}

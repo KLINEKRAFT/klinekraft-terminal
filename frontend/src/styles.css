@@ -2251,6 +2251,102 @@ main[data-page="GPS / Maps"] .page-content,main[data-page="Field Briefing"] .pag
 
 /* GPS shares the device-tools row; detailed readings stay in its info popover. */
 .gps-details {display:grid;gap:6px;}
+@media(max-width:650px) {
+  .home-device-links .gps-home {gap:5px;padding-right:6px;}
+  .home-device-links > button {padding:8px 6px;gap:5px;}
+}
+
+.trip-recorder {display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:5px 0;font:11px var(--mono);min-height:34px;}
+.trip-recorder button,.trip-recorder select {font:11px var(--mono);padding:5px 8px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:3px;}
+.trip-recorder button[aria-pressed="true"] {color:white;background:var(--logo-blue);border-color:var(--logo-blue);}
+.trip-recorder select {max-width:240px;}
+.trip-recording-indicator {color:var(--logo-blue);}
+.trip-recorder [role="alert"] {color:var(--ink);width:100%;}
+
+.volume-control {position:relative;}
+.volume-control summary {display:flex;align-items:center;justify-content:center;list-style:none;cursor:pointer;}
+.volume-control summary::-webkit-details-marker {display:none;}
+.volume-control[open] summary {color:var(--logo-blue);}
+.volume-popover {position:absolute;right:0;top:calc(100% + 10px);width:230px;padding:14px;z-index:150;background:var(--paper);border:1px solid var(--line);border-radius:5px;box-shadow:0 8px 24px #0002;display:grid;gap:10px;}
+.volume-popover label {display:flex;justify-content:space-between;font:12px var(--mono);}
+.volume-popover input {width:100%;accent-color:var(--logo-blue);min-height:26px;}
+.volume-popover button {border:1px solid var(--line);background:transparent;color:var(--ink);padding:6px;font:12px var(--mono);}
+.volume-popover small,.volume-popover [role="alert"] {font:10px var(--mono);color:var(--muted);}
+
+.radio-control {position:relative;}
+.radio-control>summary {display:flex;align-items:center;justify-content:center;list-style:none;cursor:pointer;}
+.radio-control>summary::-webkit-details-marker {display:none;}
+.radio-control>summary[data-playing="true"],.radio-control[open]>summary {color:var(--logo-blue);}
+.radio-popover {position:absolute;right:0;top:calc(100% + 10px);width:290px;max-height:calc(100dvh - 95px);overflow:auto;padding:14px;z-index:150;background:var(--paper);border:1px solid var(--line);border-radius:5px;box-shadow:0 8px 24px #0002;display:grid;gap:10px;font:12px var(--mono);}
+.radio-popover label {display:flex;justify-content:space-between;gap:10px;}
+.radio-popover input,.radio-popover select,.radio-popover button {width:100%;min-width:0;background:transparent;color:var(--ink);border:1px solid var(--line);padding:7px;font:12px var(--mono);}
+.radio-popover .radio-play {display:flex;align-items:center;justify-content:center;gap:8px;background:var(--logo-blue);color:white;}
+.radio-popover small {font:10px var(--mono);color:var(--muted);line-height:1.5;}
+.radio-stations summary {cursor:pointer;}
+.radio-stations form {display:grid;gap:8px;margin:10px 0;}
+.radio-popover [role="alert"] {font:11px var(--mono);margin:0;}
+/* Shackleton: centered chat, quiet actions, on-demand history. */
+.ai-chat.shack-chat {max-width:780px;width:100%;min-height:0;height:100%;position:relative;}
+.shack-chat .ai-chat-toolbar {justify-content:flex-start;gap:20px;padding:0 0 8px;min-height:36px;}
+.shack-chat .ai-options {margin-left:auto;}
+.shack-chat .ai-options-content {z-index:60;max-height:calc(100dvh - 180px);overflow:auto;width:min(360px,80vw);}
+.shack-chat .ai-chat-scroll {padding:0 8px;scrollbar-gutter:stable;}
+.shack-chat .ai-turn {padding:14px 0 24px;}
+.shack-chat .ai-user-message {max-width:82%;border-radius:18px;background:color-mix(in srgb,var(--ink) 6%,transparent);padding:10px 16px;margin:0 0 24px auto;font:14px/1.55 var(--sans);}
+.shack-chat .ai-answer {font:15px/1.65 var(--sans);letter-spacing:0;overflow-wrap:anywhere;}
+.shack-chat .ai-answer p {white-space:normal;margin:0 0 1em;}
+.shack-chat .ai-answer h1,.shack-chat .ai-answer h2,.shack-chat .ai-answer h3 {font-size:1.12em;font-weight:600;margin:1.3em 0 .5em;}
+.shack-chat .ai-answer ul,.shack-chat .ai-answer ol {padding-left:1.5em;margin:.5em 0 1em;}
+.shack-chat .ai-answer pre {font:12px/1.6 var(--mono);border-radius:8px;white-space:pre;overflow:auto;padding:14px;}
+.shack-chat .ai-answer code {font-family:var(--mono);}
+.answer-tools {display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:6px;color:var(--muted);}
+.answer-actions {display:flex;gap:14px;}
+.answer-actions button {display:flex;align-items:center;gap:6px;border:0;background:none;color:var(--muted);font:11px var(--sans);padding:5px 0;cursor:pointer;}
+.answer-tools>.details-panel {margin:0;font-size:11px;}
+.shack-chat .ai-compose-area {width:100%;padding:8px 8px 0;}
+.shack-chat .ai-composer {border-radius:20px!important;padding:12px 16px 8px!important;background:color-mix(in srgb,var(--ink) 3%,var(--paper));}
+.shack-chat .ai-composer textarea {font:14px/1.5 var(--sans);resize:none;min-height:44px;}
+.shack-chat .ai-compose-controls {justify-content:space-between;}
+.shack-chat .ai-send {background:var(--logo-blue);color:white;}
+.shack-chat .ai-composer>.info-popover {position:absolute;right:60px;bottom:16px;}
+.shack-chat .ai-composer {position:relative;}
+.shack-chat .ai-chat-footer {font-size:10px;color:var(--muted);}
+.shack-chat.shack-welcome .ai-empty {padding:12px;}
+.shack-chat.shack-welcome .shackleton-logo {height:76px;width:76px;margin-bottom:12px;}
+.shack-chat.shack-welcome .ai-empty p {font:400 25px/1.3 var(--sans);letter-spacing:-.03em;}
+.shack-chat.shack-welcome .ai-chat-scroll {flex:1;}
+.ai-chat.shack-chat .ai-history {position:fixed!important;inset:0!important;margin:auto;width:min(580px,calc(100vw - 36px));height:fit-content;max-height:80dvh;border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 20px 80px #0004;overflow:auto;color:var(--ink);}
+.ai-history::backdrop {background:#0005;}
+.voice-settings {margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);}
+.voice-settings>summary {cursor:pointer;}
+.voice-settings form {display:grid;gap:10px;margin-top:10px;}
+.voice-settings form label {display:grid;gap:5px;}
+.voice-settings input,.voice-settings select {width:100%;min-width:0;background:var(--paper);color:var(--ink);border:1px solid var(--line);padding:7px;}
+.voice-settings button {border:1px solid var(--line);padding:7px;background:transparent;color:var(--ink);}
+@media(max-height:650px){.shack-chat.shack-welcome .shackleton-logo{height:60px;width:60px;}.shack-chat .ai-compose-area{padding-top:4px;}}
+
+.shack-chat.shack-welcome .ai-chat-scroll {flex:0 1 auto;margin-top:auto;}
+.shack-chat.shack-welcome .ai-empty {min-height:0;}
+.shack-chat.shack-welcome .ai-compose-area {margin-bottom:auto;}
+
+.listen-dialog { width:min(620px,calc(100vw - 32px)); max-height:85dvh; overflow:auto; padding:20px; background:var(--panel,#10151b); color:var(--ink); border:1px solid var(--line); border-radius:12px; }
+.listen-dialog::backdrop { background:#0009; }
+.listen-dialog header, .listen-actions, .saved-audio-row { display:flex; align-items:center; gap:10px; justify-content:space-between; }
+.listen-dialog h2 { font-size:16px; margin:0; }
+.listen-dialog label { display:block; font-size:12px; margin:12px 0; }
+.listen-dialog textarea { display:block; width:100%; height:145px; resize:vertical; margin-top:6px; }
+.listen-dialog select { display:block; max-width:220px; }
+.listen-actions { flex-wrap:wrap; justify-content:flex-start; }
+.listen-dialog small { display:block; font-size:11px; opacity:.75; }
+.listen-dialog audio { width:100%; height:34px; margin-bottom:14px; }
+.saved-audio-row { padding:9px 0; border-bottom:1px solid var(--line); }
+.saved-audio-row button:first-child { text-align:left; min-width:0; overflow-wrap:anywhere; }
+.listen-dialog button { min-height:32px; }
+
+.listen-dialog textarea, .listen-dialog select { background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:5px; padding:8px; font:inherit; }
+.listen-dialog button { background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:5px; padding:6px 10px; }
+.listen-dialog button:disabled { opacity:.5; }
+.listen-dialog summary { cursor:pointer; }
 
 /* Command result toast: one definition. The older rules set paper-coloured
    text on a paper background (invisible) and pinned it bottom-left. */

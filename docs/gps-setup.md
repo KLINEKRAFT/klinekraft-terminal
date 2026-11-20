@@ -54,3 +54,31 @@ Validation: production build, eight backend map tests and four browser tests,
 including GPS loss, course visibility, saved coordinates, route start and
 1024×600 layout. Live receiver returned a 3D fix with 8 of 14 satellites used
 during integration verification.
+
+## Trip recording
+
+Maps → Record trip explicitly starts local recording; Follow alone does not.
+Stop recording finishes the trip. The compact trip row shows estimated miles,
+elapsed duration and point count. Select a recent trip (up to 100 shown), choose
+View trail to frame it, or Export GPX to download its timestamped segments.
+
+A backend task samples gpsd approximately every 5–7 seconds while recording.
+It continues across page changes, browser closure and screen dimming while the
+Pi/service remains running. A service restart or shutdown preserves the trip
+as interrupted and never silently resumes it. Interrupted duration is estimated
+through the last retained point. Starting without reception waits for a fix.
+
+Only fresh valid positions are stored. Estimates worse than 300 ft, movements
+under 5 m, small low-speed jitter and implausible road-speed jumps are filtered.
+Gaps over 30 seconds start separate segments; no distance is invented across
+the gap. Mileage is an estimate, not an odometer. Recording stops at 100,000
+points per trip; a new trip can then be started.
+
+Trips and points live in the existing private SQLite database, so the encrypted
+daily backup includes them. GPX exports contain precise location history;
+export only when desired. No automatic recording or third-party upload was
+added. The historical Follow-only drives cannot be recovered.
+
+Validation: production build; 12 backend map/trip tests; five browser GPS/map/
+trip checks, with an additional final trip/export/layout run. Browser tests
+used simulated tracks; the next drive will exercise real moving-GPS recording.

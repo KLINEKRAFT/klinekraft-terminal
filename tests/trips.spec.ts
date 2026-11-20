@@ -1,0 +1,32 @@
+import {test,expect} from "@playwright/test";
+import {navigate} from "./navigation";
+test("trip controls persist across pages, draw saved trail and export GPX",async({page})=>{
+ await page.setViewportSize({width:1024,height:600});
+ let trip:any=null;
+ await page.route("**/api/trips**",async r=>{
+  const path=new URL(r.request().url()).pathname;
+  if(path.endsWith("/start"))trip={id:"test",started:new Date().toISOString(),state:"recording",miles:0.2,seconds:120,points:2};
+  if(path.endsWith("/stop"))trip={...trip,state:"saved"};
+  if(path.endsWith("/gpx"))return r.fulfill({body:'<gpx version="1.1"/>',contentType:"application/gpx+xml"});
+  return r.fulfill({json:path==="/api/trips" ? (trip?[trip]:[]) : {...trip,segments:[[{latitude:36.15,longitude:-95.99,time:new Date().toISOString()},{latitude:36.16,longitude:-95.98,time:new Date().toISOString()}]]}});
+ });
+ await page.goto("/");
+ await navigate(page,"GPS / Maps");
+ await page.getByRole("button",{name:"● Record trip",exact:true}).click();
+ await expect(page.getByRole("button",{name:"■ Stop recording",exact:true})).toBeVisible();
+ await expect(page.getByLabel("Trip recording",{exact:true})).toContainText("0.20 mi");
+ await navigate(page,"Home");
+ await navigate(page,"GPS / Maps");
+ await expect(page.getByRole("button",{name:"■ Stop recording",exact:true})).toBeVisible();
+ await page.getByRole("button",{name:"■ Stop recording",exact:true}).click();
+ await expect(page.getByRole("button",{name:"● Record trip",exact:true})).toBeVisible();
+ await expect(page.getByLabel("Saved trips")).toContainText("saved");
+ const download=page.waitForEvent("download");
+ await page.getByRole("button",{name:"Export GPX",exact:true}).click();
+ expect((await download).suggestedFilename()).toBe("klinekraft-trip-test.gpx");
+ await expect(page.getByRole("button",{name:"Tulsa",exact:true})).toBeEnabled({timeout:20000});
+ await page.getByRole("button",{name:"View trail",exact:true}).click();
+ await page.getByRole("button",{name:"Close map panel",exact:true}).click();
+ await page.screenshot({path:"test-results/trips-map.png"});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(1024);
+});

@@ -1,3 +1,4 @@
+import { TripRecorder } from "./TripRecorder";
 import { useGps, freshGps } from "../hooks/useGps";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
@@ -443,6 +444,38 @@ export default function OfflineMaps({
     } else gpsMarker.current.setLngLat(point);
     if (followGps) map.current.jumpTo({ center: point });
   }, [ready, gps.fix, gps.current, followGps]);
+  const showTrail = useCallback(
+    (data: GeoJSON.FeatureCollection, fit = false) => {
+      const view = map.current;
+      if (!ready || !view) return;
+      if (fit && data.features.length) {
+        const bounds = new maplibregl.LngLatBounds();
+        for (const feature of data.features)
+          if (feature.geometry.type === "LineString")
+            for (const p of feature.geometry.coordinates)
+              bounds.extend([p[0], p[1]]);
+        setFollowGps(false);
+        view.fitBounds(bounds, { padding: 45, maxZoom: 16, duration: 0 });
+      }
+      const source = view.getSource("recorded-trip") as
+        maplibregl.GeoJSONSource | undefined;
+      if (source) source.setData(data);
+      else {
+        view.addSource("recorded-trip", { type: "geojson", data });
+        view.addLayer({
+          id: "recorded-trip",
+          type: "line",
+          source: "recorded-trip",
+          paint: {
+            "line-color": "#123aff",
+            "line-width": 4,
+            "line-opacity": 0.85,
+          },
+        });
+      }
+    },
+    [ready],
+  );
   function locate() {
     if (!freshGps(gps.fix)) return;
     go([gps.fix!.longitude!, gps.fix!.latitude!], "GPS position");
@@ -577,6 +610,7 @@ export default function OfflineMaps({
           Save this spot
         </button>
       </div>
+      {!isHostedDemo && <TripRecorder onTrail={showTrail} />}
       {spotOpen && (
         <form
           className="gps-save-spot"

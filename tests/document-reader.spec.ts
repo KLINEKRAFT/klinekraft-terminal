@@ -74,6 +74,12 @@ test("Library opens PDF and text immediately without a popup", async ({
   page,
   context,
 }) => {
+  let spoken = "";
+  await page.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){return Promise.resolve();};});
+  await page.route("**/api/speech",r=>{
+    if(r.request().method()==="POST") { spoken=r.request().postDataJSON().text; return r.fulfill({body:Buffer.from("audio"),contentType:"audio/wav"}); }
+    return r.fulfill({json:{provider:"local",voice:"local",offline:true}});
+  });
   await page.goto("/");
   await navigate(page, "Library");
   await page.getByRole("button", { name: "Guide", exact: true }).click();
@@ -84,6 +90,15 @@ test("Library opens PDF and text immediately without a popup", async ({
   await reader.getByRole("button", { name: "Next page" }).click();
   await expect(reader.getByText("Page 2 of 2")).toBeVisible();
   await expect(reader.getByRole("status")).toHaveCount(0);
+  await reader.getByRole("button", {name:"Listen",exact:true}).click();
+  await expect.poll(()=>spoken).toContain("Second page");
+  await expect(page.getByRole("dialog")).toHaveCount(1);
+  await expect(reader.getByRole("button",{name:"Stop reading"})).toBeVisible();
+  await reader.getByRole("button",{name:"Zoom out"}).click();
+  await expect(reader.getByRole("button",{name:"Reset zoom"})).toHaveText("75%");
+  const width75 = await reader.locator("canvas").evaluate(el=>el.getBoundingClientRect().width);
+  await reader.getByRole("button",{name:"Reset zoom"}).click();
+  expect(await reader.locator("canvas").evaluate(el=>el.getBoundingClientRect().width)).toBeGreaterThan(width75);
   await page.keyboard.press("Escape");
   await expect(reader).toHaveCount(0);
   await expect(

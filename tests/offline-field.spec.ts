@@ -28,7 +28,7 @@ test("offline Shackleton stays local and includes research by default", async ({
   );
   await page.route("**/api/ai/ask", (r) => {
     expect(r.request().postDataJSON().provider).toBe("local");
-    expect(r.request().postDataJSON().reference_only).toBe(true);
+    expect(r.request().postDataJSON().reference_only).toBe(false);
     expect(r.request().postDataJSON().use_research).toBe(true);
     return r.fulfill({
       json: {

@@ -154,9 +154,9 @@ test("secondary panels start closed and share one-open behavior", async ({
   const radio = panel(/^Off-grid messages/);
   await expect(hotspot).not.toHaveAttribute("open", "");
   await expect(radio).not.toHaveAttribute("open", "");
-  await hotspot.locator("summary").click();
+  await hotspot.locator(":scope > summary").click();
   await expect(hotspot).toHaveAttribute("open", "");
-  await radio.locator("summary").click();
+  await radio.locator(":scope > summary").click();
   await expect(hotspot).not.toHaveAttribute("open", "");
   await expect(radio).toHaveAttribute("open", "");
 });

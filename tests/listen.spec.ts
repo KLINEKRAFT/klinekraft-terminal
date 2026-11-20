@@ -1,0 +1,32 @@
+import {test,expect} from "@playwright/test";
+test("Brief me labels stale data, saves audio, and replays without synthesis",async({page})=>{
+ await page.setViewportSize({width:1024,height:600});
+ await page.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){return Promise.resolve();}; (window as any).audioStops=0; HTMLMediaElement.prototype.pause=function(){(window as any).audioStops++;};});
+ await page.route("**/api/speech",r=>r.request().method()==="GET" ? r.fulfill({json:{provider:"elevenlabs",configured:true}}) : r.fulfill({body:Buffer.from("audio"),contentType:"audio/mpeg"}));
+ let saved=false, generated=0;
+ await page.route("**/api/speech",r=>{
+   if(r.request().method()==="GET") return r.fulfill({json:{provider:"elevenlabs",configured:true}});
+   generated++;saved=r.request().postDataJSON().save;
+   expect(r.request().postDataJSON().text).toContain("Last known weather");
+   return r.fulfill({body:Buffer.from("audio"),contentType:"audio/mpeg"});
+ });
+ await page.route("**/api/speech/saved",r=>r.fulfill({json:{recordings:saved?[{id:"abc",title:"Field briefing",created:1700000000,provider:"elevenlabs"}]:[]}}));
+ await page.route("**/api/speech/saved/abc",r=>r.fulfill({body:Buffer.from("saved audio"),contentType:"audio/mpeg"}));
+ await page.route("**/api/briefing",r=>r.fulfill({json:{settings:{enabled:true,location:"Tulsa"},events:[],feeds:{forecast:{stale:true,updated:1700000000,data:{current:{temperature_2m:55,weather_code:0,wind_speed_10m:8}}}}}}));
+ await page.route("**/api/maps/gps",r=>r.fulfill({json:{available:false}}));
+ await page.goto("/");
+ await page.getByRole("button",{name:"Brief me",exact:true}).click();
+ const dialog=page.getByRole("dialog",{name:"Field briefing audio"});
+ await expect(dialog.getByLabel("Passage to read")).toContainText("Last known weather");
+ await expect(dialog.getByLabel("Passage to read")).toContainText("not an all-clear");
+ await dialog.getByRole("button",{name:"Read & save audio",exact:true}).click();
+ await expect(dialog.getByText("Saved on this Pi for offline playback.",{exact:true})).toBeVisible();
+ await dialog.getByText("Saved audio · 1").click();
+ await dialog.getByRole("button",{name:/Field briefing.*elevenlabs/}).click();
+ expect(generated).toBe(1);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(1024);
+ await page.screenshot({path:"test-results/listen-briefing.png"});
+ const stops = await page.evaluate(()=>(window as any).audioStops);
+ await dialog.getByRole("button",{name:"Close",exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>(window as any).audioStops)).toBeGreaterThan(stops);
+});

@@ -363,7 +363,7 @@ export function Briefing({ page = false }: { page?: boolean }) {
                   <WeatherOverview
                     feed={{
                       ...data.feeds.forecast,
-                      stale: offline || data.feeds.forecast?.stale,
+                      stale: offline || !data.settings.enabled || data.feeds.forecast?.stale,
                     }}
                     location={data.settings.location}
                     onRadar={() => setTab("Radar")}
