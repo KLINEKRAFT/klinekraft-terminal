@@ -3257,55 +3257,7 @@ main[data-page="AI assistant"] .page-content {
   .calendar-grid button { padding: 7px; min-height: 52px; }
   .calendar-grid small { font-size: 8px; }
 }
-/* Paint follows the classic toolbox / canvas / palette arrangement. */
-.paint { margin-top: 20px; min-width: 0; }
-.paint button, .paint input, .paint select { color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 3px; padding: 8px 10px; font: 12px var(--mono); min-width: 0; }
-.paint button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
-.paint button:hover:not(:disabled) { background: var(--panel); border-color: var(--ink); }
-.paint button:focus-visible, .paint select:focus-visible, .paint input:focus-visible, .paint-surface:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
-.paint button[aria-pressed="true"] { border-color: var(--orange); box-shadow: inset 0 -2px var(--orange); }
-.paint button:disabled { opacity: .4; cursor: default; }
-.paint label { display: flex; align-items: center; gap: 8px; font: 11px var(--mono); color: var(--muted); }
-.paint-document-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; padding-bottom: 16px; }
-.paint-name { flex: 1 1 250px; }
-.paint-name input { font: 18px var(--sans); width: 100%; max-width: 400px; }
-.paint-save-status { font: 11px/1.5 var(--mono); color: var(--muted); flex: 1 1 200px; text-align: right; overflow-wrap: anywhere; }
-.paint-command-bar, .paint-options, .paint-color-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px; border: 1px solid var(--line); }
-.paint-command-bar { background: var(--panel); border-bottom: 0; }
-.paint-command-bar select { max-width: 220px; }
-.paint-divider { height: 20px; border-left: 1px solid var(--line); margin-inline: 4px; }
-.paint-options { border-bottom: 0; gap: 12px; }
-.paint-options strong { font: 12px var(--mono); color: var(--orange); min-width: 65px; }
-.paint-editor { display: grid; grid-template-columns: 118px minmax(0,1fr); border: 1px solid var(--line); min-height: 380px; }
-.paint-toolbox { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-content: start; gap: 4px; padding: 8px; border-right: 1px solid var(--line); background: var(--paper); }
-.paint-toolbox button { flex-direction: column; padding: 10px 2px; min-height: 58px; font-size: 9px; }
-.paint-toolbox button[aria-pressed="true"] { color: var(--orange); background: var(--panel); }
-.paint-surface { background: var(--panel); background-image: radial-gradient(var(--line) 1px,transparent 1px); background-size: 12px 12px; padding: 24px; overflow: auto; min-width: 0; max-height: 72vh; }
-.paint-canvas-wrap { position: relative; line-height: 0; margin: 0 auto; box-shadow: 0 2px 14px #0002; }
-.paint canvas { display: block; width: 100%; height: auto; background: white; touch-action: none; cursor: crosshair; image-rendering: pixelated; }
-.paint-selection { position: absolute; border: 1px dashed #000; outline: 1px dashed #fff; pointer-events: none; }
-.paint-color-bar { border-top: 0; }
-.paint input[type="color"] { padding: 2px; width: 34px; height: 32px; }
-.paint-palette { display: grid; grid-template-columns: repeat(8,24px); gap: 4px; margin-left: auto; }
-.paint-palette button { width: 24px; height: 24px; padding: 0; border: 1px solid #888; }
-.paint-palette button[aria-pressed="true"] { outline: 2px solid var(--orange); outline-offset: 1px; box-shadow: none; }
-.paint-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; font: 11px var(--mono); color: var(--muted); }
-@media(max-width:700px) {
-  .paint-editor { grid-template-columns: 1fr; min-height: 280px; }
-  .paint-toolbox { grid-template-columns: repeat(5,minmax(0,1fr)); border-right: 0; border-bottom: 1px solid var(--line); }
-  .paint-surface { padding: 12px; min-height: 240px; }
-  .paint-save-status { text-align: left; }
-  .paint-palette { margin-left: 0; }
-}
 
-.paint.paint-expanded { position: fixed; inset: 0; z-index: 1000; margin: 0; padding: 16px; background: var(--paper); overflow: auto; display: flex; flex-direction: column; }
-.paint-expanded .paint-editor { flex: 1 0 360px; grid-template-columns: 118px minmax(0,1fr); min-height: 360px; }
-.paint-expanded > * { flex-shrink: 0; }
-.paint-expanded .paint-toolbox { grid-template-columns: repeat(2,minmax(0,1fr)); border-right: 1px solid var(--line); border-bottom: 0; }
-.paint-expanded .paint-surface { max-height: none; }
-.paint-expanded .paint-document-bar { padding-bottom: 8px; }
-.paint-expanded .paint-options, .paint-expanded .paint-command-bar, .paint-expanded .paint-color-bar { padding: 8px; }
-.paint-expanded .organizer-caption { margin: 4px 0; }
 
 .offline-maps { margin-top: 20px; }
 .map-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -3425,25 +3377,6 @@ main[data-page="AI assistant"] .page-content {
   .calculator output { min-height: 48px; padding-block: 8px; font-size: 26px; }
   .calculator-keys { gap: 5px; }
   .calculator-keys button { min-height: 35px; padding: 6px 10px; font-size: 17px; }
-  .paint { height: 100%; margin-top: 0; display: flex; flex-direction: column; }
-  .paint > * { flex-shrink: 0; }
-  .paint-document-bar { gap: 8px; padding-bottom: 6px; }
-  .paint-name { flex-basis: 170px; }
-  .paint-name input { font-size: 14px; }
-  .paint-save-status { flex-basis: 150px; font-size: 10px; }
-  .paint-command-bar, .paint-options, .paint-color-bar { gap: 5px; padding: 6px; }
-  .paint button, .paint input, .paint select { font-size: 11px; padding: 5px 7px; }
-  .paint-options { gap: 8px; }
-  .paint-editor, .paint-expanded .paint-editor { flex: 1 1 0; min-height: 160px; grid-template-columns: 94px minmax(0,1fr); }
-  .paint-toolbox { padding: 4px; gap: 3px; overflow: auto; scrollbar-width: thin; }
-  .paint-toolbox button { min-width: 0; min-height: 38px; padding: 4px 1px; font-size: 8px; overflow-wrap: anywhere; }
-  .paint-toolbox button svg { width: 16px; height: 16px; }
-  .paint-surface { min-height: 0; padding: 8px; max-height: none; }
-  .paint-footer { padding-block: 5px; gap: 5px; font-size: 10px; }
-  .paint .organizer-caption { margin-block: 4px; font-size: 10px; }
-  .paint-palette { grid-template-columns: repeat(8,20px); gap: 3px; }
-  .paint-palette button { width: 20px; height: 20px; padding: 0; }
-  .paint.paint-expanded { height: 100dvh; padding: 8px; }
   .document-reader { width: min(960px, 96vw); height: calc(100dvh - 24px); max-height: calc(100dvh - 24px); padding: 12px; }
   .document-reader[open] { display: flex; flex-direction: column; }
   .document-reader header, .document-reader nav { flex: none; gap: 8px; margin-bottom: 8px; }
@@ -3492,9 +3425,6 @@ main[data-page="AI assistant"] .page-content {
 /* Contain offscreen accessible labels inside the scrolling workspace. */
 .page-content { position: relative; }
 .power-controls details[open] { max-height: 150px; overflow: auto; }
-@media (max-height: 650px) and (min-width: 761px) {
-  .paint-editor, .paint-expanded .paint-editor { min-height: 120px; }
-}
 
 /* Compact global display switch, independent of Field mode. */
 .dim-toggle-slot { display: inline-flex; }
@@ -3532,33 +3462,6 @@ main[data-page="AI assistant"] .page-content {
 .organizer-item[aria-pressed="true"] { border-color: var(--logo-blue); box-shadow: inset 3px 0 var(--logo-blue); }
 .organizer-item span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-/* Canvas-first Paint layout; expanding keeps app navigation available. */
-.paint-canvas-actions { position: relative; margin-left: auto; }
-.paint-canvas-actions summary { cursor: pointer; padding: 7px; font: 11px var(--mono); border: 1px solid var(--line); border-radius: 4px; }
-.paint-canvas-actions > div { position: absolute; right: 0; top: 100%; width: 190px; display: grid; gap: 6px; padding: 8px; border: 1px solid var(--line); background: var(--paper); box-shadow: 0 4px 15px #0005; z-index: 10; }
-.paint-help { position: relative; font: 10px var(--mono); }
-.paint-help summary { cursor: pointer; padding: 3px 0; }
-.paint-help p { position: absolute; bottom: 100%; left: 0; right: 0; z-index: 10; background: var(--paper); border: 1px solid var(--line); padding: 10px; font-size: 12px; }
-.paint.paint-expanded { position: absolute; inset: 0; height: 100%; padding: 0; overflow: hidden; }
-main:has(.paint-expanded) > .page-header, main:has(.paint-expanded) > .power-controls,
-main:has(.paint-expanded) > .command-area { display: none; }
-main:has(.paint-expanded) .page-content { padding-top: 8px; }
-.paint .paint-editor { grid-template-columns: 82px minmax(0,1fr); }
-.paint-toolbox button span { display: none; }
-.paint-toolbox button { min-height: 32px; }
-@media (min-width: 761px) and (max-height: 650px) {
-  main[data-page="Paint"] > .command-area { display: none; }
-  .paint-document-bar { padding-bottom: 4px; }
-  .paint-command-bar, .paint-options, .paint-color-bar { padding: 4px; gap: 5px; }
-  .paint-options { min-height: 36px; }
-  .paint .paint-editor, .paint-expanded .paint-editor { flex: 1 1 0; min-height: 120px; grid-template-columns: 82px minmax(0,1fr); }
-  .paint-toolbox { grid-template-columns: repeat(2,minmax(0,1fr)); align-content: start; }
-  .paint-toolbox button { min-height: 30px; padding: 4px; }
-  .paint-palette { display: flex; flex-wrap: wrap; max-width: 365px; gap: 3px; }
-  .paint-color-bar label { font-size: 10px; }
-  .paint-footer { padding-block: 2px; }
-  .paint.paint-expanded { height: 100%; }
-}
 
 /* A contained, slow drift keeps the original mark fully on-screen. */
 .away-logo-drift { position: absolute; inset: 12% 10%; pointer-events: none; }
@@ -3646,25 +3549,6 @@ main:has(.paint-expanded) .page-content { padding-top: 8px; }
 .calculator-history {border-left:1px solid var(--line);padding-left:24px;}
 .calculator-history h2 {font:11px 'IBM Plex Mono';text-transform:uppercase;letter-spacing:.12em;}
 @media(max-width:700px){.preview-badge{display:none!important;}}
-.paint {position:relative;}
-.paint-document-bar {padding-right:80px;min-height:32px;}
-.paint-name {font-size:0;}
-.paint-name input {font-size:12px;}
-.paint-file-menu {position:absolute;right:8px;top:8px;z-index:20;}
-.paint-file-menu>summary {cursor:pointer;padding:6px 10px;border:1px solid var(--line);list-style:none;font-size:12px;}
-.paint-file-menu .paint-command-bar {position:absolute;right:0;top:35px;width:210px;display:flex;flex-direction:column;align-items:stretch;background:var(--paper,#efeee8);border:1px solid var(--line);padding:12px;box-shadow:0 8px 25px #0002;}
-.paint-toolbox {width:50px!important;grid-template-columns:1fr!important;gap:2px!important;padding:4px!important;}
-.paint-toolbox>button {min-height:28px!important;height:28px!important;padding:4px!important;}
-.paint-toolbox>button span {display:none;}
-.paint-editor {grid-template-columns:50px minmax(0,1fr)!important;min-height:330px;}
-.paint-options {min-height:32px!important;padding:4px!important;}
-.color-wheel-control {position:relative;display:grid;justify-items:center;gap:4px;}
-.color-wheel {width:38px;height:38px;border-radius:50%!important;background:radial-gradient(circle,#fff,transparent 65%),conic-gradient(red,#ff0,#0f0,#0ff,#00f,#f0f,red)!important;border:0!important;touch-action:none;}
-.color-wheel-control input {width:28px;height:18px;padding:0;border:0;}
-.recent-colors {position:absolute;left:45px;bottom:0;z-index:40;display:flex;gap:4px;padding:8px;background:var(--paper,#efeee8);border:1px solid var(--line);}
-.recent-colors button {width:26px;height:26px;border:1px solid #8885;}
-.paint-context {position:fixed;z-index:150;display:flex;flex-direction:column;width:185px;background:var(--paper,#efeee8);border:1px solid var(--line);box-shadow:0 8px 30px #0003;padding:6px;}
-.paint-context button {text-align:left;padding:7px;border:0;background:transparent;color:inherit;}
 .game-list {display:grid!important;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:20px!important;}
 .game-list>li {position:relative;display:flex!important;flex-direction:column;align-items:stretch!important;padding:0!important;border:0!important;gap:8px;}
 .game-cover {height:205px;background:#111827;overflow:hidden;border-radius:4px;}
@@ -3685,14 +3569,11 @@ main:has(.paint-expanded) .page-content { padding-top: 8px; }
 .research-fields {grid-template-columns:90px minmax(0,1fr) minmax(180px,1fr)!important;}
 .document-gallery.shelf .document-cover {transition:transform .18s ease;}
 .document-gallery.shelf .research-result-title:hover .document-cover {transform:translateY(-4px);}
-.paint-toolbox {overflow:auto;scrollbar-width:thin;}
 @media(prefers-reduced-motion:reduce){.document-gallery.shelf .document-cover{transition:none;}}
 .header-brand {width:145px;}
 .header-brand .brand {min-height:32px;padding:0;}
 .header-brand svg,.header-brand img {max-height:38px;width:100%;object-fit:contain;}
 main:not([data-page="Home"])>.command-area {display:none;}
-.paint .paint-name {font-size:0!important;}
-.paint .paint-name input {font-size:12px!important;}
 .emergency-dashboard {height:100%;display:flex;flex-direction:column;min-height:0;}
 .emergency-workbench {display:grid;grid-template-columns:minmax(240px,30%) minmax(0,1fr);gap:16px;flex:1;min-height:0;}
 .emergency-reference,.emergency-library {overflow:auto;min-width:0;scrollbar-width:thin;}
