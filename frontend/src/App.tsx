@@ -16,7 +16,7 @@ import {
 import type { MapLocation } from "./components/MapCollections";
 import { Briefing } from "./components/Briefing";
 import { ScienceSearch } from "./components/ScienceSearch";
-import { lazy, Suspense, useEffect, useLayoutEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Search,
   Paintbrush,
@@ -453,7 +453,14 @@ export default function App() {
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   }, []);
-  const navigate = (next: Section) => {
+  const paintBeforeLeave = useRef<(() => Promise<boolean>) | null>(null);
+  const navigationAttempt = useRef(0);
+  const navigate = async (next: Section) => {
+    const attempt = ++navigationAttempt.current;
+    if (section === "Paint" && next !== "Paint" && paintBeforeLeave.current) {
+      const saved = await paintBeforeLeave.current();
+      if (!saved || attempt !== navigationAttempt.current) return;
+    }
     setCollapsed(true);
     setSection(next);
     setNotice("");
@@ -694,7 +701,7 @@ export default function App() {
               />
             </Suspense>
           ) : section === "Paint" ? (
-            <Paint />
+            <Paint beforeLeave={paintBeforeLeave} />
           ) : section === "Notes" ? (
             <Organizer
               key="notes"

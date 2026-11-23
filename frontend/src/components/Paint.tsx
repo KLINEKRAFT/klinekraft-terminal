@@ -1,6 +1,6 @@
 import { ColorWheel } from "./ColorWheel";
 import { Info } from "./Info";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Pencil,
   Paintbrush,
@@ -130,7 +130,7 @@ const hints: Record<Tool, string> = {
   text: "Enter text above, then click the canvas to place it.",
 };
 
-export function Paint() {
+export function Paint({ beforeLeave }: { beforeLeave?: { current: (() => Promise<boolean>) | null } }) {
   const [mirror, setMirror] = useState("off");
   const [recent, setRecent] = useState<string[]>([
     "#242424",
@@ -289,6 +289,8 @@ export function Paint() {
   const rightPress = useRef<Point | null>(null),
     contextHandledUntil = useRef(0);
   const loadSequence = useRef(0);
+  const unsaved = useRef(false);
+  const pendingSave = useRef<Promise<Drawing> | null>(null);
   const generation = useRef(0),
     inFlight = useRef(false),
     failed = useRef(false),
@@ -323,6 +325,7 @@ export function Paint() {
     updateDocument(next);
     generation.current++;
     failed.current = false;
+    unsaved.current = true;
     setDirty(true);
     setStatus(
       recoverable(next)
@@ -361,15 +364,17 @@ export function Paint() {
     setSaving(true);
     failed.current = false;
     try {
-      const result: Drawing = await localJSON("/api/organizer/" + next.id, {
+      pendingSave.current = localJSON("/api/organizer/" + next.id, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(next),
       });
+      const result = await pendingSave.current;
       // A stroke or title edit can happen while the save request is in flight.
       const latest = { ...document.current, revision: result.revision };
       document.current = latest;
       if (generation.current === version) {
+        unsaved.current = false;
         localStorage.removeItem(draftKey);
         if (alive.current) {
           setDirty(false);
@@ -392,6 +397,7 @@ export function Paint() {
         );
     } finally {
       inFlight.current = false;
+      pendingSave.current = null;
       if (alive.current) setSaving(false);
     }
   }
@@ -423,6 +429,7 @@ export function Paint() {
       undo.current = [];
       redo.current = [];
       setSelection(null);
+      unsaved.current = false;
       setDirty(false);
       failed.current = false;
       setStatus(item.revision ? "Saved on Pi" : "New drawing");
@@ -461,6 +468,7 @@ export function Paint() {
     }
     void load(recovered || document.current).then((loaded) => {
       if (loaded && recovered && alive.current) {
+        unsaved.current = true;
         setDirty(true);
         setStatus("Recovered unsaved drawing");
       }
@@ -469,6 +477,28 @@ export function Paint() {
       alive.current = false;
     };
   }, []);
+  useLayoutEffect(() => {
+    if (!beforeLeave) return;
+    const guard = async () => {
+      if (!unsaved.current) return true;
+      if (stroke.current) {
+        setStatus("Finish the stroke before switching pages.");
+        return false;
+      }
+      if (pendingSave.current) {
+        try { await pendingSave.current; } catch { return false; }
+        if (!unsaved.current) return true;
+      }
+      if (!document.current.title.trim()) {
+        setStatus("Name this drawing before leaving Paint.");
+        return false;
+      }
+      await save();
+      return !unsaved.current;
+    };
+    beforeLeave.current = guard;
+    return () => { if (beforeLeave.current === guard) beforeLeave.current = null; };
+  });
   useEffect(() => {
     if (!ready || !dirty || saving || failed.current || !drawing.title.trim())
       return;

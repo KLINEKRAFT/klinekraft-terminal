@@ -24,15 +24,19 @@ export function PowerControls() {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [open, setOpen] = useState(false);
+  const mutation = useRef(0);
+  const changing = useRef(false);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const id = useId();
   useEffect(() => {
     const controller = new AbortController();
     const refresh = async () => {
+      if (changing.current) return;
+      const version = mutation.current;
       try {
         const p = await localJSON("/api/power", { signal: controller.signal });
-        if (!controller.signal.aborted) setPower(p);
+        if (!controller.signal.aborted && version === mutation.current && !changing.current) setPower(p);
       } catch {
         /* Unsupported preview hosts have no power controls. */
       }
@@ -69,6 +73,9 @@ export function PowerControls() {
     };
   }, [open]);
   async function set(kind: "field" | "dim", enabled: boolean) {
+    if (changing.current) return;
+    changing.current = true;
+    mutation.current++;
     setBusy(true);
     setError("");
     try {
@@ -82,6 +89,8 @@ export function PowerControls() {
     } catch (e) {
       setError((e as Error).message);
     } finally {
+      mutation.current++;
+      changing.current = false;
       setBusy(false);
     }
   }

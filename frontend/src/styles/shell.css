@@ -568,3 +568,8 @@ main[data-page="Home"] .page-content {
 .sidebar nav button:hover:not([aria-current]) {
   background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
+
+/* Navigation must stay clickable above the live event ticker and popovers. */
+.minimal-shell .sidebar {
+  z-index: 400;
+}
