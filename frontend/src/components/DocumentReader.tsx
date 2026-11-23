@@ -96,6 +96,14 @@ export function DocumentReader({ source, onClose, onAsk }: {
     return () => { disposed = true; render?.cancel(); };
   }, [pdf, page]);
 
+  useEffect(() => {
+    const provide = (event: Event) => {
+      (event as CustomEvent<{ text: string }>).detail.text = loading || rendering ? "This page is still loading." : (pdf ? pageText : text) || "This page has no readable text. It may need OCR.";
+    };
+    window.addEventListener("klinekraft-voice-context", provide);
+    return () => window.removeEventListener("klinekraft-voice-context", provide);
+  }, [loading, rendering, pdf, pageText, text]);
+
   return <dialog ref={dialog} className="document-reader" aria-labelledby={heading} onCancel={onClose}>
     <header>
       <h2 id={heading}>{source.title}</h2>

@@ -1,0 +1,15 @@
+.voice-presence { display:block;width:160px;height:160px;flex-shrink:0; }
+.voice-hud { position:fixed;inset:auto 16px 16px auto;margin:0;width:min(500px,calc(100vw - 32px));max-height:70vh;overflow:auto;box-sizing:border-box;border:1px solid #0227ff26;border-radius:20px;background:#f2f0ea;color:#242424;padding:8px 14px;box-shadow:0 12px 60px #0003;font-family:var(--sans); }
+.voice-hud:popover-open {display:flex;gap:10px;align-items:center;}
+.voice-hud .voice-presence {width:100px;height:110px;}
+.voice-hud-text {min-width:0;flex:1;}
+.voice-hud-text p {margin:5px 0;font-size:13px;overflow-wrap:anywhere;max-height:180px;overflow:auto;}
+.voice-hud-text summary {font-size:12px;}
+.voice-phase {font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#003da5;}
+.voice-settings-body {display:grid;gap:14px;padding:16px 0;}
+.voice-settings-body .voice-presence {justify-self:center;}
+.voice-settings-body label {display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+.voice-settings-body small {font-size:12px;line-height:1.6;}
+.voice-button-wrap {position:relative;display:inline-flex;}
+.voice-button-wrap small {position:absolute;right:0;top:100%;min-width:180px;background:var(--paper);padding:12px;z-index:20;}
+@media(max-width:480px){.voice-hud {inset:auto 8px 8px auto;width:calc(100vw - 16px);gap:5px;padding:8px;}.voice-hud .voice-presence{width:66px;height:90px;}}

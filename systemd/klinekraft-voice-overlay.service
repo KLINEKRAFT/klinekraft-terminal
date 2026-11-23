@@ -1,0 +1,13 @@
+[Unit]
+Description=Shackleton desktop voice indicator
+After=graphical-session.target klinekraft.service
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/python3 %h/klinekraft-terminal/scripts/voice-overlay.py
+Restart=on-failure
+RestartSec=5
+UMask=0077
+
+[Install]
+WantedBy=default.target

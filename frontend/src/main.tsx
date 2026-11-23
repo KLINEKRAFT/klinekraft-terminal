@@ -1,3 +1,5 @@
+import { VoiceCompanion } from "./components/VoiceCompanion";
+import "./styles/voice.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "@fontsource/inter/latin-400.css";
@@ -16,6 +18,6 @@ import "./styles/notes.css";
 import "./styles/controls.css";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {new URLSearchParams(window.location.search).get("desktop-away") === "1" ? <DesktopAway /> : <App />}
+    {new URLSearchParams(window.location.search).get("desktop-away") === "1" ? <><DesktopAway /><VoiceCompanion /></> : <App />}
   </React.StrictMode>,
 );

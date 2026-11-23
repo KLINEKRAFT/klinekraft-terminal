@@ -1,3 +1,5 @@
+import { announceSpeech, setAudioFocus } from "../audioFocus";
+import { VoiceCompanionSettings } from "./VoiceCompanion";
 import { useEffect, useRef, useState } from "react";
 import { Volume2, Square, Copy } from "lucide-react";
 import { localJSON } from "./WikiReader";
@@ -22,6 +24,12 @@ export function useReadAloud() {
     request = useRef<AbortController | null>(null),
     cache = useRef<{ key: string; url: string } | null>(null);
   const seq = useRef(0);
+  const owner = useRef(Symbol("read-aloud"));
+  useEffect(() => {
+    const other = (event: Event) => { if ((event as CustomEvent).detail !== owner.current) stop(); };
+    window.addEventListener("klinekraft-speech-owner", other);
+    return () => { window.removeEventListener("klinekraft-speech-owner", other); setAudioFocus(owner.current, false); };
+  }, []);
   useEffect(() => {
     const c = new AbortController();
     const load = () => { void localJSON("/api/speech", { signal: c.signal })
@@ -39,6 +47,7 @@ export function useReadAloud() {
     };
   }, []);
   function stop() {
+    setAudioFocus(owner.current, false);
     seq.current++;
     request.current?.abort();
     player.current?.pause();
@@ -51,6 +60,8 @@ export function useReadAloud() {
       return;
     }
     stop();
+    announceSpeech(owner.current);
+    setAudioFocus(owner.current, true);
     setError("");
     setActive(index);
     setLoading(true);
@@ -86,10 +97,11 @@ export function useReadAloud() {
       const audio = new Audio(cache.current!.url);
       player.current = audio;
       audio.onended = () => {
-        if (version === seq.current) { setActive(null); onEnded?.(); }
+        if (version === seq.current) { setAudioFocus(owner.current, false); setActive(null); onEnded?.(); }
       };
       audio.onerror = () => {
         if (version === seq.current) {
+          setAudioFocus(owner.current, false);
           setError("Speech could not play.");
           setActive(null);
         }
@@ -98,6 +110,7 @@ export function useReadAloud() {
       if (version === seq.current) setLoading(false);
     } catch (e) {
       if (version === seq.current && !c.signal.aborted) {
+        setAudioFocus(owner.current, false);
         setError((e as Error).message);
         setActive(null);
         setLoading(false);
@@ -282,6 +295,7 @@ export function SpeechSettings() {
   return <section className="settings-panel" aria-label="Speech">
     <h2>Speech</h2>
     <VoiceSettings reader={reader} />
+    <VoiceCompanionSettings />
     {reader.error && <p role="alert">{reader.error}</p>}
   </section>;
 }

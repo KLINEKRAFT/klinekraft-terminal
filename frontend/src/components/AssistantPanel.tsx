@@ -1,3 +1,5 @@
+import { VoicePresence } from "./VoicePresence";
+import { voiceControl } from "./VoiceCompanion";
 import { AnswerActions, useReadAloud } from "./SpeechControls";
 import { SourceLink } from "./Briefing";
 import { AnswerMarkdown } from "./AnswerMarkdown";
@@ -6,7 +8,7 @@ import { DocumentReader, type DocumentSource } from "./DocumentReader";
 import { NotebookSave } from "./Notebook";
 import { useConversations, downloadJSON } from "./useConversations";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowUp, Paperclip, Plus, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUp, Paperclip, Plus, SlidersHorizontal, X, Mic, Square } from "lucide-react";
 import { isHostedDemo } from "../runtime";
 import {
   ArticleDialog,
@@ -108,6 +110,7 @@ export function AssistantPanel({
         : "the local model on this Pi"
       : "OpenAI";
   const [question, setQuestion] = useState("");
+  const [readReplies, setReadReplies] = useState(() => localStorage.getItem("klinekraft.ai.readReplies") === "true");
   const [attachment, setAttachment] = useState<File | null>(
     initialAttachment ?? null,
   );
@@ -211,6 +214,7 @@ export function AssistantPanel({
         ...turns,
         { question: sent, attachmentName: attachment?.name, ...data },
       ]);
+      if (readReplies) void reader.speak(data.answer, turns.length);
       requestAnimationFrame(() => input.current?.focus());
     } catch (e) {
       if (!request.signal.aborted) {
@@ -281,6 +285,7 @@ export function AssistantPanel({
             <span>{provider === "local" ? "Offline" : "Cloud"}</span>
           </summary>
           <div className="ai-options-content">
+            <label><input type="checkbox" checked={readReplies} onChange={e => { setReadReplies(e.target.checked); localStorage.setItem("klinekraft.ai.readReplies", String(e.target.checked)); }} />Read new answers aloud</label>
             <label>
               <input
                 type="checkbox"
@@ -662,9 +667,11 @@ export function AssistantPanel({
           {busy && (
             <article className="ai-turn">
               <h2 className="ai-user-message">{pending}</h2>
+              <VoicePresence phase="thinking" />
               <p className="ai-thinking" role="status">
                 {useWiki ? "Reading and thinking…" : "Thinking…"}
               </p>
+              <button className="k-btn k-btn--quiet" onClick={() => { controller.current?.abort(); setQuestion(pending); setPending(""); setBusy(false); }}><Square size={14} />Stop response</button>
             </article>
           )}
           <div ref={end} />
@@ -688,6 +695,7 @@ export function AssistantPanel({
           </p>
         )}
         <form className="ai-composer" onSubmit={ask}>
+          <button type="button" className="icon-button" aria-label="Speak to Shackleton" disabled={busy || isHostedDemo} onClick={() => void voiceControl("listen").catch(e => setError(e.message))}><Mic size={17} /></button>
           <input
             type="file"
             ref={fileInput}

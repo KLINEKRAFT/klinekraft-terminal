@@ -97,6 +97,7 @@ class Question(BaseModel):
     model_config = ConfigDict(extra='forbid')
     provider: Literal['local', 'cloud'] = 'cloud'
     reference_only: bool = False
+    voice_mode: bool = False
     question: str = Field(min_length=1, max_length=3000)
     history: list[Message] = Field(default_factory=list, max_length=6)
     attachment: Attachment | None = None
@@ -291,6 +292,12 @@ def ask(body: Question = Depends(bounded_question)):
 
             included = {e['id'] for e in excerpts + research_excerpts}
             sources = [s for s in sources if s['id'] in included]
+        if body.voice_mode:
+            system += (' This is a spoken conversation. Answer in one to three short sentences, normally under 60 words. '
+                       'Use plain spoken language. Do not infer a medical or survival question from an unclear transcription '
+                       'or from irrelevant retrieved references. For unclear or fragmentary speech, ask one short clarification. '
+                       'Treat no thanks, nothing else, and goodbye as the end of the conversation. '
+                       'Do not claim to perform a device action: only the separate local command handler can do that.')
         messages = [{'role': 'system', 'content': system}]
 
         messages.extend({'role': h.role, 'content': h.content[:1200] if body.provider == 'local' else h.content} for h in (body.history[-2:] if body.provider == 'local' else body.history))

@@ -15,3 +15,10 @@ def isolate_briefing_cache(tmp_path, monkeypatch):
     cache.mkdir()
     monkeypatch.setattr(briefing, 'root', lambda: cache)
     monkeypatch.setattr(briefing, 'refresh', lambda: None)
+
+@pytest.fixture(autouse=True)
+def isolate_voice(monkeypatch):
+    # API tests never open the owner's microphone or start companion threads.
+    from klinekraft import voice
+    monkeypatch.setattr(voice.companion, 'start', lambda: None)
+    monkeypatch.setattr(voice.companion, 'close', lambda: None)

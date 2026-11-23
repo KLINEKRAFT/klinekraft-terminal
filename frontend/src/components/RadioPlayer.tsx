@@ -15,6 +15,7 @@ export function RadioPlayer() {
   const panel = useRef<HTMLDetailsElement>(null),
     audio = useRef<HTMLAudioElement>(null),
     sequence = useRef(0);
+  const ducked = useRef(false);
   const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const station = stations.find((s) => s.id === selected);
   useEffect(() => {
@@ -78,7 +79,7 @@ export function RadioPlayer() {
     setError("");
     const attempt = sequence.current;
     audio.current!.src = station.url;
-    audio.current!.volume = 1;
+    audio.current!.volume = ducked.current ? .15 : 1;
     setActive(true);
     buffer();
     try {
@@ -90,6 +91,22 @@ export function RadioPlayer() {
         );
     }
   }
+  const voiceHandlers = useRef({ play, stop });
+  voiceHandlers.current = { play, stop };
+  useEffect(() => {
+    const duck = (event: Event) => {
+      ducked.current = !!(event as CustomEvent<boolean>).detail;
+      if (audio.current) audio.current.volume = ducked.current ? .15 : 1;
+    };
+    const command = (event: Event) => {
+      const { action, complete } = (event as CustomEvent<{ action: string; complete: (message: string) => void }>).detail;
+      if (action === "stop") { voiceHandlers.current.stop(); complete("Radio stopped."); }
+      else void voiceHandlers.current.play().then(() => complete(audio.current?.paused ? "Radio could not start. Check the stream on screen." : "Radio playing."));
+    };
+    window.addEventListener("klinekraft-voice-duck", duck);
+    window.addEventListener("klinekraft-voice-radio", command);
+    return () => { window.removeEventListener("klinekraft-voice-duck", duck); window.removeEventListener("klinekraft-voice-radio", command); };
+  }, []);
   async function add(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);

@@ -1,3 +1,4 @@
+import { VoiceButton, VoiceCompanion } from "./components/VoiceCompanion";
 import { SpeechSettings } from "./components/SpeechControls";
 import { useCardDismissal } from "./hooks/useCardDismissal";
 import { BriefMe } from "./components/BriefMe";
@@ -459,11 +460,12 @@ export default function App() {
     const attempt = ++navigationAttempt.current;
     if (section === "Paint" && next !== "Paint" && paintBeforeLeave.current) {
       const saved = await paintBeforeLeave.current();
-      if (!saved || attempt !== navigationAttempt.current) return;
+      if (!saved || attempt !== navigationAttempt.current) return false;
     }
     setCollapsed(true);
     setSection(next);
     setNotice("");
+    return true;
   };
   async function fullscreen() {
     try {
@@ -621,6 +623,7 @@ export default function App() {
             </button>
             <Briefing />
             <PowerControls />
+            <VoiceButton />
             <RadioPlayer />
             <VolumeControl />
             <button
@@ -827,6 +830,7 @@ export default function App() {
         </div>
       </main>
       <AwayPanel />
+      <VoiceCompanion onNavigate={async page => { if (![...navigationSections, ...homeSections, "Home", "Files", "Network", "System"].includes(page as Section)) return false; return await navigate(page as Section); }} />
       {exitHelp && (
         <div className="modal-backdrop" onClick={() => setExitHelp(false)}>
           <section
